@@ -45,3 +45,12 @@ StashStats.md
 .worktrees/
 dev.ipynb
 *.csv
+
+# SQLite databases
+*.db
+*.db-wal
+*.db-shm
+
+# Coverage
+htmlcov/
+.coverage
