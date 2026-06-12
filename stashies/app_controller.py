@@ -281,15 +281,15 @@ class AppController(Base):
             return html.Div("No stashed yarns found or API request failed.", className="text-warning mt-3")
 
         proj_map = self.MODEL.get_project_map()
-        df = self.MODEL.get_analytics_dataframe(stash_list, proj_map)
+        daily_df = self.MODEL.get_analytics_dataframe(stash_list, proj_map)
 
-        if df.empty:
+        if daily_df.empty:
             return html.Div("No valid stashed yarn records with creation dates found.", className="text-info mt-3")
 
-        curr_yards = df["cumulative_yards"].iloc[-1] if not df.empty else 0
-        curr_meters = df["cumulative_meters"].iloc[-1] if not df.empty else 0
-        curr_skeins = df["cumulative_skeins"].iloc[-1] if not df.empty else 0
-        curr_grams = df["cumulative_grams"].iloc[-1] if not df.empty else 0
+        curr_yards = daily_df["cumulative_yards"].iloc[-1]
+        curr_meters = daily_df["cumulative_meters"].iloc[-1]
+        curr_skeins = daily_df["cumulative_skeins"].iloc[-1]
+        curr_grams = daily_df["cumulative_grams"].iloc[-1]
 
         stats_cards = self.ANALYTICS.build_stats_cards(
             curr_yards=curr_yards,
@@ -298,6 +298,18 @@ class AppController(Base):
             curr_grams=curr_grams,
             selected_metric=selected_metric,
         )
+
+        if selected_metric == "animated":
+            df = self.MODEL.get_animated_analytics_dataframe(stash_list, proj_map)
+            fig = self.ANALYTICS.build_animated_figure(df, is_mobile=True)
+            return html.Div(
+                [
+                    stats_cards,
+                    dcc.Graph(figure=fig, config={'responsive': True}, style={'minWidth': '0'})
+                ]
+            )
+
+        df = daily_df
 
         if moving_average:
             import pandas as pd

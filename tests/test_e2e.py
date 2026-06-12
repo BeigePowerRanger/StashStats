@@ -501,6 +501,46 @@ def test_stash_card_carousel_rendering():
     assert carousel.items[0]["src"] == "https://placehold.co/150"
 
 
+def test_animated_analytics():
+    from stashies.model import Model
+    m = Model()
+    stash_list = [
+        {
+            "id": 201,
+            "created_at": "2026/05/01 12:00:00 -0400",
+            "updated_at": "2026/05/01 12:00:00 -0400",
+            "yarn": {
+                "yardage": 100,
+                "grams": 50,
+                "yarn_weight_name": "Worsted"
+            },
+            "packs": [{"skeins": 2}]
+        },
+        {
+            "id": 202,
+            "created_at": "2026/05/15 12:00:00 -0400",
+            "updated_at": "2026/05/15 12:00:00 -0400",
+            "yarn": {
+                "yardage": 150,
+                "grams": 100,
+                "yarn_weight_name": "DK"
+            },
+            "packs": [{"skeins": 4}]
+        }
+    ]
+    df = m.get_animated_analytics_dataframe(stash_list, {})
+    assert not df.empty
+    assert "cumulative_yards" in df.columns
+    assert "cumulative_grams" in df.columns
+    assert "frame_date" in df.columns
+    assert "size_skeins" in df.columns
+    
+    categories = df["category"].unique()
+    assert "Worsted" in categories
+    assert "DK" in categories
+
+
+
 
 
 

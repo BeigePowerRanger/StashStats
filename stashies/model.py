@@ -553,6 +553,168 @@ class Model(Base):
             self.LOGGER.error(f"Error fetching projects for stash subtraction: {e}")
         return proj_map
 
+    def get_animated_analytics_dataframe(self, stash_list: List[Dict[str, Any]], proj_map: Dict[int, Any]) -> Any:
+        """
+        Extract history and build cumulative data grouped by month and yarn weight category.
+        - Input
+            - stash_list (list): Enriched stash entries.
+            - proj_map (dict): Project ID to datetime mapping.
+        - output: pandas.DataFrame containing sorted date-grouped stats and cumulatives by category.
+        """
+        import pandas as pd
+        data = []
+        for s in stash_list:
+            created_str = s.get("created_at")
+            if not created_str:
+                continue
+            try:
+                date_part = created_str.split(" ")[0]
+                stash_date = pd.to_datetime(date_part, format="%Y/%m/%d")
+            except Exception:
+                continue
+                
+            updated_str = s.get("updated_at")
+            stash_update_date = None
+            if updated_str:
+                try:
+                    up_date_part = updated_str.split(" ")[0]
+                    stash_update_date = pd.to_datetime(up_date_part, format="%Y/%m/%d")
+                except Exception:
+                    pass
+
+            yarn_info = s.get("yarn") or {}
+            category = yarn_info.get("yarn_weight_name") or "Unknown Weight"
+            
+            yardage = float(yarn_info.get("yardage") or 0)
+            grams = float(yarn_info.get("grams") or 0)
+            meters = yardage * 0.9144
+            orig = s.get("original_values")
+            packs = s.get("packs") or []
+            status_id = s.get("stash_status", {}).get("id")
+
+            if orig:
+                data.append({
+                    "date": stash_date,
+                    "category": category,
+                    "yards": float(orig.get("yards") or 0),
+                    "meters": float(orig.get("meters") or 0),
+                    "skeins": float(orig.get("skeins") or 0),
+                    "grams": float(orig.get("grams") or 0),
+                })
+            elif packs:
+                for pack in packs:
+                    if pack.get("primary_pack_id") is not None:
+                        continue
+                    skeins_val = float(pack.get("skeins") if pack.get("skeins") is not None else 1.0)
+                    p_yards = pack.get("total_yards")
+                    pack_yards = float(p_yards) if p_yards is not None else skeins_val * float(pack.get("yards_per_skein") or yardage or 0)
+                    p_meters = pack.get("total_meters")
+                    pack_meters = float(p_meters) if p_meters is not None else pack_yards * 0.9144
+                    p_grams = pack.get("total_grams")
+                    pack_grams = float(p_grams) if p_grams is not None else skeins_val * float(pack.get("grams_per_skein") or grams or 0)
+
+                    data.append({
+                        "date": stash_date,
+                        "category": category,
+                        "yards": pack_yards,
+                        "meters": pack_meters,
+                        "skeins": skeins_val,
+                        "grams": pack_grams,
+                    })
+            else:
+                data.append({
+                    "date": stash_date,
+                    "category": category,
+                    "yards": yardage,
+                    "meters": meters,
+                    "skeins": 1.0,
+                    "grams": grams,
+                })
+
+            if packs:
+                for pack in packs:
+                    if pack.get("primary_pack_id") is not None:
+                        continue
+                    skeins_val = float(pack.get("skeins") if pack.get("skeins") is not None else 1.0)
+                    p_yards = pack.get("total_yards")
+                    pack_yards = float(p_yards) if p_yards is not None else skeins_val * float(pack.get("yards_per_skein") or yardage or 0)
+                    p_meters = pack.get("total_meters")
+                    pack_meters = float(p_meters) if p_meters is not None else pack_yards * 0.9144
+                    p_grams = pack.get("total_grams")
+                    pack_grams = float(p_grams) if p_grams is not None else skeins_val * float(pack.get("grams_per_skein") or grams or 0)
+
+                    proj_id = pack.get("project_id")
+                    if proj_id and proj_id in proj_map:
+                        data.append({
+                            "date": proj_map[proj_id],
+                            "category": category,
+                            "yards": -pack_yards,
+                            "meters": -pack_meters,
+                            "skeins": -skeins_val,
+                            "grams": -pack_grams,
+                        })
+                    elif status_id in (2, 4) and stash_update_date:
+                        data.append({
+                            "date": stash_update_date,
+                            "category": category,
+                            "yards": -pack_yards,
+                            "meters": -pack_meters,
+                            "skeins": -skeins_val,
+                            "grams": -pack_grams,
+                        })
+            else:
+                if status_id in (2, 4) and stash_update_date:
+                    data.append({
+                        "date": stash_update_date,
+                        "category": category,
+                        "yards": -yardage,
+                        "meters": -meters,
+                        "skeins": -1.0,
+                        "grams": -grams,
+                    })
+
+            for event in s.get("history") or []:
+                try:
+                    data.append({
+                        "date": pd.to_datetime(event["date"], format="%Y-%m-%d"),
+                        "category": category,
+                        "yards": float(event["yards"]),
+                        "meters": float(event["meters"]),
+                        "skeins": float(event["skeins"]),
+                        "grams": float(event["grams"]),
+                    })
+                except Exception:
+                    pass
+
+        if not data:
+            return pd.DataFrame(columns=["date", "category", "yards", "meters", "skeins", "grams",
+                                         "cumulative_yards", "cumulative_meters",
+                                         "cumulative_skeins", "cumulative_grams", "size_skeins", "frame_date"])
+
+        df = pd.DataFrame(data)
+        df["date"] = df["date"].dt.to_period("M").dt.to_timestamp("M")
+        
+        df = df.groupby(["date", "category"])[["yards", "meters", "skeins", "grams"]].sum().reset_index()
+        
+        all_dates = df["date"].unique()
+        all_categories = df["category"].unique()
+        
+        idx = pd.MultiIndex.from_product([all_dates, all_categories], names=["date", "category"])
+        df = df.set_index(["date", "category"]).reindex(idx, fill_value=0.0).reset_index()
+        
+        df = df.sort_values(["category", "date"])
+        
+        df["cumulative_yards"] = df.groupby("category")["yards"].cumsum()
+        df["cumulative_meters"] = df.groupby("category")["meters"].cumsum()
+        df["cumulative_skeins"] = df.groupby("category")["skeins"].cumsum()
+        df["cumulative_grams"] = df.groupby("category")["grams"].cumsum()
+        
+        df = df.sort_values(["date", "category"])
+        df["frame_date"] = df["date"].dt.strftime("%Y-%m")
+        df["size_skeins"] = df["cumulative_skeins"].apply(lambda x: max(x, 0.1))
+        
+        return df
+
     def get_analytics_dataframe(self, stash_list: List[Dict[str, Any]], proj_map: Dict[int, Any]) -> Any:
         """
         Extract history and build cumulative data over time for analytics.

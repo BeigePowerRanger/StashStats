@@ -68,6 +68,7 @@ class AnalyticsComponent(BaseComponent):
                     id="analytics-metric-selector",
                     options=[
                         {"label": "All Metrics (Grid)", "value": "all"},
+                        {"label": "Animated Category Growth (Scatter)", "value": "animated"},
                         {"label": "Meters (m)", "value": "meters"},
                         {"label": "Skeins (qty)", "value": "skeins"},
                         {"label": "Weight (grams)", "value": "grams"},
@@ -254,6 +255,71 @@ class AnalyticsComponent(BaseComponent):
             line_color=metric_info.get("color", "#00bc8c"),
             marker=dict(size=4 if is_mobile else 6)
         )
+        return fig
+
+    def build_animated_figure(self, df: Any, is_mobile: bool = False) -> Any:
+        """
+        Create a Plotly Animated Scatter figure showing yarn category growth over time.
+        - Input
+            - df (DataFrame): Sorted and resampled pandas DataFrame by month and category.
+            - is_mobile (bool): True to render using compact margins/fonts.
+        - output: plotly.graph_objects.Figure instance.
+        """
+        import plotly.express as px
+        
+        max_x = df["cumulative_yards"].max() if not df.empty else 100
+        max_y = df["cumulative_grams"].max() if not df.empty else 100
+        
+        fig = px.scatter(
+            df,
+            x="cumulative_yards",
+            y="cumulative_grams",
+            animation_frame="frame_date",
+            animation_group="category",
+            color="category",
+            size="size_skeins",
+            hover_name="category",
+            range_x=[-max_x * 0.05, max_x * 1.15],
+            range_y=[-max_y * 0.05, max_y * 1.15],
+            title="Yarn Category Growth Over Time (Yards vs Weight)",
+            labels={
+                "cumulative_yards": "Cumulative Length (yards)",
+                "cumulative_grams": "Cumulative Weight (grams)",
+                "category": "Yarn Weight",
+                "size_skeins": "Skeins"
+            },
+            template="plotly_dark",
+            size_max=40 if is_mobile else 60
+        )
+        
+        font_size = 10 if is_mobile else 12
+        title_size = 12 if is_mobile else 14
+        margin_l = 30 if is_mobile else 55
+        margin_r = 10 if is_mobile else 20
+        margin_t = 35 if is_mobile else 45
+        margin_b = 35 if is_mobile else 45
+
+        fig.update_layout(
+            font=dict(size=font_size, color="#ffffff"),
+            title_font=dict(size=title_size, color="#00bc8c"),
+            hoverlabel=dict(bgcolor="#222222", font_size=font_size, font_color="#ffffff"),
+            margin=dict(l=margin_l, r=margin_r, t=margin_t, b=margin_b),
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(0,0,0,0)"
+        )
+        
+        fig.update_xaxes(showgrid=True, gridcolor="rgba(255,255,255,0.1)")
+        fig.update_yaxes(showgrid=True, gridcolor="rgba(255,255,255,0.1)")
+        
+        fig.update_traces(
+            hovertemplate="<b>%{hovertext}</b><br>Yards: %{x:,.0f} yds<br>Weight: %{y:,.0f} g<extra></extra>"
+        )
+        
+        # Smooth animation speeds
+        if fig.layout.updatemenus:
+            fig.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = 800
+            fig.layout.updatemenus[0].buttons[0].args[1]["transition"]["duration"] = 400
+            
         return fig
 
     def build_grid(self, figs: Dict[str, Any]) -> html.Div:
