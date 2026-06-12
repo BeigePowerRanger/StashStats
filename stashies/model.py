@@ -596,6 +596,11 @@ class Model(Base):
             - proj_map (dict): Project ID to datetime mapping.
         - output: pandas.DataFrame containing sorted date-grouped stats and cumulatives by category.
         """
+        import os
+        if os.getenv("DEV_MOCK_ANALYTICS") == "True":
+            from .mock_analytics import get_mock_animated_analytics_dataframe
+            return get_mock_animated_analytics_dataframe()
+
         import pandas as pd
         data = []
         for s in stash_list:
@@ -758,6 +763,11 @@ class Model(Base):
             - proj_map (dict): Project ID to datetime mapping.
         - output: pandas.DataFrame containing sorted date-grouped stats and cumulatives.
         """
+        import os
+        if os.getenv("DEV_MOCK_ANALYTICS") == "True":
+            from .mock_analytics import get_mock_analytics_dataframe
+            return get_mock_analytics_dataframe()
+
         import pandas as pd
         data = []
         for s in stash_list:
