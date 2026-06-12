@@ -224,33 +224,59 @@ class Model(Base):
         r = self.get_redis()
 
         dirty_items = []
+        
+        # 1. Gather all stash IDs
+        stash_ids = [str(s["id"]) for s in all_stashes if "id" in s]
+        
+        # 2. Bulk fetch from Redis
+        cached_vals = {}
+        if r and stash_ids:
+            try:
+                keys = [f"stash_detail:{sid}" for sid in stash_ids]
+                values = r.mget(keys)
+                for sid, val in zip(stash_ids, values):
+                    if val:
+                        cached_vals[sid] = val
+            except Exception as e:
+                self.LOGGER.error(f"Redis mget failed: {e}")
+                
+        # 3. Process which items are dirty
+        cached_stashes_to_db_fetch = set()
         for s in all_stashes:
             if "id" not in s:
                 continue
             stash_id = str(s["id"])
             updated_at = s.get("updated_at")
             
-            # Read from Redis cache
-            cached_val = None
-            if r:
-                try:
-                    cached_val = r.get(f"stash_detail:{stash_id}")
-                except Exception as e:
-                    self.LOGGER.error(f"Redis get failed: {e}")
-
+            cached_val = cached_vals.get(stash_id)
+            is_cached = False
+            
             if cached_val:
                 try:
                     cached_data = json.loads(cached_val)
                     if cached_data.get("updated_at") == updated_at:
                         s["packs"] = cached_data.get("packs") or []
-                        # Retrieve history and original_values from SQLite
-                        s["history"] = DBManager.get_stash_history(stash_id) or []
-                        s["original_values"] = DBManager.get_original_values(stash_id)
-                        continue
+                        cached_stashes_to_db_fetch.add(stash_id)
+                        is_cached = True
                 except Exception as e:
                     self.LOGGER.error(f"Failed to parse cached details for {stash_id}: {e}")
-
-            dirty_items.append(s)
+                    
+            if not is_cached:
+                dirty_items.append(s)
+                
+        # 4. Bulk fetch DB for cached items
+        if cached_stashes_to_db_fetch:
+            db_fetch_list = list(cached_stashes_to_db_fetch)
+            bulk_history = DBManager.get_bulk_stash_history(db_fetch_list)
+            bulk_orig = DBManager.get_bulk_original_values(db_fetch_list)
+            
+            for s in all_stashes:
+                if "id" not in s:
+                    continue
+                stash_id = str(s["id"])
+                if stash_id in cached_stashes_to_db_fetch:
+                    s["history"] = bulk_history.get(stash_id) or []
+                    s["original_values"] = bulk_orig.get(stash_id)
                 
         if dirty_items:
             def fetch_detail(item):
@@ -532,8 +558,12 @@ class Model(Base):
                 self.LOGGER.error(f"Redis get proj_map failed: {e}")
         proj_map = {}
         try:
-            proj_resp = self.REQ.get_request(f"people/{username}/projects/list.json", params={"page_size": 100})
-            if proj_resp and "projects" in proj_resp:
+            page = 1
+            while True:
+                proj_resp = self.REQ.get_request(f"people/{username}/projects/list.json", params={"page_size": 100, "page": page})
+                if not proj_resp or "projects" not in proj_resp or not proj_resp["projects"]:
+                    break
+                    
                 for p in proj_resp["projects"]:
                     p_id = p.get("id")
                     date_str = p.get("completed") or p.get("started") or p.get("created_at")
@@ -543,6 +573,11 @@ class Model(Base):
                             proj_map[p_id] = pd.to_datetime(date_part)
                         except Exception:
                             pass
+                            
+                if len(proj_resp["projects"]) < 100:
+                    break
+                page += 1
+                
             if proj_map and r:
                 try:
                     serialized = {str(k): v.isoformat() for k, v in proj_map.items()}
@@ -878,15 +913,23 @@ class Model(Base):
                 self.LOGGER.error(f"Redis get projects_list failed: {e}")
 
         try:
-            resp = self.REQ.get_request(f"people/{username}/projects/list.json", params={"page_size": 100})
-            if resp and "projects" in resp:
-                projects = resp["projects"]
-                if r:
-                    try:
-                        r.setex(cache_key, 600, json.dumps(projects))
-                    except Exception as e:
-                        self.LOGGER.error(f"Redis set projects_list failed: {e}")
-                return projects
+            projects = []
+            page = 1
+            while True:
+                resp = self.REQ.get_request(f"people/{username}/projects/list.json", params={"page_size": 100, "page": page})
+                if not resp or "projects" not in resp or not resp["projects"]:
+                    break
+                projects.extend(resp["projects"])
+                if len(resp["projects"]) < 100:
+                    break
+                page += 1
+                
+            if projects and r:
+                try:
+                    r.setex(cache_key, 600, json.dumps(projects))
+                except Exception as e:
+                    self.LOGGER.error(f"Redis set projects_list failed: {e}")
+            return projects if projects else None
         except Exception as e:
             self.LOGGER.error(f"Error fetching projects list: {e}")
         return None
@@ -907,15 +950,23 @@ class Model(Base):
                 self.LOGGER.error(f"Redis get queue_list failed: {e}")
 
         try:
-            resp = self.REQ.get_request(f"people/{username}/queue/list.json", params={"page_size": 100})
-            if resp and "queued_projects" in resp:
-                queue = resp["queued_projects"]
-                if r:
-                    try:
-                        r.setex(cache_key, 600, json.dumps(queue))
-                    except Exception as e:
-                        self.LOGGER.error(f"Redis set queue_list failed: {e}")
-                return queue
+            queue = []
+            page = 1
+            while True:
+                resp = self.REQ.get_request(f"people/{username}/queue/list.json", params={"page_size": 100, "page": page})
+                if not resp or "queued_projects" not in resp or not resp["queued_projects"]:
+                    break
+                queue.extend(resp["queued_projects"])
+                if len(resp["queued_projects"]) < 100:
+                    break
+                page += 1
+                
+            if queue and r:
+                try:
+                    r.setex(cache_key, 600, json.dumps(queue))
+                except Exception as e:
+                    self.LOGGER.error(f"Redis set queue_list failed: {e}")
+            return queue if queue else None
         except Exception as e:
             self.LOGGER.error(f"Error fetching queue list: {e}")
         return None

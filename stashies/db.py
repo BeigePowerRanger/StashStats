@@ -106,6 +106,32 @@ class DBManager:
             cls.get_pool().putconn(conn)
 
     @classmethod
+    def get_bulk_original_values(cls, stash_ids: list):
+        if not stash_ids:
+            return {}
+        conn = cls.get_pool().getconn()
+        try:
+            cur = conn.cursor()
+            try:
+                placeholders = ",".join("?" for _ in stash_ids)
+                cur.execute(
+                    f"SELECT stash_id, yards, meters, skeins, grams FROM original_values WHERE stash_id IN ({placeholders})", 
+                    tuple(str(sid) for sid in stash_ids)
+                )
+                rows = cur.fetchall()
+                results = {}
+                for row in rows:
+                    results[row[0]] = {"yards": row[1], "meters": row[2], "skeins": row[3], "grams": row[4]}
+                return results
+            finally:
+                cur.close()
+        except Exception as e:
+            logger.error(f"Error reading bulk original_values: {e}")
+            return {}
+        finally:
+            cls.get_pool().putconn(conn)
+
+    @classmethod
     def save_original_values(cls, stash_id: str, yards: float, meters: float, skeins: float, grams: float):
         conn = cls.get_pool().getconn()
         try:
@@ -150,6 +176,41 @@ class DBManager:
         except Exception as e:
             logger.error(f"Error reading stash_history for stash {stash_id}: {e}")
             return []
+        finally:
+            cls.get_pool().putconn(conn)
+
+    @classmethod
+    def get_bulk_stash_history(cls, stash_ids: list):
+        if not stash_ids:
+            return {}
+        conn = cls.get_pool().getconn()
+        try:
+            cur = conn.cursor()
+            try:
+                placeholders = ",".join("?" for _ in stash_ids)
+                cur.execute(
+                    f"SELECT stash_id, event_date, yards, meters, skeins, grams FROM stash_history WHERE stash_id IN ({placeholders}) ORDER BY stash_id, id ASC", 
+                    tuple(str(sid) for sid in stash_ids)
+                )
+                rows = cur.fetchall()
+                history = {str(sid): [] for sid in stash_ids}
+                for row in rows:
+                    sid = row[0]
+                    if sid not in history:
+                        history[sid] = []
+                    history[sid].append({
+                        "date": row[1],
+                        "yards": row[2],
+                        "meters": row[3],
+                        "skeins": row[4],
+                        "grams": row[5]
+                    })
+                return history
+            finally:
+                cur.close()
+        except Exception as e:
+            logger.error(f"Error reading bulk stash_history: {e}")
+            return {}
         finally:
             cls.get_pool().putconn(conn)
 
