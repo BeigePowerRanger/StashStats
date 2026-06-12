@@ -9,7 +9,7 @@ origin: https://github.com/sickn33/antigravity-awesome-skills
 
 # Documentation Templates
 
-> Templates and structure guidelines for common documentation types.
+> Templates and structure guidelines for documentation types.
 
 ---
 
@@ -20,10 +20,10 @@ origin: https://github.com/sickn33/antigravity-awesome-skills
 | Section | Purpose |
 |---------|---------|
 | **Title + One-liner** | What is this? |
-| **Quick Start** | Running in <5 min |
+| **Quick Start** | Run <5 min |
 | **Features** | What can I do? |
-| **Configuration** | How to customize |
-| **API Reference** | Link to detailed docs |
+| **Configuration** | Customization |
+| **API Reference** | Detailed docs link |
 | **Contributing** | How to help |
 | **License** | Legal |
 
