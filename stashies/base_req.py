@@ -27,6 +27,13 @@ class Req(Base, BaseSettings):
     API_USERNAME: str
     API_KEY: str
 
+    @property
+    def session(self) -> requests.Session:
+        if not hasattr(self, '_session'):
+            s = requests.Session()
+            s.auth = HTTPBasicAuth(self.API_USERNAME, self.API_KEY)
+            object.__setattr__(self, '_session', s)
+        return self._session
 
     def put_request(
         self, endpoint: str, data: Optional[Dict[str, Any]] = None, params: Optional[Dict[str, Any]] = None
@@ -41,9 +48,8 @@ class Req(Base, BaseSettings):
         """
         url = f"{self.BASE_URL}/{endpoint}"
         try:
-            response = requests.put(
+            response = self.session.put(
                 url,
-                auth=HTTPBasicAuth(self.API_USERNAME, self.API_KEY),
                 json=data,
                 params=params
             )
@@ -72,9 +78,8 @@ class Req(Base, BaseSettings):
         """
         url = f"{self.BASE_URL}/{endpoint}"
         try:
-            response = requests.post(
+            response = self.session.post(
                 url, 
-                auth=HTTPBasicAuth(self.API_USERNAME, self.API_KEY), 
                 json=data,
                 params=params
             )
@@ -102,8 +107,8 @@ class Req(Base, BaseSettings):
         """
         url = f"{self.BASE_URL}/{endpoint}"
         try:
-            response = requests.get(
-                url, auth=HTTPBasicAuth(self.API_USERNAME, self.API_KEY), params=params
+            response = self.session.get(
+                url, params=params
             )
             response.raise_for_status()
         except HTTPError as http_err:
@@ -127,9 +132,8 @@ class Req(Base, BaseSettings):
         """
         url = f"{self.BASE_URL}/{endpoint}"
         try:
-            response = requests.delete(
+            response = self.session.delete(
                 url,
-                auth=HTTPBasicAuth(self.API_USERNAME, self.API_KEY),
                 params=params
             )
             response.raise_for_status()

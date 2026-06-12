@@ -59,6 +59,9 @@ class DBManager:
                 );
                 """)
                 cur.execute("""
+                CREATE INDEX IF NOT EXISTS idx_original_stash_id ON original_values(stash_id);
+                """)
+                cur.execute("""
                 CREATE TABLE IF NOT EXISTS stash_history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     stash_id TEXT NOT NULL,

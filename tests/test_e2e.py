@@ -123,7 +123,7 @@ def test_stash_yarn_flow_thread(dash_thread_server):
             return mock_resp
         return original_post(url, *args, **kwargs)
 
-    with patch("requests.get", side_effect=mock_get), patch("requests.post", side_effect=mock_post):
+    with patch("requests.Session.get", side_effect=mock_get), patch("requests.Session.post", side_effect=mock_post):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
@@ -262,7 +262,7 @@ def test_stash_analytics_tab_thread(dash_thread_server):
             return mock_resp
         return original_get(url, *args, **kwargs)
 
-    with patch("requests.get", side_effect=mock_get):
+    with patch("requests.Session.get", side_effect=mock_get):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
@@ -398,9 +398,9 @@ def test_new_tabs_flow(dash_thread_server):
             return mock_resp
         return original_delete(url, *args, **kwargs)
 
-    with patch("requests.get", side_effect=mock_get), \
-         patch("requests.post", side_effect=mock_post), \
-         patch("requests.delete", side_effect=mock_delete):
+    with patch("requests.Session.get", side_effect=mock_get), \
+         patch("requests.Session.post", side_effect=mock_post), \
+         patch("requests.Session.delete", side_effect=mock_delete):
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()

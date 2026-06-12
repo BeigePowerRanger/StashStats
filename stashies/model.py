@@ -224,19 +224,29 @@ class Model(Base):
         r = self.get_redis()
 
         dirty_items = []
+        cached_vals_dict = {}
+
+        if r and all_stashes:
+            try:
+                # Use mget for bulk fetching
+                keys_to_fetch = [f"stash_detail:{s['id']}" for s in all_stashes if "id" in s]
+                if keys_to_fetch:
+                    mget_res = r.mget(keys_to_fetch)
+                    for k, v in zip(keys_to_fetch, mget_res):
+                        if v:
+                            stash_id_str = k.split(":")[1]
+                            cached_vals_dict[stash_id_str] = v
+            except Exception as e:
+                self.LOGGER.error(f"Redis mget failed: {e}")
+
         for s in all_stashes:
             if "id" not in s:
                 continue
             stash_id = str(s["id"])
             updated_at = s.get("updated_at")
             
-            # Read from Redis cache
-            cached_val = None
-            if r:
-                try:
-                    cached_val = r.get(f"stash_detail:{stash_id}")
-                except Exception as e:
-                    self.LOGGER.error(f"Redis get failed: {e}")
+            # Read from pre-fetched Redis cache
+            cached_val = cached_vals_dict.get(stash_id)
 
             if cached_val:
                 try:
@@ -279,6 +289,13 @@ class Model(Base):
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
                 results = list(executor.map(fetch_detail, dirty_items))
                 
+            pipe = None
+            if r:
+                try:
+                    pipe = r.pipeline()
+                except Exception as e:
+                    self.LOGGER.error(f"Failed to initialize pipeline: {e}")
+
             for s_id, stash_detail in results:
                 if stash_detail:
                     s_id_str = str(s_id)
@@ -401,10 +418,9 @@ class Model(Base):
                             grams=new_totals["grams"]
                         )
                     
-                    # Store details in Redis with 24 hour TTL
-                    if r:
+                    if pipe:
                         try:
-                            r.setex(
+                            pipe.setex(
                                 f"stash_detail:{s_id_str}",
                                 86400,
                                 json.dumps({
@@ -413,13 +429,19 @@ class Model(Base):
                                 })
                             )
                         except Exception as e:
-                            self.LOGGER.error(f"Redis set failed for {s_id_str}: {e}")
+                            self.LOGGER.error(f"Redis set via pipeline failed for {s_id_str}: {e}")
 
                     if item_in_list:
                         item_in_list["packs"] = new_packs
                         item_in_list["history"] = DBManager.get_stash_history(s_id_str) or []
                         item_in_list["original_values"] = DBManager.get_original_values(s_id_str)
-                            
+
+            if pipe:
+                try:
+                    pipe.execute()
+                except Exception as e:
+                    self.LOGGER.error(f"Redis pipeline execute failed: {e}")
+
         return all_stashes
 
     def create_stash(self, stash_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
@@ -567,20 +589,17 @@ class Model(Base):
             created_str = s.get("created_at")
             if not created_str:
                 continue
-            try:
-                date_part = created_str.split(" ")[0]
-                stash_date = pd.to_datetime(date_part, format="%Y/%m/%d")
-            except Exception:
-                continue
+
+            stash_date = created_str.split(" ")[0]
+            if "/" in stash_date:
+                stash_date = stash_date.replace("/", "-")
                 
             updated_str = s.get("updated_at")
             stash_update_date = None
             if updated_str:
-                try:
-                    up_date_part = updated_str.split(" ")[0]
-                    stash_update_date = pd.to_datetime(up_date_part, format="%Y/%m/%d")
-                except Exception:
-                    pass
+                stash_update_date = updated_str.split(" ")[0]
+                if "/" in stash_update_date:
+                    stash_update_date = stash_update_date.replace("/", "-")
 
             yarn_info = s.get("yarn") or {}
             category = yarn_info.get("yarn_weight_name") or "Unknown Weight"
@@ -676,7 +695,7 @@ class Model(Base):
             for event in s.get("history") or []:
                 try:
                     data.append({
-                        "date": pd.to_datetime(event["date"], format="%Y-%m-%d"),
+                        "date": event["date"],
                         "category": category,
                         "yards": float(event["yards"]),
                         "meters": float(event["meters"]),
@@ -692,6 +711,7 @@ class Model(Base):
                                          "cumulative_skeins", "cumulative_grams", "size_skeins", "frame_date"])
 
         df = pd.DataFrame(data)
+        df["date"] = pd.to_datetime(df["date"])
         df["date"] = df["date"].dt.to_period("M").dt.to_timestamp("M")
         
         df = df.groupby(["date", "category"])[["yards", "meters", "skeins", "grams"]].sum().reset_index()
@@ -730,20 +750,16 @@ class Model(Base):
             if not created_str:
                 continue
                 
-            try:
-                date_part = created_str.split(" ")[0]
-                stash_date = pd.to_datetime(date_part, format="%Y/%m/%d")
-            except Exception:
-                continue
+            stash_date = created_str.split(" ")[0]
+            if "/" in stash_date:
+                stash_date = stash_date.replace("/", "-")
                 
             updated_str = s.get("updated_at")
             stash_update_date = None
             if updated_str:
-                try:
-                    up_date_part = updated_str.split(" ")[0]
-                    stash_update_date = pd.to_datetime(up_date_part, format="%Y/%m/%d")
-                except Exception:
-                    pass
+                stash_update_date = updated_str.split(" ")[0]
+                if "/" in stash_update_date:
+                    stash_update_date = stash_update_date.replace("/", "-")
 
             yarn_info = s.get("yarn") or {}
             yardage = float(yarn_info.get("yardage") or 0)
@@ -837,7 +853,7 @@ class Model(Base):
             for event in s.get("history") or []:
                 try:
                     data.append({
-                        "date": pd.to_datetime(event["date"], format="%Y-%m-%d"),
+                        "date": event["date"],
                         "yards": float(event["yards"]),
                         "meters": float(event["meters"]),
                         "skeins": float(event["skeins"]),
@@ -852,6 +868,7 @@ class Model(Base):
                                          "cumulative_skeins", "cumulative_grams"])
 
         df = pd.DataFrame(data)
+        df["date"] = pd.to_datetime(df["date"])
         df = df.groupby("date")[["yards", "meters", "skeins", "grams"]].sum().reset_index()
         df = df.sort_values("date")
         
