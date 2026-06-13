@@ -26,12 +26,20 @@ class MockDBManager:
         return cls._orig.get(stash_id)
 
     @classmethod
+    def get_bulk_original_values(cls, stash_ids):
+        return {str(sid): cls._orig.get(str(sid)) for sid in stash_ids if str(sid) in cls._orig}
+
+    @classmethod
     def save_original_values(cls, stash_id, yards, meters, skeins, grams):
         cls._orig[stash_id] = {"yards": yards, "meters": meters, "skeins": skeins, "grams": grams}
 
     @classmethod
     def get_stash_history(cls, stash_id):
         return cls._history.get(stash_id, [])
+
+    @classmethod
+    def get_bulk_stash_history(cls, stash_ids):
+        return {str(sid): cls._history.get(str(sid), []) for sid in stash_ids}
 
     @classmethod
     def save_history_event(cls, stash_id, event_date, yards, meters, skeins, grams):
