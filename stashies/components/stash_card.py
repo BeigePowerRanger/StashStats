@@ -274,15 +274,15 @@ class StashCard(BaseComponent):
         name: str,
         items_with_totals: List[tuple],
         combined_totals: Dict[str, float]
-    ) -> dbc.AccordionItem:
+    ) -> dbc.Card:
         """
-        Build a single AccordionItem grouping all colorways/items of a specific yarn product.
+        Build a single Card acting as a custom accordion item grouping all colorways.
         - Input:
             - brand (str): Yarn manufacturer/brand.
             - name (str): Yarn product name.
             - items_with_totals (list[tuple]): List of (raw_stash_dict, totals_dict) pairs.
             - combined_totals (dict): Summed totals for yards, meters, skeins, grams.
-        - output: dbc.AccordionItem containing the grouped list.
+        - output: dbc.Card containing the collapsible grouped list.
         """
         # Find first available photo in any colorway/yarn
         photo_url = None
@@ -299,49 +299,48 @@ class StashCard(BaseComponent):
             if photo_url:
                 break
 
-        title_str = f"{brand} — {name} ({len(items_with_totals)} items"
-        if combined_totals["skeins"] > 0:
-            title_str += f" | {combined_totals['skeins']:.1f} sk"
+        badge_text = f"{len(items_with_totals)} items | {combined_totals['skeins']:.1f} sk"
         if combined_totals["yards"] > 0:
-            title_str += f" | {combined_totals['yards']:,.0f} yds"
+            badge_text += f" | {combined_totals['yards']:,.0f} yds"
         elif combined_totals["grams"] > 0:
-            title_str += f" | {combined_totals['grams']:,.0f} g"
-        title_str += ")"
+            badge_text += f" | {combined_totals['grams']:,.0f} g"
 
-        # Create a beautiful header at the top of the expanded body
-        body_header = dbc.Row(
+        # Unique index for pattern matching toggle
+        group_id = f"{brand}-{name}".replace(" ", "_").replace("/", "_")
+
+        header_layout = html.Div(
             [
-                dbc.Col(
-                    html.Img(
-                        src=photo_url,
-                        style={
-                            "height": "50px",
-                            "width": "50px",
-                            "borderRadius": "4px",
-                            "objectFit": "cover",
-                            "border": "1px solid #555"
-                        }
-                    ) if photo_url else html.Div(
-                        style={
-                            "height": "50px",
-                            "width": "50px",
-                            "borderRadius": "4px",
-                            "backgroundColor": "#333",
-                            "border": "1px solid #555"
-                        }
-                    ),
-                    width="auto",
-                    className="pe-0"
+                html.Img(
+                    src=photo_url,
+                    style={
+                        "height": "35px",
+                        "width": "35px",
+                        "borderRadius": "4px",
+                        "objectFit": "cover",
+                        "marginRight": "12px",
+                        "border": "1px solid #444"
+                    }
+                ) if photo_url else html.Div(
+                    style={
+                        "height": "35px",
+                        "width": "35px",
+                        "borderRadius": "4px",
+                        "backgroundColor": "#333",
+                        "marginRight": "12px",
+                        "border": "1px solid #444"
+                    }
                 ),
-                dbc.Col(
-                    [
-                        html.H5(name, className="text-success mb-0 fw-bold"),
-                        html.H6(f"by {brand}", className="text-muted mb-0 small"),
-                    ],
-                    className="d-flex flex-column justify-content-center ps-3"
-                )
+                html.Span(f"{brand} — {name}", className="fw-bold text-white me-auto"),
+                dbc.Badge(
+                    badge_text,
+                    color="success",
+                    className="text-white small"
+                ),
+                html.I(className="bi bi-chevron-down ms-3 text-muted")
             ],
-            className="mb-3 g-0 align-items-center px-2"
+            id={"type": "yarn-collapse-btn", "index": group_id},
+            className="d-flex align-items-center w-100 p-3 bg-dark border-bottom border-secondary",
+            style={"cursor": "pointer", "userSelect": "none"}
         )
 
         rows = []
@@ -352,13 +351,13 @@ class StashCard(BaseComponent):
         if rows:
             rows[-1].children.pop()
 
-        body_layout = html.Div(
-            [body_header] + rows,
-            className="bg-dark text-white rounded p-1"
+        body_layout = dbc.Collapse(
+            html.Div(rows, className="bg-dark text-white rounded p-3"),
+            id={"type": "yarn-collapse", "index": group_id},
+            is_open=False
         )
 
-        return dbc.AccordionItem(
-            body_layout,
-            title=title_str,
-            item_id=f"group-{brand}-{name}".replace(" ", "_")
+        return dbc.Card(
+            [header_layout, body_layout],
+            className="mb-2 bg-dark border-secondary overflow-hidden"
         )

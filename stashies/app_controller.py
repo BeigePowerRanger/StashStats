@@ -283,14 +283,8 @@ class AppController(Base):
             )
             accordion_items.append(accordion_item)
 
-        # Wrap in a single accordion container
-        accordion = dbc.Accordion(
-            accordion_items,
-            flush=True,
-            always_open=True,
-            className="border border-secondary rounded overflow-hidden"
-        )
-        return [dbc.Col(accordion, width=12)]
+        # Return columns containing each custom accordion card directly
+        return [dbc.Col(item, width=12) for item in accordion_items]
 
     def render_analytics_layout(self) -> dbc.Row:
         """

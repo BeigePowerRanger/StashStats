@@ -118,6 +118,18 @@ def filter_stash_items(query, tab_value, trigger_data):
 
 
 @callback(
+    Output({"type": "yarn-collapse", "index": MATCH}, "is_open"),
+    Input({"type": "yarn-collapse-btn", "index": MATCH}, "n_clicks"),
+    State({"type": "yarn-collapse", "index": MATCH}, "is_open"),
+    prevent_initial_call=True,
+)
+def toggle_yarn_collapse(n_clicks, is_open):
+    if n_clicks is None or not n_clicks:
+        raise PreventUpdate
+    return not is_open
+
+
+@callback(
     Output("edit-stash-modal", "is_open"),
     Output("edit-stash-id-store", "data"),
     Output("edit-stash-current-skeins-store", "data"),

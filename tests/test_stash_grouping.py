@@ -40,18 +40,16 @@ def test_render_stash_cards_grouping():
     cols = controller.render_stash_cards(query=None)
     
     assert len(cols) == 1
-    col = cols[0]
-    accordion = col.children
+    # Verify we got a Card (custom accordion container)
+    card = cols[0].children
+    assert isinstance(card, dbc.Card)
     
-    # Verify we got a dbc.Accordion containing a single AccordionItem
-    assert isinstance(accordion, dbc.Accordion)
-    assert len(accordion.children) == 1
+    header, collapse = card.children
+    assert isinstance(header, html.Div)
+    assert isinstance(collapse, dbc.Collapse)
     
-    item = accordion.children[0]
-    assert isinstance(item, dbc.AccordionItem)
-    
-    # Verify the body has header row + two colorway rows
-    body = item.children
+    # Verify the collapsed body has the two colorway rows
+    body = collapse.children
     assert isinstance(body, html.Div)
-    # 1 header + 2 colorway row elements
-    assert len(body.children) == 3
+    # 2 colorway row elements
+    assert len(body.children) == 2
