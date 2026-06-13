@@ -299,46 +299,49 @@ class StashCard(BaseComponent):
             if photo_url:
                 break
 
-        thumbnail = html.Img(
-            src=photo_url,
-            style={
-                "height": "35px",
-                "width": "35px",
-                "borderRadius": "4px",
-                "objectFit": "cover",
-                "marginRight": "12px",
-                "border": "1px solid #444"
-            }
-        ) if photo_url else html.Div(
-            style={
-                "height": "35px",
-                "width": "35px",
-                "borderRadius": "4px",
-                "backgroundColor": "#333",
-                "marginRight": "12px",
-                "border": "1px solid #444"
-            }
-        )
-
-        badge_text = f"{len(items_with_totals)} items | {combined_totals['skeins']:.1f} sk"
+        title_str = f"{brand} — {name} ({len(items_with_totals)} items"
+        if combined_totals["skeins"] > 0:
+            title_str += f" | {combined_totals['skeins']:.1f} sk"
         if combined_totals["yards"] > 0:
-            badge_text += f" | {combined_totals['yards']:,.0f} yds"
+            title_str += f" | {combined_totals['yards']:,.0f} yds"
         elif combined_totals["grams"] > 0:
-            badge_text += f" | {combined_totals['grams']:,.0f} g"
+            title_str += f" | {combined_totals['grams']:,.0f} g"
+        title_str += ")"
 
-        summary_badge = dbc.Badge(
-            badge_text,
-            color="success",
-            className="ms-auto me-3 text-white small"
-        )
-
-        header_layout = html.Div(
+        # Create a beautiful header at the top of the expanded body
+        body_header = dbc.Row(
             [
-                thumbnail,
-                html.Span(f"{brand} — {name}", className="fw-bold text-white me-auto"),
-                summary_badge
+                dbc.Col(
+                    html.Img(
+                        src=photo_url,
+                        style={
+                            "height": "50px",
+                            "width": "50px",
+                            "borderRadius": "4px",
+                            "objectFit": "cover",
+                            "border": "1px solid #555"
+                        }
+                    ) if photo_url else html.Div(
+                        style={
+                            "height": "50px",
+                            "width": "50px",
+                            "borderRadius": "4px",
+                            "backgroundColor": "#333",
+                            "border": "1px solid #555"
+                        }
+                    ),
+                    width="auto",
+                    className="pe-0"
+                ),
+                dbc.Col(
+                    [
+                        html.H5(name, className="text-success mb-0 fw-bold"),
+                        html.H6(f"by {brand}", className="text-muted mb-0 small"),
+                    ],
+                    className="d-flex flex-column justify-content-center ps-3"
+                )
             ],
-            className="d-flex align-items-center w-100"
+            className="mb-3 g-0 align-items-center px-2"
         )
 
         rows = []
@@ -349,8 +352,13 @@ class StashCard(BaseComponent):
         if rows:
             rows[-1].children.pop()
 
+        body_layout = html.Div(
+            [body_header] + rows,
+            className="bg-dark text-white rounded p-1"
+        )
+
         return dbc.AccordionItem(
-            html.Div(rows, className="bg-dark text-white rounded p-1"),
-            title=header_layout,
+            body_layout,
+            title=title_str,
             item_id=f"group-{brand}-{name}".replace(" ", "_")
         )

@@ -50,8 +50,8 @@ def test_render_stash_cards_grouping():
     item = accordion.children[0]
     assert isinstance(item, dbc.AccordionItem)
     
-    # Verify the body has two colorway rows + stores
+    # Verify the body has header row + two colorway rows
     body = item.children
     assert isinstance(body, html.Div)
-    # Each row is a html.Div containing Store, Row, Notes, Hr (4 elements in row)
-    assert len(body.children) == 2
+    # 1 header + 2 colorway row elements
+    assert len(body.children) == 3
