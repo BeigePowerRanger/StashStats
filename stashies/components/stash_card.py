@@ -1,5 +1,5 @@
 """Dash component for rendering stash entries as cards with edit triggers."""
-from typing import Any, ClassVar, Dict
+from typing import Any, ClassVar, Dict, List
 import dash_bootstrap_components as dbc
 from dash import html, dcc
 from pydantic.dataclasses import dataclass
@@ -172,3 +172,185 @@ class StashCard(BaseComponent):
             className="mb-3 bg-dark border-secondary"
         )
         return dbc.Col([item_store, card], width=12)
+
+    def create_colorway_row(self, s: Dict[str, Any], totals: Dict[str, float]) -> html.Div:
+        """
+        Build a single row layout for a specific colorway of a yarn.
+        - Input:
+            - s (dict): Raw stash entry from Ravelry API.
+            - totals (dict): Calculated totals dictionary.
+        - output: html.Div containing the colorway row layout.
+        """
+        status = s.get("stash_status") or {}
+        status_name = status.get("name") or "Unknown"
+        status_id = status.get("id") or 1
+        badge_color = self.STASH_STATUS_COLORS.get(status_id, "success")
+
+        y = totals.get("yards", 0.0)
+        m = totals.get("meters", 0.0)
+        sk = totals.get("skeins", 0.0)
+        g = totals.get("grams", 0.0)
+
+        is_fiber = s.get("type") == "fiber"
+        if is_fiber:
+            qty_text = f"{g:,.0f} g"
+            if y > 0:
+                qty_text += f" ({y:,.0f} yds / {m:,.0f} m)"
+            quantity_element = html.Span([html.Strong("Weight: "), qty_text])
+        else:
+            quantity_element = html.Span([html.Strong("Qty: "), f"{sk:.1f} sk ({y:,.0f} yds / {m:,.0f} m / {g:,.0f} g)"])
+
+        stash_id_str = str(s.get("id", ""))
+        edit_btn = dbc.Button(
+            [html.I(className="bi bi-pencil-fill me-1"), "Edit"],
+            id={"type": "stash-edit-btn", "index": stash_id_str},
+            color="outline-success",
+            size="sm",
+            className="ms-2",
+            style={"padding": "2px 8px", "fontSize": "0.8rem"}
+        )
+
+        item_store = dcc.Store(
+            id={"type": "stash-data-store", "index": stash_id_str},
+            data={
+                "id": s.get("id"),
+                "name": s.get("name") or s.get("yarn", {}).get("name") or "Unnamed Yarn",
+                "colorway": s.get("colorway_name") or "",
+                "dye_lot": s.get("dye_lot") or "",
+                "location": s.get("location") or "",
+                "notes": s.get("notes") or "",
+                "skeins": sk,
+                "status_id": status_id,
+            }
+        )
+
+        row_content = dbc.Row(
+            [
+                dbc.Col(
+                    [
+                        html.Span(s.get("colorway_name") or "Not specified", className="fw-bold text-success me-2"),
+                        html.Span(f"Dye Lot: {s.get('dye_lot')}", className="text-muted small me-2") if s.get("dye_lot") else None,
+                        html.Span(f"Loc: {s.get('location')}", className="text-muted small") if s.get("location") else None,
+                    ],
+                    xs=12, md=6,
+                    className="d-flex align-items-center flex-wrap"
+                ),
+                dbc.Col(
+                    [
+                        quantity_element,
+                        html.Span(status_name, className=f"badge bg-{badge_color} ms-2 text-white"),
+                        edit_btn
+                    ],
+                    xs=12, md=6,
+                    className="d-flex align-items-center justify-content-md-end mt-2 mt-md-0"
+                )
+            ],
+            className="py-2 align-items-center"
+        )
+
+        notes_content = None
+        if s.get("notes"):
+            notes_content = dbc.Row(
+                dbc.Col(
+                    html.P(s.get("notes"), className="text-muted small mb-0 ps-3 border-start border-secondary"),
+                    width=12
+                ),
+                className="pb-2"
+            )
+
+        return html.Div(
+            [
+                item_store,
+                row_content,
+                notes_content,
+                html.Hr(className="my-1 border-secondary")
+            ],
+            className="colorway-row px-2"
+        )
+
+    def create_grouped_accordion_item(
+        self,
+        brand: str,
+        name: str,
+        items_with_totals: List[tuple],
+        combined_totals: Dict[str, float]
+    ) -> dbc.AccordionItem:
+        """
+        Build a single AccordionItem grouping all colorways/items of a specific yarn product.
+        - Input:
+            - brand (str): Yarn manufacturer/brand.
+            - name (str): Yarn product name.
+            - items_with_totals (list[tuple]): List of (raw_stash_dict, totals_dict) pairs.
+            - combined_totals (dict): Summed totals for yards, meters, skeins, grams.
+        - output: dbc.AccordionItem containing the grouped list.
+        """
+        # Find first available photo in any colorway/yarn
+        photo_url = None
+        for s, _ in items_with_totals:
+            yarn_info = s.get("yarn") or {}
+            photos = s.get("photos") or yarn_info.get("photos") or []
+            if not photos and yarn_info.get("first_photo"):
+                photos = [yarn_info.get("first_photo")]
+            for p in photos:
+                url = p.get("medium_url") or p.get("square_url") or p.get("small_url") or p.get("thumbnail_url")
+                if url:
+                    photo_url = url
+                    break
+            if photo_url:
+                break
+
+        thumbnail = html.Img(
+            src=photo_url,
+            style={
+                "height": "35px",
+                "width": "35px",
+                "borderRadius": "4px",
+                "objectFit": "cover",
+                "marginRight": "12px",
+                "border": "1px solid #444"
+            }
+        ) if photo_url else html.Div(
+            style={
+                "height": "35px",
+                "width": "35px",
+                "borderRadius": "4px",
+                "backgroundColor": "#333",
+                "marginRight": "12px",
+                "border": "1px solid #444"
+            }
+        )
+
+        badge_text = f"{len(items_with_totals)} items | {combined_totals['skeins']:.1f} sk"
+        if combined_totals["yards"] > 0:
+            badge_text += f" | {combined_totals['yards']:,.0f} yds"
+        elif combined_totals["grams"] > 0:
+            badge_text += f" | {combined_totals['grams']:,.0f} g"
+
+        summary_badge = dbc.Badge(
+            badge_text,
+            color="success",
+            className="ms-auto me-3 text-white small"
+        )
+
+        header_layout = html.Div(
+            [
+                thumbnail,
+                html.Span(f"{brand} — {name}", className="fw-bold text-white me-auto"),
+                summary_badge
+            ],
+            className="d-flex align-items-center w-100"
+        )
+
+        rows = []
+        for s, totals in items_with_totals:
+            rows.append(self.create_colorway_row(s, totals))
+
+        # Remove the final trailing <hr> from the last row
+        if rows:
+            rows[-1].children.pop()
+
+        return dbc.AccordionItem(
+            html.Div(rows, className="bg-dark text-white rounded p-1"),
+            title=header_layout,
+            item_id=f"group-{brand}-{name}".replace(" ", "_")
+        )
