@@ -225,10 +225,10 @@ class AppController(Base):
 
     def render_stash_cards(self, query: Optional[str]) -> List[dbc.Col]:
         """
-        Filter and render stash cards list.
-        - Input
+        Filter, group by yarn, and render stash accordion list.
+        - Input:
             - query (str | None): Search query for stash filtration.
-        - output: List of dbc.Col containing stash cards.
+        - output: List of dbc.Col containing the single accordion container.
         """
         stash_list = self.MODEL.get_stash_list()
         if not stash_list:
@@ -249,14 +249,48 @@ class AppController(Base):
         if not filtered:
             return [html.Div("No matching stash entries found.", className="text-info mt-3 ms-2")]
 
-        card_cols = []
+        # Group by (brand, name)
+        grouped_data = {}
         from .model import get_primary_totals
         for s in filtered:
             yarn_info = s.get("yarn") or {}
+            brand = yarn_info.get("yarn_company_name") or "Unknown Brand"
+            name = yarn_info.get("name") or s.get("name") or "Unnamed Yarn"
+            key = (brand, name)
+            
             packs = s.get("packs") or []
             totals = get_primary_totals(packs, yarn_info)
-            card_cols.append(self.STASH_CARD.create_card(s, totals))
-        return card_cols
+            
+            if key not in grouped_data:
+                grouped_data[key] = []
+            grouped_data[key].append((s, totals))
+
+        accordion_items = []
+        for (brand, name), items in grouped_data.items():
+            # Calculate combined totals
+            comb_t = {"yards": 0.0, "meters": 0.0, "skeins": 0.0, "grams": 0.0}
+            for _, totals in items:
+                comb_t["yards"] += totals.get("yards") or 0.0
+                comb_t["meters"] += totals.get("meters") or 0.0
+                comb_t["skeins"] += totals.get("skeins") or 0.0
+                comb_t["grams"] += totals.get("grams") or 0.0
+
+            accordion_item = self.STASH_CARD.create_grouped_accordion_item(
+                brand=brand,
+                name=name,
+                items_with_totals=items,
+                combined_totals=comb_t
+            )
+            accordion_items.append(accordion_item)
+
+        # Wrap in a single accordion container
+        accordion = dbc.Accordion(
+            accordion_items,
+            flush=True,
+            always_open=True,
+            className="border border-secondary rounded overflow-hidden"
+        )
+        return [dbc.Col(accordion, width=12)]
 
     def render_analytics_layout(self) -> dbc.Row:
         """
