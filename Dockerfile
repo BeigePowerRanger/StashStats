@@ -33,4 +33,4 @@ COPY . .
 
 EXPOSE 8050
 
-CMD ["gunicorn", "-b", "0.0.0.0:8050", "--workers", "1", "--threads", "4", "app:server"]
+CMD ["gunicorn", "-b", "0.0.0.0:8050", "--workers", "1", "--threads", "4", "--timeout", "120", "--capture-output", "--log-level", "debug", "--access-logfile", "-", "app:server"]

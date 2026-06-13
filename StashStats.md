@@ -5,7 +5,9 @@ StashStats is a Dash-based web application for searching, tracking, and managing
 ---
 ## TODOs
 
-- [ ] How well is the system of using Ravelry's stash item update times for the plots in the other tab? 
+- [ ] TODO #stashstats log usage modal in personal stash should have table of past changes underneath the save changes/ cancel boxes
+- [ ] 
+
 ## Current Features
 
 ### Yarn Search Tab

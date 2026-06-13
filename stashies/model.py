@@ -279,13 +279,21 @@ class Model(Base):
                     s["original_values"] = bulk_orig.get(stash_id)
                 
         if dirty_items:
+            # O(1) lookup: avoids O(N) linear scan per result
+            stash_by_id = {str(s["id"]): s for s in all_stashes if "id" in s}
+
+            # Bulk-fetch DB data for all dirty items before the loop (2 round-trips vs 2*N)
+            dirty_ids = [str(s["id"]) for s in dirty_items if "id" in s]
+            bulk_dirty_orig = DBManager.get_bulk_original_values(dirty_ids)
+            bulk_dirty_history = DBManager.get_bulk_stash_history(dirty_ids)
+
             def fetch_detail(item):
                 import time
                 s_id = item.get("id")
                 is_fiber = item.get("type") == "fiber"
                 if not s_id:
                     return None, None
-                time.sleep(0.2)  # rate limit compliance
+                time.sleep(0.05)  # rate limit: ~20 req/s per worker
                 if is_fiber:
                     detail_endpoint = f"people/{username}/fiber/{s_id}.json"
                 else:
@@ -300,23 +308,23 @@ class Model(Base):
                 except Exception as e:
                     self.LOGGER.error(f"Error fetching stash detail {s_id}: {e}")
                 return s_id, None
-                
-            max_workers = min(3, len(dirty_items))
+
+            max_workers = min(10, len(dirty_items))
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
                 results = list(executor.map(fetch_detail, dirty_items))
-                
+
+            # Batch Redis writes via pipeline (1 round-trip vs N)
+            redis_pipeline = r.pipeline(transaction=False) if r else None
+
             for s_id, stash_detail in results:
                 if stash_detail:
                     s_id_str = str(s_id)
-                    
-                    item_in_list = None
-                    for item in all_stashes:
-                        if str(item.get("id")) == s_id_str:
-                            item_in_list = item
-                            break
-                            
-                    is_fiber = item_in_list.get("type") == "fiber" if item_in_list else False
-                    
+                    item_in_list = stash_by_id.get(s_id_str)
+                    if not item_in_list:
+                        continue
+
+                    is_fiber = item_in_list.get("type") == "fiber"
+
                     if is_fiber:
                         new_packs = []
                         fiber_packs = stash_detail.get("fiber_packs") or []
@@ -352,13 +360,15 @@ class Model(Base):
                     else:
                         new_packs = stash_detail.get("packs") or []
                         yarn_info = stash_detail.get("yarn") or {}
-                        
+
                     new_totals = get_primary_totals(new_packs, yarn_info)
-                    
-                    old_totals = DBManager.get_original_values(s_id_str)
-                    
+
+                    # Use pre-fetched DB data instead of per-item queries
+                    old_totals = bulk_dirty_orig.get(s_id_str)
+
+                    wrote_history_event = False
                     if old_totals:
-                        history_events = DBManager.get_stash_history(s_id_str) or []
+                        history_events = bulk_dirty_history.get(s_id_str) or []
                         sum_history = {
                             "yards": sum(event["yards"] for event in history_events),
                             "meters": sum(event["meters"] for event in history_events),
@@ -377,7 +387,7 @@ class Model(Base):
                             "skeins": new_totals["skeins"] - previous_totals["skeins"],
                             "grams": new_totals["grams"] - previous_totals["grams"]
                         }
-                        
+
                         # Only record a history event when pack totals actually changed
                         if any(val != 0.0 for val in delta.values()):
                             pending_date = DBManager.pop_pending_usage_date(s_id_str)
@@ -393,7 +403,7 @@ class Model(Base):
                                         updated_date = datetime.datetime.strptime(up_date_str.split(" ")[0], "%Y/%m/%d").date()
                                     except Exception:
                                         pass
-                                
+
                                 if updated_date >= today:
                                     created_date = today
                                     created_at_str = stash_detail.get("created_at") or ""
@@ -417,6 +427,7 @@ class Model(Base):
                                 skeins=delta["skeins"],
                                 grams=delta["grams"]
                             )
+                            wrote_history_event = True
                     else:
                         # Baseline first-seen original_values
                         DBManager.save_original_values(
@@ -426,11 +437,11 @@ class Model(Base):
                             skeins=new_totals["skeins"],
                             grams=new_totals["grams"]
                         )
-                    
-                    # Store details in Redis with 24 hour TTL
-                    if r:
+
+                    # Queue Redis detail write for batch flush
+                    if redis_pipeline:
                         try:
-                            r.setex(
+                            redis_pipeline.setex(
                                 f"stash_detail:{s_id_str}",
                                 86400,
                                 json.dumps({
@@ -439,13 +450,23 @@ class Model(Base):
                                 })
                             )
                         except Exception as e:
-                            self.LOGGER.error(f"Redis set failed for {s_id_str}: {e}")
+                            self.LOGGER.error(f"Redis pipeline queue failed for {s_id_str}: {e}")
 
-                    if item_in_list:
-                        item_in_list["packs"] = new_packs
+                    item_in_list["packs"] = new_packs
+                    # Re-fetch history only if we wrote a new event (otherwise use pre-fetched)
+                    if wrote_history_event:
                         item_in_list["history"] = DBManager.get_stash_history(s_id_str) or []
-                        item_in_list["original_values"] = DBManager.get_original_values(s_id_str)
-                            
+                    else:
+                        item_in_list["history"] = bulk_dirty_history.get(s_id_str) or []
+                    item_in_list["original_values"] = old_totals
+
+            # Flush all Redis writes in a single round-trip
+            if redis_pipeline:
+                try:
+                    redis_pipeline.execute()
+                except Exception as e:
+                    self.LOGGER.error(f"Redis pipeline execute failed: {e}")
+
         return all_stashes
 
     def create_stash(self, stash_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
