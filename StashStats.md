@@ -6,7 +6,10 @@ StashStats is a Dash-based web application for searching, tracking, and managing
 ## TODOs
 
 - [ ] TODO #stashstats log usage modal in personal stash should have table of past changes underneath the save changes/ cancel boxes
-- [ ] 
+- [ ] remove Needles & hooks and queue tabs
+- [ ] pictures not showing right on accordian items on personal stash tab
+- [ ] create dev and prod containers in docker compose stack so app can be used and developed 
+	- [ ] can the main one be set to just pull from the github repo when 
 
 ## Current Features
 
@@ -89,10 +92,10 @@ tests/
 
 ### 🔴 Critical
 
-- [ ] **`Optional`/`List` not imported in `search_results.py:21`** — used in function signature but never imported. `NameError` at runtime on every search result render. Fix: `from typing import Optional, List`.
-- [ ] **`data['yarns']` no key guard in `model.py:75`** — if API returns `{}` or omits `yarns` key, raises `KeyError` before function can return `None`. Fix: use `data.get('yarns')` with guard.
-- [ ] **`os.getenv("USERNAME")` collides with Linux shell variable** — on Linux, `USERNAME` is set by the shell to the OS user (e.g. `thotsky`). If `.env` doesn't explicitly override it, Ravelry API calls silently hit wrong user's stash. Same issue in `app.py:341`, `model.py:84`, `model.py:210`. Fix: rename env var to `RAVELRY_USERNAME`.
-- [ ] **`MagicMock` imported after use in `tests/test_e2e.py:57`** — `MagicMock` used inside `mock_get` defined at line 57 but not imported until line 99 → `NameError` when mock is called. Fix: move import to top of test function.
+- [x] **`Optional`/`List` not imported in `search_results.py:21`** — used in function signature but never imported. `NameError` at runtime on every search result render. Fix: `from typing import Optional, List`.
+- [x] **`data['yarns']` no key guard in `model.py:75`** — if API returns `{}` or omits `yarns` key, raises `KeyError` before function can return `None`. Fix: use `data.get('yarns')` with guard.
+- [x] **`os.getenv("USERNAME")` collides with Linux shell variable** — on Linux, `USERNAME` is set by the shell to the OS user (e.g. `thotsky`). If `.env` doesn't explicitly override it, Ravelry API calls silently hit wrong user's stash. Same issue in `app.py:341`, `model.py:84`, `model.py:210`. Fix: rename env var to `RAVELRY_USERNAME`.
+- [x] **`MagicMock` imported after use in `tests/test_e2e.py:57`** — `MagicMock` used inside `mock_get` defined at line 57 but not imported until line 99 → `NameError` when mock is called. Fix: move import to top of test function.
 
 ### 🟡 Warnings
 
