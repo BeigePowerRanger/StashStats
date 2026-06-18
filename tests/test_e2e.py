@@ -421,18 +421,6 @@ def test_new_tabs_flow(dash_thread_server):
             page.wait_for_selector("#projects-list-container")
             assert "Cozy Scarf" in page.content()
             
-            # 2. Verify Queue tab
-            page.click("text=Queue")
-            page.wait_for_selector("#queue-list-container")
-            assert "Warm Mittens" in page.content()
-            assert "Winter Hat" in page.content()
-            
-            # 3. Verify Needles & Hooks tab
-            page.click("text=Needles & Hooks")
-            page.wait_for_selector("#needles-list-container")
-            assert "Knitting Needles" in page.content()
-            assert "Crochet Hooks" in page.content()
-            
             browser.close()
 
 

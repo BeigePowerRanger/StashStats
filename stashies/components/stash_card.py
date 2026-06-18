@@ -50,9 +50,13 @@ class StashCard(BaseComponent):
         # Get photos from stash item first, then fallback to yarn photos
         photos = s.get("photos")
         if not photos:
-            photos = yarn_info.get("photos") or []
-            if not photos and yarn_info.get("first_photo"):
-                photos = [yarn_info.get("first_photo")]
+            first_photo = s.get("first_photo")
+            if first_photo:
+                photos = [first_photo]
+            else:
+                photos = yarn_info.get("photos") or []
+                if not photos and yarn_info.get("first_photo"):
+                    photos = [yarn_info.get("first_photo")]
 
         photo_urls = []
         for p in (photos or []):
@@ -288,9 +292,15 @@ class StashCard(BaseComponent):
         photo_url = None
         for s, _ in items_with_totals:
             yarn_info = s.get("yarn") or {}
-            photos = s.get("photos") or yarn_info.get("photos") or []
-            if not photos and yarn_info.get("first_photo"):
-                photos = [yarn_info.get("first_photo")]
+            photos = s.get("photos")
+            if not photos:
+                first_photo = s.get("first_photo")
+                if first_photo:
+                    photos = [first_photo]
+                else:
+                    photos = yarn_info.get("photos") or []
+                    if not photos and yarn_info.get("first_photo"):
+                        photos = [yarn_info.get("first_photo")]
             for p in photos:
                 url = p.get("medium_url") or p.get("square_url") or p.get("small_url") or p.get("thumbnail_url")
                 if url:

@@ -9,12 +9,12 @@
 **Files:**
 - Modify: [app_controller.py](file:///home/thotsky/BrainVault/Projects/StashStats/stashies/app_controller.py)
 
-- [ ] **Step 1: Remove tab layouts**
+- [x] **Step 1: Remove tab layouts**
   Remove the `dcc.Tab` blocks for `Queue` (value="tab-queue") and `Needles & Hooks` (value="tab-needles") in the main layout creation.
-- [ ] **Step 2: Remove controller imports and instances**
+- [x] **Step 2: Remove controller imports and instances**
   Remove references to `NeedlesComponent` and `QueueComponent` imports.
   Delete properties `self.NEEDLES` and `self.QUEUE` from class initialization.
-- [ ] **Step 3: Remove rendering helper methods**
+- [x] **Step 3: Remove rendering helper methods**
   Delete the following methods from `app_controller.py`:
   - `render_needles_tab_layout`
   - `render_needles_list`
@@ -32,9 +32,9 @@
 - Delete: `stashies/components/queue.py`
 - Modify: `stashies/components/__init__.py`
 
-- [ ] **Step 1: Delete Python component files**
+- [x] **Step 1: Delete Python component files**
   Delete the files `needles.py` and `queue.py` under the components directory.
-- [ ] **Step 2: Update components init imports**
+- [x] **Step 2: Update components init imports**
   Remove `from .needles import NeedlesComponent` and `from .queue import QueueComponent` from the `__init__.py` module.
 
 ---
@@ -44,7 +44,7 @@
 **Files:**
 - Modify: [app.py](file:///home/thotsky/BrainVault/Projects/StashStats/app.py)
 
-- [ ] **Step 1: Remove needles & queue tab switch callbacks**
+- [x] **Step 1: Remove needles & queue tab switch callbacks**
   Delete the following Dash callbacks:
   - `render_queue_tab`
   - `load_queue_list`
@@ -59,7 +59,7 @@
 **Files:**
 - Modify: [model.py](file:///home/thotsky/BrainVault/Projects/StashStats/stashies/model.py)
 
-- [ ] **Step 1: Remove Ravelry API wrappers**
+- [x] **Step 1: Remove Ravelry API wrappers**
   Delete the unused methods:
   - `get_queue_list`
   - `get_needles_list`
@@ -70,8 +70,8 @@
 
 ### Task 5: Verification
 
-- [ ] **Step 1: Run E2E tests**
+- [x] **Step 1: Run E2E tests**
   Command: `.venv/bin/pytest`
   Expected: PASS (if tests have references to queue/needles, update them or check mock fixtures)
-- [ ] **Step 2: Manual browser test**
+- [x] **Step 2: Manual browser test**
   Start server, check that only Personal Stash, Stash Analytics, Projects, and Yarn Search tabs are visible.

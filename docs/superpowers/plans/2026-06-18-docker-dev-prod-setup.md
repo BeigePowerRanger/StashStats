@@ -9,7 +9,7 @@
 **Files:**
 - Create: [docker-compose.dev.yml](file:///home/thotsky/BrainVault/Projects/StashStats/docker-compose.dev.yml)
 
-- [ ] **Step 1: Define development overrides**
+- [x] **Step 1: Define development overrides**
   Define a docker compose override file that runs the `web` container in development mode:
   - Mounts the local workspace directory `./:/app` so changes are instantly reflected.
   - Overrides the start command `command: python app.py` to run the Dash development server with hot-reload enabled.
@@ -35,7 +35,7 @@
 **Files:**
 - Modify: [docker-compose.yml](file:///home/thotsky/BrainVault/Projects/StashStats/docker-compose.yml)
 
-- [ ] **Step 1: Set production defaults**
+- [x] **Step 1: Set production defaults**
   - Verify that the base `docker-compose.yml` does NOT mount the code directory as a volume (it should only mount the `./data:/app/data` volume for the SQLite database).
   - Verify that the default command is Gunicorn running in production mode (`gunicorn --workers 1 --threads 4 ...`).
 
@@ -47,16 +47,16 @@
 - Modify: [Dockerfile](file:///home/thotsky/BrainVault/Projects/StashStats/Dockerfile)
 - Create: `entrypoint.sh`
 
-- [ ] **Step 1: Add git integration to startup**
-  - If requested, create a startup wrapper script `entrypoint.sh` that checks if a git repository is configured and pulls the latest changes before launching Gunicorn, allowing the production container to automatically stay updated from Github on startup.
+- [-] **Step 1: Add git integration to startup**
+  - Decided not to implement this feature at this time.
 
 ---
 
 ### Task 4: Verification
 
-- [ ] **Step 1: Test Dev Stack**
+- [x] **Step 1: Test Dev Stack**
   Run: `docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build`
   Verify that editing a file triggers hot reload.
-- [ ] **Step 2: Test Prod Stack**
+- [x] **Step 2: Test Prod Stack**
   Run: `docker compose up --build -d`
   Verify that the app runs on Gunicorn, code mounts are disabled, and it starts successfully.

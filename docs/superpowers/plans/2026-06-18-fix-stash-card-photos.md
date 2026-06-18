@@ -9,7 +9,7 @@
 **Files:**
 - Modify: [stash_card.py](file:///home/thotsky/BrainVault/Projects/StashStats/stashies/components/stash_card.py)
 
-- [ ] **Step 1: Update create_card photo extraction**
+- [x] **Step 1: Update create_card photo extraction**
   Modify lines 50-56 in `create_card` to check for `s.get("first_photo")` directly on the stash dictionary `s` before falling back to `yarn_info.get("photos")` or `yarn_info.get("first_photo")`.
   ```python
   photos = s.get("photos")
@@ -23,7 +23,7 @@
               photos = [yarn_info.get("first_photo")]
   ```
 
-- [ ] **Step 2: Update create_grouped_accordion_item photo extraction**
+- [x] **Step 2: Update create_grouped_accordion_item photo extraction**
   Modify lines 287-300 in `create_grouped_accordion_item` to also check for `s.get("first_photo")` directly on the stash dictionary `s`.
   ```python
   photo_url = None
@@ -51,8 +51,8 @@
 
 ### Task 2: Verification
 
-- [ ] **Step 1: Run E2E tests**
+- [x] **Step 1: Run E2E tests**
   Command: `.venv/bin/pytest`
   Expected: PASS
-- [ ] **Step 2: Manual Check**
+- [x] **Step 2: Manual Check**
   Load the Personal Stash tab. Accordion items and card thumbnails should display their respective stash/yarn photos instead of falling back to default grey placeholders.

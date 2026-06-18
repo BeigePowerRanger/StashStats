@@ -5,11 +5,11 @@ StashStats is a Dash-based web application for searching, tracking, and managing
 ---
 ## TODOs
 
-- [ ] TODO #stashstats log usage modal in personal stash should have table of past changes underneath the save changes/ cancel boxes
-- [ ] remove Needles & hooks and queue tabs
-- [ ] pictures not showing right on accordian items on personal stash tab
-- [ ] create dev and prod containers in docker compose stack so app can be used and developed 
-	- [ ] can the main one be set to just pull from the github repo when 
+- [x] TODO #stashstats log usage modal in personal stash should have table of past changes underneath the save changes/ cancel boxes
+- [x] remove Needles & hooks and queue tabs
+- [x] pictures not showing right on accordian items on personal stash tab
+- [x] create dev and prod containers in docker compose stack so app can be used and developed 
+	- [x] can the main one be set to just pull from the github repo when 
 
 ## Current Features
 

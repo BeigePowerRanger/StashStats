@@ -8,7 +8,7 @@ from dash import dcc, html
 from .base import Base
 from .components import (
     Header, Search, SearchResults, StashCard, EditModal, AnalyticsComponent,
-    ProjectsComponent, QueueComponent, NeedlesComponent
+    ProjectsComponent
 )
 from .model import Model
 
@@ -65,8 +65,6 @@ class AppController(Base):
         self.EDIT_MODAL: 'EditModal' = EditModal(container_id=modal_id)
         self.ANALYTICS: 'AnalyticsComponent' = AnalyticsComponent(container_id=analytics_id)
         self.PROJECTS: 'ProjectsComponent' = ProjectsComponent(container_id="app-projects")
-        self.QUEUE: 'QueueComponent' = QueueComponent(container_id="app-queue")
-        self.NEEDLES: 'NeedlesComponent' = NeedlesComponent(container_id="app-needles")
 
     def create_initial_layout(self) -> List[dbc.Container]:
         """
@@ -107,26 +105,6 @@ class AppController(Base):
                             children=[
                                 html.Div(style={"height": "20px"}),
                                 dbc.Container(id="projects-tab-content")
-                            ],
-                            style={"backgroundColor": "#222", "color": "#fff"},
-                            selected_style={"backgroundColor": "#333", "color": "#00bc8c"}
-                        ),
-                        dcc.Tab(
-                            label="Queue",
-                            value="tab-queue",
-                            children=[
-                                html.Div(style={"height": "20px"}),
-                                dbc.Container(id="queue-tab-content")
-                            ],
-                            style={"backgroundColor": "#222", "color": "#fff"},
-                            selected_style={"backgroundColor": "#333", "color": "#00bc8c"}
-                        ),
-                        dcc.Tab(
-                            label="Needles & Hooks",
-                            value="tab-needles",
-                            children=[
-                                html.Div(style={"height": "20px"}),
-                                dbc.Container(id="needles-tab-content")
                             ],
                             style={"backgroundColor": "#222", "color": "#fff"},
                             selected_style={"backgroundColor": "#333", "color": "#00bc8c"}
@@ -543,6 +521,42 @@ class AppController(Base):
                 self.LOGGER.error(f"[WRITE ERROR] stash_id={stash_id} | {e}")
                 return f"Error: {e}", True
 
+    def build_history_table(self, stash_id: str) -> html.Div:
+        history = self.MODEL.get_stash_history(stash_id)
+        if not history:
+            return html.Div("No usage history logged yet.", className="text-muted small mt-2")
+        
+        rows = []
+        for event in reversed(history):
+            sk = -event.get("skeins", 0.0)
+            yds = -event.get("yards", 0.0)
+            g = -event.get("grams", 0.0)
+            date = event.get("date", "Unknown Date")
+            
+            rows.append(html.Tr([
+                html.Td(date),
+                html.Td(f"{sk:.2f} sk"),
+                html.Td(f"{yds:,.0f} yds"),
+                html.Td(f"{g:,.0f} g"),
+            ]))
+            
+        table = dbc.Table(
+            [
+                html.Thead(html.Tr([html.Th("Date"), html.Th("Skeins"), html.Th("Yards"), html.Th("Weight")])),
+                html.Tbody(rows)
+            ],
+            bordered=True,
+            hover=True,
+            responsive=True,
+            striped=True,
+            size="sm",
+            style={"fontSize": "0.85rem", "color": "#ccc", "borderColor": "#555"}
+        )
+        return html.Div([
+            html.H6("Usage History", className="text-success mt-3 mb-2"),
+            table
+        ])
+
     def toggle_edit_modal(
         self,
         edit_clicks: list,
@@ -550,7 +564,7 @@ class AppController(Base):
         store_data_list: list,
         btn_ids: list,
         triggered_id: str,
-    ) -> Tuple[bool, Any, Any, Any, Any, Any, Any, Any, Any, str, Any, str, str, Any]:
+    ) -> Tuple[bool, Any, Any, Any, Any, Any, Any, Any, Any, str, Any, str, str, Any, Any]:
         """
         Handle opening the edit modal and loading the correct initial state.
         - Input
@@ -565,13 +579,13 @@ class AppController(Base):
         from dash import no_update
         
         if "edit-stash-cancel-btn" in triggered_id:
-            return False, no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, "", None, "modal-tab-details", datetime.date.today().isoformat(), no_update
+            return False, no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, "", None, "modal-tab-details", datetime.date.today().isoformat(), no_update, None
 
         try:
             triggered_obj = json.loads(triggered_id.split(".")[0])
             btn_index = triggered_obj.get("index", "")
         except Exception:
-            return (no_update,) * 14
+            return (no_update,) * 15
 
         sd = None
         clicks = None
@@ -584,13 +598,14 @@ class AppController(Base):
                 break
 
         if not clicks:
-            return (no_update,) * 14
+            return (no_update,) * 15
 
         if not sd:
-            return (no_update,) * 14
+            return (no_update,) * 15
 
         current_skeins = sd.get("skeins") or 0
         yarn_name = sd.get("name") or "Unnamed Yarn"
+        history_table = self.build_history_table(sd.get("id"))
         return (
             True,
             sd.get("id"),
@@ -606,6 +621,7 @@ class AppController(Base):
             "modal-tab-details",
             datetime.date.today().isoformat(),
             f"edit entry: {yarn_name}",
+            history_table,
         )
 
     def render_projects_tab_layout(self) -> html.Div:
@@ -619,56 +635,5 @@ class AppController(Base):
             return [dbc.Col(html.Div("No projects found or API request failed.", className="text-warning mt-3"))]
         return [self.PROJECTS.build_project_card(p) for p in projects]
 
-    def render_queue_tab_layout(self) -> html.Div:
-        """Render layout structure for Queue tab."""
-        return self.QUEUE.create_init_layout()
 
-    def render_queue_list(self) -> Any:
-        """Fetch and render Ravelry project queue."""
-        queue_items = self.MODEL.get_queue_list()
-        return self.QUEUE.build_queue_list(queue_items)
-
-    def render_needles_tab_layout(self) -> html.Div:
-        """Render layout structure for Needles tab."""
-        return html.Div(
-            [
-                html.H4("Needles & Hooks Organizer", className="mt-3 text-success"),
-                html.P("Keep track of your knitting needles and crochet hooks."),
-                self.NEEDLES.create_init_layout()
-            ]
-        )
-
-    def render_needles_list(self) -> Any:
-        """Fetch and render owned needles and hooks."""
-        needle_records = self.MODEL.get_needles_list()
-        return self.NEEDLES.build_needles_tables(needle_records)
-
-    def handle_reposition_queue(self, queue_id: str, direction: str) -> bool:
-        """Move a queue item up or down in rank and refresh."""
-        queue_items = self.MODEL.get_queue_list()
-        if not queue_items:
-            return False
-        
-        sorted_items = sorted(queue_items, key=lambda x: x.get("sort_order") or x.get("position_in_queue") or 999)
-        target_idx = -1
-        for idx, item in enumerate(sorted_items):
-            if str(item.get("id")) == str(queue_id):
-                target_idx = idx
-                break
-        
-        if target_idx == -1:
-            return False
-            
-        if direction == "up" and target_idx > 0:
-            new_pos = target_idx
-            return self.MODEL.reposition_queue_item(queue_id, new_pos)
-        elif direction == "down" and target_idx < len(sorted_items) - 1:
-            new_pos = target_idx + 2
-            return self.MODEL.reposition_queue_item(queue_id, new_pos)
-            
-        return False
-
-    def handle_remove_queue(self, queue_id: str) -> bool:
-        """Delete an item from Ravelry queue."""
-        return self.MODEL.remove_queue_item(queue_id)
 
