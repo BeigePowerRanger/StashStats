@@ -137,6 +137,7 @@ class Model(Base):
         username = os.getenv("RAVELRY_USERNAME") or "Thotsky"
         endpoint = f"people/{username}/stash/unified/list.json"
         
+        # Check Redis cache first for the full stash list. If found, deserialize from JSON.
         r = self.get_redis()
         all_stashes = None
         if r:
@@ -208,6 +209,7 @@ class Model(Base):
                 if len(result["unified_stash"]) < 100:
                     break
                 page += 1
+            # Cache the serialized JSON stash list in Redis with a TTL of 300 seconds.
             if all_stashes and r:
                 try:
                     r.setex(f"stash_list:{username}", 300, json.dumps(all_stashes))
@@ -228,7 +230,7 @@ class Model(Base):
         # 1. Gather all stash IDs
         stash_ids = [str(s["id"]) for s in all_stashes if "id" in s]
         
-        # 2. Bulk fetch from Redis
+        # 2. Bulk fetch from Redis using mget to retrieve cached details for all stash IDs in a single round-trip.
         cached_vals = {}
         if r and stash_ids:
             try:
@@ -287,6 +289,7 @@ class Model(Base):
             bulk_dirty_orig = DBManager.get_bulk_original_values(dirty_ids)
             bulk_dirty_history = DBManager.get_bulk_stash_history(dirty_ids)
 
+            # Fetch uncached details concurrently, with a 50ms sleep inside the worker to satisfy Ravelry rate limits.
             def fetch_detail(item):
                 import time
                 s_id = item.get("id")
@@ -309,11 +312,12 @@ class Model(Base):
                     self.LOGGER.error(f"Error fetching stash detail {s_id}: {e}")
                 return s_id, None
 
+            # Concurrently fetch uncached details using ThreadPoolExecutor.
             max_workers = min(10, len(dirty_items))
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
                 results = list(executor.map(fetch_detail, dirty_items))
 
-            # Batch Redis writes via pipeline (1 round-trip vs N)
+            # Batch Redis writes via pipeline to batch-write detailed info in one round-trip.
             redis_pipeline = r.pipeline(transaction=False) if r else None
 
             for s_id, stash_detail in results:
@@ -366,6 +370,9 @@ class Model(Base):
                     # Use pre-fetched DB data instead of per-item queries
                     old_totals = bulk_dirty_orig.get(s_id_str)
 
+                    # Delta history tracking: retrieves original value from DB, gets sum of historical changes,
+                    # computes current totals, finds difference (delta), and saves a backdated/interpolated event
+                    # in SQLite if quantities changed.
                     wrote_history_event = False
                     if old_totals:
                         history_events = bulk_dirty_history.get(s_id_str) or []
@@ -438,7 +445,7 @@ class Model(Base):
                             grams=new_totals["grams"]
                         )
 
-                    # Queue Redis detail write for batch flush
+                    # Queue Redis detail write to batch-write new details in one round-trip.
                     if redis_pipeline:
                         try:
                             redis_pipeline.setex(
@@ -460,7 +467,7 @@ class Model(Base):
                         item_in_list["history"] = bulk_dirty_history.get(s_id_str) or []
                     item_in_list["original_values"] = old_totals
 
-            # Flush all Redis writes in a single round-trip
+            # Execute/flush Redis pipeline to batch-write detailed info in one round-trip.
             if redis_pipeline:
                 try:
                     redis_pipeline.execute()
@@ -495,7 +502,7 @@ class Model(Base):
         endpoint = f"people/{username}/stash/{stash_id}.json"
         result = self.REQ.post_request(endpoint=endpoint, data=stash_data)
 
-        # Invalidate Redis cache
+        # Invalidate Redis keys for stash_detail:{stash_id} and stash_list:{username} on write success.
         r = self.get_redis()
         if r:
             try:
@@ -515,6 +522,7 @@ class Model(Base):
         """
         import json
         try:
+            # Check Redis cache first for cached yarn data using key yarn:{yarn_id}.
             r = self.get_redis()
             if r:
                 try:
@@ -534,6 +542,7 @@ class Model(Base):
                 yarn = Yarn(**result['yarn'])
                 yarn.colorways = result['colorways']
 
+                # Cache fetched yarn data in Redis with a 24-hour (86400 seconds) TTL.
                 if r:
                     try:
                         r.setex(

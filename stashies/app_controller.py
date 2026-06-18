@@ -190,6 +190,8 @@ class AppController(Base):
         Render layout structure for Personal Stash tab.
         - output: html.Div container.
         """
+        # Placing search query and sorting inputs side-by-side using Bootstrap columns.
+        # xs=12 stacks on mobile/small screens; md=8 and md=4 sum to 12 to align them on medium+ screens.
         search_col = dbc.Col(
             dbc.Input(
                 id="stash-search-query",
@@ -227,6 +229,7 @@ class AppController(Base):
         )
         pagination.page_count = 1
 
+        # Instantiate pagination row below the stash container list to navigate through pages.
         pagination_row = dbc.Row(
             dbc.Col(
                 pagination,
@@ -280,7 +283,8 @@ class AppController(Base):
             fallback_msg = [html.Div("No matching stash entries found.", className="text-info mt-3 ms-2")]
             return (fallback_msg, 1) if active_page is not None else fallback_msg
 
-        # Group by (brand, name)
+        # Group metrics computing loop. Organises stash list entries by unique brand/name combinations.
+        # Aggregates totals per group (e.g. skeins, yards) to extract total skeins and max dates for sorting.
         grouped_data = {}
         from .model import get_primary_totals
         for s in filtered:
@@ -296,13 +300,14 @@ class AppController(Base):
                 grouped_data[key] = []
             grouped_data[key].append((s, totals))
 
-        # Sort the groups
+        # Sorting branching logic to order the grouped stash records based on selected dropdown value.
         if sort_by == "name_asc":
             sorted_groups = sorted(
                 grouped_data.items(),
                 key=lambda x: (x[0][1].lower(), x[0][0].lower())
             )
         elif sort_by == "qty_desc":
+            # qty_desc branch calculates total skeins across all items in group to sort descending.
             sorted_groups = sorted(
                 grouped_data.items(),
                 key=lambda x: (
@@ -312,6 +317,7 @@ class AppController(Base):
                 )
             )
         elif sort_by == "date_desc":
+            # date_desc parses creation timestamps to float representation to perform chronological sorting.
             import datetime
             def get_group_max_timestamp(items):
                 max_ts = 0.0
@@ -341,7 +347,8 @@ class AppController(Base):
                 key=lambda x: (x[0][0].lower(), x[0][1].lower())
             )
 
-        # Pagination logic
+        # Pagination logic: calculates the ceiling total page count (math.ceil)
+        # and slices the sorted groups using the current active page index.
         import math
         total_groups = len(sorted_groups)
         page_count = max(1, math.ceil(total_groups / 10))
@@ -364,6 +371,7 @@ class AppController(Base):
                 comb_t["skeins"] += totals.get("skeins") or 0.0
                 comb_t["grams"] += totals.get("grams") or 0.0
 
+            # Wrap details and item lists into accordion group card components.
             accordion_item = self.STASH_CARD.create_grouped_accordion_item(
                 brand=brand,
                 name=name,
@@ -373,6 +381,7 @@ class AppController(Base):
             accordion_items.append(accordion_item)
 
         cols = [dbc.Col(item, width=12) for item in accordion_items]
+        # Return either a tuple containing (columns list, total_pages) if page is specified, or only columns list.
         if active_page is not None:
             return cols, page_count
         else:

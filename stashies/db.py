@@ -31,9 +31,18 @@ class SQLitePool:
         """
         Establish and return a new SQLite database connection.
         """
-        # Establish connection with thread-safety flag
+        # Connection pooling approach: creates connections on-demand using sqlite3.connect.
+        # Since SQLite is a serverless, single-file database, this approach achieves
+        # connection pooling by opening and closing connections dynamically, while
+        # utilizing OS-level file caching.
+        #
+        # Thread-safety: check_same_thread=False allows sharing the connection handle
+        # across multiple threads, allowing concurrent read/write operations without
+        # raising thread-bound exceptions.
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
-        # Enable WAL mode for high concurrency
+        # Concurrency: Enable Write-Ahead Logging (WAL) journal mode.
+        # This allows concurrent readers and a writer to access the database without blocking,
+        # dramatically increasing throughput and preventing lock contention in multi-threaded environments.
         conn.execute("PRAGMA journal_mode=WAL")
         return conn
 
@@ -57,7 +66,11 @@ class DBManager:
     '''SQLite Pool instance.'''
 
     _pending_dates = {}
-    '''Pending usage dates map for stash edits.'''
+    '''
+    Pending usage dates map for stash edits.
+    This acts as a temporary dictionary to hold usage dates passed from the UI callback
+    before the detail view refresh, bridging the state gap during the multi-step transaction.
+    '''
 
     @classmethod
     def get_pool(cls):
@@ -80,6 +93,13 @@ class DBManager:
         """
         Create target database tables and indexes if they do not exist.
         """
+        # Schema Initialization:
+        # 1. original_values table: tracks initial quantities of stash entries when they
+        #    are first entered (serves as the baseline for delta calculations).
+        # 2. stash_history table: records chronological timeline events of stash usage,
+        #    storing physical quantities (yards, meters, skeins, grams) at specific event dates.
+        # 3. idx_history_stash_id index: optimizes queries looking up chronological
+        #    history records filtered by a specific stash_id.
         conn = cls.get_pool().getconn()
         try:
             cur = conn.cursor()

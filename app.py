@@ -115,9 +115,14 @@ def render_stash_tab(tab_value):
     Input("stash-update-trigger", "data"),
 )
 def filter_stash_items(query, sort_by, active_page, tab_value, trigger_data):
+    # Callback Inputs/Outputs tie together search query, sorting, active page, current tab, and update trigger.
+    # Inputs: query, sort_by, active_page, tab_value, trigger_data.
+    # Outputs: Stash list cards, total pages (max_value), and the active page.
     if tab_value != "tab-stash":
         return no_update, no_update, no_update
     
+    # Context parsing: Check which input triggered the callback.
+    # If the search query or sorting option is changed, reset the page to 1.
     ctx = callback_context
     triggered_id = ""
     if ctx.triggered:
@@ -129,6 +134,8 @@ def filter_stash_items(query, sort_by, active_page, tab_value, trigger_data):
     sort_by = sort_by or "brand_asc"
     active_page = active_page or 1
     
+    # Call the controller to render stash cards and calculate total pages based on current filters.
+    # Returns: lists of cards, total pages count, and the active page value.
     cards, total_pages = CONTROLLER.render_stash_cards(query, sort_by, active_page)
     return cards, total_pages, active_page
 
@@ -168,6 +175,10 @@ def toggle_yarn_collapse(n_clicks, is_open):
     prevent_initial_call=True,
 )
 def toggle_edit_modal(edit_clicks, cancel_click, store_data_list, btn_ids):
+    # State passing and validation of parameters/inputs:
+    # State containing list of stash items' data and their button IDs is passed.
+    # Trigger is validated using callback context to see if modal is opened or cancelled.
+    # If open is requested, validates that a click actually occurred before continuing.
     ctx = callback_context
     if not ctx.triggered:
         raise PreventUpdate
@@ -210,12 +221,19 @@ def update_remaining_preview(used, current_skeins):
 def save_stash_edit(n_clicks, stash_id, active_tab,
                     colorway, dyelot, location, notes, skeins, status_id,
                     used_skeins, current_skeins, usage_date, trigger_data):
+    # State passing and validation:
+    # Passes inputs from modal fields (colorway, dyelot, location, notes, skeins, status, usage_date)
+    # and State stores (stash_id, current_skeins, active_tab, and the trigger tracker).
+    # Validates parameters/inputs by checking that save button was clicked and stash_id exists.
     if not n_clicks or not stash_id:
         raise PreventUpdate
     res_msg, is_open = CONTROLLER.handle_save_edit(
         stash_id, active_tab, colorway, dyelot, location, notes,
         skeins, status_id, used_skeins, current_skeins, usage_date
     )
+    # Cache trigger incrementation:
+    # If the modal is successfully saved and closed (is_open is False),
+    # increment the update trigger tracker to refresh the stash list.
     new_trigger_data = trigger_data
     if not is_open:
         new_trigger_data = (trigger_data or 0) + 1
