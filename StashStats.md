@@ -100,11 +100,11 @@ tests/
 ### 🟡 Warnings
 
 - [ ] **Edit modal doesn't show yarn name** — modal title says "Edit Stash Entry" with no yarn identification. Fix: pass yarn name into `dcc.Store` data; display in modal header.
-- [ ] **First stash card may auto-open edit modal on tab load** — pattern-matched `n_clicks=None` check may fire on initial layout render. Fix: add `if not any(c for c in edit_clicks if c): raise PreventUpdate`.
+- [x] **First stash card may auto-open edit modal on tab load** — pattern-matched `n_clicks=None` check may fire on initial layout render. Fix: add `if not any(c for c in edit_clicks if c): raise PreventUpdate`.
 - [ ] **Stash list doesn't auto-refresh after edit** — must manually switch tabs and return. Fix: output to `stash-list-container` from save callback, or add `dcc.Interval`.
 - [ ] **Subtraction loop doesn't skip child packs** (`app.py:433-462`) — positive acquisition loop correctly skips `primary_pack_id is not None` packs, but the subtraction loop does not, double-counting yardage removed for multi-pack entries.
-- [ ] **`search-category` State wired but ignored** (`app.py:239`) — category filter silently dropped in `handle_search`. Fix: pass to `CONTROLLER.search_yarn` or remove from callback inputs.
-- [ ] **`search-sort` value mismatch** — UI sends `"best_match"` but Ravelry API expects `"best"`. Fix: map UI value to API value before calling search.
+- [x] **`search-category` State wired but ignored** (`app.py:239`) — category filter silently dropped in `handle_search`. Fix: pass to `CONTROLLER.search_yarn` or remove from callback inputs.
+- [x] **`search-sort` value mismatch** — UI sends `"best_match"` but Ravelry API expects `"best"`. Fix: map UI value to API value before calling search.
 - [ ] **Project fetch not paginated** (`app.py:344`) — `projects/list.json` fetched with `page_size=100` only. Users with >100 projects miss older project dates. Fix: paginate like stash list.
 - [ ] **Cache `updated_at` removed but `original_values`/`history` kept on invalidation** (`model.py:update_stash`) — after a write, `updated_at` sentinel removed so next fetch re-fetches details, but the *new* pack totals are then compared against the existing cached packs (stale), generating a spurious zero-or-wrong delta. Fix: also zero out `packs` in cache on invalidation.
 - [ ] **`time.sleep(0.2)` in ThreadPoolExecutor doesn't serialize requests** (`model.py:129`) — 3 workers all sleep then burst simultaneously. Fix: use a threading `Semaphore` + sleep, or reduce `max_workers=1`.
@@ -122,7 +122,7 @@ tests/
 
 ### 🔵 Minor
 
-- [ ] **`sorted(set(...))` order in `yarn.py:53`** — `list(set(sorted(...)))` destroys sort order (`set` is unordered). Fix: `sorted(set([c['name'] for c in v]))`.
+- [x] **`sorted(set(...))` order in `yarn.py:53`** — `list(set(sorted(...)))` destroys sort order (`set` is unordered). Fix: `sorted(set([c['name'] for c in v]))`.
 - [ ] **`random.choice(v)` for photo selection** (`yarn.py:65`) — non-deterministic; different photo shown each render. Fix: `v[0]` for consistency.
 - [ ] **`dev_changes.log` always-on** — should be gated by `DEV_LOGGING=1` env var for production.
 - [ ] **`0.9144` yards-to-meters constant duplicated** — appears in 5+ places across `app.py` and `model.py`. Extract to module-level constant.

@@ -1,6 +1,6 @@
 from typing import Any, ClassVar, Dict, List, Optional, Set, Union
 
-from pydantic import AliasChoices, BaseModel, Field, ValidationInfo, field_validator
+from pydantic import AliasChoices, BaseModel, Field, field_validator
 
 from ..utils.model_config import MODEL_CONFIG
 from .yarn_photos import YarnPhotos
@@ -70,7 +70,13 @@ class Yarn(BaseModel):
         - output: Sorted list of unique colorway name strings, or None.
         """
         if v is not None:
-            return sorted(set([colorway['name'] for colorway in v]))
+            res = []
+            for item in v:
+                if isinstance(item, str):
+                    res.append(item)
+                elif isinstance(item, dict) and item.get('name'):
+                    res.append(item.get('name'))
+            return sorted(set(res))
         return v
 
     @field_validator('photos', mode='before')
@@ -86,7 +92,15 @@ class Yarn(BaseModel):
         if not v:
             return []
         if isinstance(v, list):
-            return [YarnPhotos(**photo) for photo in v]
+            res = []
+            for photo in v:
+                if isinstance(photo, YarnPhotos):
+                    res.append(photo)
+                elif isinstance(photo, dict):
+                    res.append(YarnPhotos(**photo))
+            return res
+        if isinstance(v, YarnPhotos):
+            return [v]
         if isinstance(v, dict):
             return [YarnPhotos(**v)]
         return []

@@ -144,8 +144,7 @@ class AppController(Base):
                         )
                     ],
                     style={"overflowX": "auto"}
-                ),
-                dcc.Store(id='memory-output')
+                )
             ]
         )
 
@@ -167,7 +166,13 @@ class AppController(Base):
             - sort (str): Sort order. Defaults to 'best'.
         - output: dbc.Col with accordion of results, or html.Div('No results found.').
         """
-        yarns = self.MODEL.search_yarn(query=query, sort=sort)
+        sort_map = {
+            "best_match": "best",
+            "highest_rating": "rating",
+            "most_projects": "projects"
+        }
+        api_sort = sort_map.get(sort, sort)
+        yarns = self.MODEL.search_yarn(query=query, sort=api_sort)
 
         if yarns is not None:
             self.LOGGER.debug(f"Query: {query}, # of Yarns Found: {len(yarns)}")

@@ -50,9 +50,8 @@ app.layout = serve_layout
     Input("search-button", "n_clicks"),
     State("search-query", "value"),
     State("search-sort", "value"),
-    State("search-category", "value"),
 )
-def handle_search(n_clicks, query, sort, category):
+def handle_search(n_clicks, query, sort):
     if not query:
         raise PreventUpdate
     return CONTROLLER.search_yarn(query=query, sort=sort)
@@ -155,6 +154,9 @@ def toggle_edit_modal(edit_clicks, cancel_click, store_data_list, btn_ids):
     if not ctx.triggered:
         raise PreventUpdate
     triggered_id = ctx.triggered[0]["prop_id"]
+    if "edit-stash-cancel-btn" not in triggered_id:
+        if not edit_clicks or not any(click for click in edit_clicks if click):
+            raise PreventUpdate
     return CONTROLLER.toggle_edit_modal(edit_clicks, cancel_click, store_data_list, btn_ids, triggered_id)
 
 
