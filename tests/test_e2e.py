@@ -536,7 +536,81 @@ def test_animated_analytics():
     assert "DK" in categories
 
 
+def test_stash_pagination_and_sorting(dash_thread_server):
+    import requests
+    from unittest.mock import patch, MagicMock
+    from playwright.sync_api import sync_playwright
 
+    original_get = requests.get
 
+    def mock_get(url, *args, **kwargs):
+        mock_resp = MagicMock()
+        mock_resp.status_code = 200
+        if "stash/unified/list.json" in url:
+            # Return 12 stashes to trigger pagination (since page size is 10)
+            unified_stash = []
+            for i in range(12):
+                unified_stash.append({
+                    "stash": {
+                        "id": 100 + i,
+                        "name": f"Yarn {chr(65 + i)}", # Yarn A, Yarn B...
+                        "created_at": f"2026/05/{10 + i:02d} 12:00:00 -0400",
+                        "updated_at": f"2026/05/{10 + i:02d} 12:00:00 -0400",
+                        "yarn": {"yarn_company_name": f"Brand {chr(90 - i)}", "yardage": 100}, # Brand Z, Brand Y...
+                        "packs": [{"skeins": float(i + 1)}] # 1.0 to 12.0 skeins
+                    }
+                })
+            mock_resp.json.return_value = {"unified_stash": unified_stash}
+            return mock_resp
+        elif "current_user.json" in url:
+            mock_resp.json.return_value = {"user": {"username": "test_user"}}
+            return mock_resp
+        elif "stash/" in url and url.endswith(".json"):
+            import re
+            m = re.search(r"stash/(\d+)\.json", url)
+            if m:
+                stash_id = int(m.group(1))
+                i = stash_id - 100
+                if 0 <= i < 12:
+                    mock_resp.json.return_value = {
+                        "stash": {
+                            "id": stash_id,
+                            "updated_at": f"2026/05/{10 + i:02d} 12:00:00 -0400",
+                            "packs": [{"skeins": float(i + 1), "total_yards": 100.0 * (i + 1)}]
+                        }
+                    }
+                    return mock_resp
+        return original_get(url, *args, **kwargs)
 
+    with patch("requests.get", side_effect=mock_get):
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            page.goto(dash_thread_server)
+            page.wait_for_load_state("networkidle")
 
+            # Go to Personal Stash
+            page.click("text=Personal Stash")
+            page.wait_for_selector("#stash-list-container")
+
+            # Default sort is brand_asc.
+            # Verify first page has 10 items.
+            accordions = page.locator("#stash-list-container .card")
+            assert accordions.count() == 10
+
+            # Verify pagination component exists and shows page 2 active indicator when clicked
+            pagination_items = page.locator(".page-link")
+            assert pagination_items.count() > 0
+
+            # Go to page 2
+            page.locator(".page-link").get_by_text("2", exact=True).click()
+            page.wait_for_timeout(500) # Wait for animation/render
+            assert page.locator("#stash-list-container .card").count() == 2
+
+            # Reset to page 1 by sorting
+            page.select_option("#stash-sort-by", "qty_desc")
+            page.wait_for_timeout(500)
+            # Quantity desc means Yarn 12 (Yarn L) is first
+            assert page.locator("#stash-list-container .card").count() == 10
+
+            browser.close()

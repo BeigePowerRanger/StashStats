@@ -106,14 +106,31 @@ def render_stash_tab(tab_value):
 
 @callback(
     Output("stash-list-container", "children"),
+    Output("stash-page", "max_value"),
+    Output("stash-page", "active_page"),
     Input("stash-search-query", "value"),
+    Input("stash-sort-by", "value"),
+    Input("stash-page", "active_page"),
     Input("app-tabs", "value"),
     Input("stash-update-trigger", "data"),
 )
-def filter_stash_items(query, tab_value, trigger_data):
+def filter_stash_items(query, sort_by, active_page, tab_value, trigger_data):
     if tab_value != "tab-stash":
-        return no_update
-    return CONTROLLER.render_stash_cards(query)
+        return no_update, no_update, no_update
+    
+    ctx = callback_context
+    triggered_id = ""
+    if ctx.triggered:
+        triggered_id = ctx.triggered[0]["prop_id"]
+    
+    if "stash-search-query" in triggered_id or "stash-sort-by" in triggered_id:
+        active_page = 1
+
+    sort_by = sort_by or "brand_asc"
+    active_page = active_page or 1
+    
+    cards, total_pages = CONTROLLER.render_stash_cards(query, sort_by, active_page)
+    return cards, total_pages, active_page
 
 
 @callback(

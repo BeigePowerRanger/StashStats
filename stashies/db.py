@@ -6,7 +6,20 @@ from typing import Optional
 logger = logging.getLogger("stashies.db")
 
 class SQLitePool:
+    """
+    Connection pool manager for SQLite database.
+    """
+
+    db_path: str
+    '''Path to the database file.'''
+
     def __init__(self, db_path: str):
+        """
+        Initialize the SQLitePool.
+        """
+        db_path: str
+        '''Path to the database file.'''
+
         self.db_path = db_path
         # Ensure parent directory exists
         db_dir = os.getenv("SQLITE_DB_PATH", "/app/data/stash.db")
@@ -15,6 +28,9 @@ class SQLitePool:
             os.makedirs(parent_dir, exist_ok=True)
 
     def getconn(self) -> sqlite3.Connection:
+        """
+        Establish and return a new SQLite database connection.
+        """
         # Establish connection with thread-safety flag
         conn = sqlite3.connect(self.db_path, check_same_thread=False)
         # Enable WAL mode for high concurrency
@@ -22,15 +38,32 @@ class SQLitePool:
         return conn
 
     def putconn(self, conn: sqlite3.Connection) -> None:
+        """
+        Close a connection and release its resource handles.
+        """
+        conn: sqlite3.Connection
+        '''Database connection to release.'''
+
         # Close connection to release resource handles
         conn.close()
 
 class DBManager:
+    """
+    Database manager coordinating schema migrations, tracking original stash values,
+    and recording stash usage history events.
+    """
+
     _pool = None
+    '''SQLite Pool instance.'''
+
     _pending_dates = {}
+    '''Pending usage dates map for stash edits.'''
 
     @classmethod
     def get_pool(cls):
+        """
+        Get or initialize the database connection pool.
+        """
         if cls._pool is None:
             db_path = os.getenv("SQLITE_DB_PATH", "/app/data/stash.db")
             try:
@@ -44,6 +77,9 @@ class DBManager:
 
     @classmethod
     def run_migrations(cls):
+        """
+        Create target database tables and indexes if they do not exist.
+        """
         conn = cls.get_pool().getconn()
         try:
             cur = conn.cursor()
@@ -85,6 +121,12 @@ class DBManager:
 
     @classmethod
     def get_original_values(cls, stash_id: str):
+        """
+        Get the original quantities of a stash entry.
+        """
+        stash_id: str
+        '''Stash entry ID.'''
+
         conn = cls.get_pool().getconn()
         try:
             cur = conn.cursor()
@@ -107,6 +149,12 @@ class DBManager:
 
     @classmethod
     def get_bulk_original_values(cls, stash_ids: list):
+        """
+        Retrieve original values in bulk for a collection of stash IDs.
+        """
+        stash_ids: list
+        '''List of stash IDs to fetch.'''
+
         if not stash_ids:
             return {}
         conn = cls.get_pool().getconn()
@@ -133,6 +181,20 @@ class DBManager:
 
     @classmethod
     def save_original_values(cls, stash_id: str, yards: float, meters: float, skeins: float, grams: float):
+        """
+        Save original quantities for a stash entry, ignoring if already set.
+        """
+        stash_id: str
+        '''Stash entry ID.'''
+        yards: float
+        '''Original yards of yarn.'''
+        meters: float
+        '''Original meters of yarn.'''
+        skeins: float
+        '''Original number of skeins.'''
+        grams: float
+        '''Original grams weight.'''
+
         conn = cls.get_pool().getconn()
         try:
             cur = conn.cursor()
@@ -152,6 +214,12 @@ class DBManager:
 
     @classmethod
     def get_stash_history(cls, stash_id: str):
+        """
+        Retrieve chronological history events recorded for a stash ID.
+        """
+        stash_id: str
+        '''Stash entry ID.'''
+
         conn = cls.get_pool().getconn()
         try:
             cur = conn.cursor()
@@ -181,6 +249,12 @@ class DBManager:
 
     @classmethod
     def get_bulk_stash_history(cls, stash_ids: list):
+        """
+        Fetch chronological stash histories in bulk for a collection of stash IDs.
+        """
+        stash_ids: list
+        '''List of stash IDs to query.'''
+
         if not stash_ids:
             return {}
         conn = cls.get_pool().getconn()
@@ -216,6 +290,22 @@ class DBManager:
 
     @classmethod
     def save_history_event(cls, stash_id: str, event_date: str, yards: float, meters: float, skeins: float, grams: float):
+        """
+        Record a stash history event with specified date and quantities.
+        """
+        stash_id: str
+        '''Stash entry ID.'''
+        event_date: str
+        '''Usage event date.'''
+        yards: float
+        '''Yards of yarn at event.'''
+        meters: float
+        '''Meters of yarn at event.'''
+        skeins: float
+        '''Number of skeins at event.'''
+        grams: float
+        '''Grams weight at event.'''
+
         conn = cls.get_pool().getconn()
         try:
             cur = conn.cursor()
@@ -234,8 +324,22 @@ class DBManager:
 
     @classmethod
     def set_pending_usage_date(cls, stash_id: str, usage_date: str):
+        """
+        Set a temporary usage date for a stash ID.
+        """
+        stash_id: str
+        '''Stash entry ID.'''
+        usage_date: str
+        '''Pending usage date string.'''
+
         cls._pending_dates[str(stash_id)] = usage_date
 
     @classmethod
     def pop_pending_usage_date(cls, stash_id: str) -> Optional[str]:
+        """
+        Retrieve and remove the pending usage date for a stash ID.
+        """
+        stash_id: str
+        '''Stash entry ID.'''
+
         return cls._pending_dates.pop(str(stash_id), None)

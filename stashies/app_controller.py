@@ -190,32 +190,79 @@ class AppController(Base):
         Render layout structure for Personal Stash tab.
         - output: html.Div container.
         """
-        search_bar = dbc.Input(
-            id="stash-search-query",
-            placeholder="Filter stash by yarn name, brand, or colorway...",
-            className="mb-4 mt-3",
-            style={"backgroundColor": "#333", "color": "#fff", "border": "1px solid #444"},
-            debounce=True
+        search_col = dbc.Col(
+            dbc.Input(
+                id="stash-search-query",
+                placeholder="Filter stash by yarn name, brand, or colorway...",
+                className="mb-4 mt-3",
+                style={"backgroundColor": "#333", "color": "#fff", "border": "1px solid #444"},
+                debounce=True
+            ),
+            xs=12, md=8
         )
+        sort_col = dbc.Col(
+            dbc.Select(
+                id="stash-sort-by",
+                options=[
+                    {"label": "Brand (A-Z)", "value": "brand_asc"},
+                    {"label": "Name (A-Z)", "value": "name_asc"},
+                    {"label": "Quantity (High-Low)", "value": "qty_desc"},
+                    {"label": "Date Added (Newest)", "value": "date_desc"}
+                ],
+                value="brand_asc",
+                className="mb-4 mt-3",
+                style={"backgroundColor": "#333", "color": "#fff", "border": "1px solid #444"}
+            ),
+            xs=12, md=4
+        )
+        filter_row = dbc.Row([search_col, sort_col])
+
+        pagination = dbc.Pagination(
+            id="stash-page",
+            active_page=1,
+            max_value=1,
+            fully_expanded=False,
+            previous_next=True,
+            class_name="justify-content-center"
+        )
+        pagination.page_count = 1
+
+        pagination_row = dbc.Row(
+            dbc.Col(
+                pagination,
+                width=12,
+                className="mt-3 d-flex justify-content-center"
+            )
+        )
+
         return html.Div(
             [
                 html.H4("My Personal Stash", className="mt-3 text-success"),
                 html.P("Browse and filter your stashed yarn collection."),
-                search_bar,
-                dbc.Row(id="stash-list-container")
+                filter_row,
+                dbc.Row(id="stash-list-container"),
+                pagination_row
             ]
         )
 
-    def render_stash_cards(self, query: Optional[str]) -> List[dbc.Col]:
+    def render_stash_cards(
+        self,
+        query: Optional[str],
+        sort_by: str = "brand_asc",
+        active_page: Optional[int] = None
+    ) -> Union[List[dbc.Col], Tuple[List[dbc.Col], int]]:
         """
         Filter, group by yarn, and render stash accordion list.
         - Input:
             - query (str | None): Search query for stash filtration.
-        - output: List of dbc.Col containing the single accordion container.
+            - sort_by (str): Sorting criteria. Defaults to 'brand_asc'.
+            - active_page (int | None): Currently active page. Defaults to None.
+        - output: List of dbc.Col containing the single accordion container, or a tuple of (list, total_pages) if page is specified.
         """
         stash_list = self.MODEL.get_stash_list()
         if not stash_list:
-            return [html.Div("No stashed yarns found or API request failed.", className="text-warning mt-3")]
+            fallback_msg = [html.Div("No stashed yarns found or API request failed.", className="text-warning mt-3")]
+            return (fallback_msg, 1) if active_page is not None else fallback_msg
 
         filtered = stash_list
         if query:
@@ -230,7 +277,8 @@ class AppController(Base):
                     filtered.append(s)
 
         if not filtered:
-            return [html.Div("No matching stash entries found.", className="text-info mt-3 ms-2")]
+            fallback_msg = [html.Div("No matching stash entries found.", className="text-info mt-3 ms-2")]
+            return (fallback_msg, 1) if active_page is not None else fallback_msg
 
         # Group by (brand, name)
         grouped_data = {}
@@ -248,8 +296,66 @@ class AppController(Base):
                 grouped_data[key] = []
             grouped_data[key].append((s, totals))
 
+        # Sort the groups
+        if sort_by == "name_asc":
+            sorted_groups = sorted(
+                grouped_data.items(),
+                key=lambda x: (x[0][1].lower(), x[0][0].lower())
+            )
+        elif sort_by == "qty_desc":
+            sorted_groups = sorted(
+                grouped_data.items(),
+                key=lambda x: (
+                    -sum(totals.get("skeins") or 0.0 for _, totals in x[1]),
+                    x[0][0].lower(),
+                    x[0][1].lower()
+                )
+            )
+        elif sort_by == "date_desc":
+            import datetime
+            def get_group_max_timestamp(items):
+                max_ts = 0.0
+                for s, _ in items:
+                    c_at = s.get("created_at")
+                    if c_at:
+                        try:
+                            dt = datetime.datetime.strptime(c_at.split(" ")[0], "%Y/%m/%d")
+                            ts = dt.timestamp()
+                            if ts > max_ts:
+                                max_ts = ts
+                        except Exception:
+                            pass
+                return max_ts
+
+            sorted_groups = sorted(
+                grouped_data.items(),
+                key=lambda x: (
+                    -get_group_max_timestamp(x[1]),
+                    x[0][0].lower(),
+                    x[0][1].lower()
+                )
+            )
+        else: # Default: brand_asc
+            sorted_groups = sorted(
+                grouped_data.items(),
+                key=lambda x: (x[0][0].lower(), x[0][1].lower())
+            )
+
+        # Pagination logic
+        import math
+        total_groups = len(sorted_groups)
+        page_count = max(1, math.ceil(total_groups / 10))
+        
+        if active_page is not None:
+            active_page = max(1, min(active_page, page_count))
+            start_idx = (active_page - 1) * 10
+            end_idx = start_idx + 10
+            sliced_groups = sorted_groups[start_idx:end_idx]
+        else:
+            sliced_groups = sorted_groups
+
         accordion_items = []
-        for (brand, name), items in grouped_data.items():
+        for (brand, name), items in sliced_groups:
             # Calculate combined totals
             comb_t = {"yards": 0.0, "meters": 0.0, "skeins": 0.0, "grams": 0.0}
             for _, totals in items:
@@ -266,8 +372,11 @@ class AppController(Base):
             )
             accordion_items.append(accordion_item)
 
-        # Return columns containing each custom accordion card directly
-        return [dbc.Col(item, width=12) for item in accordion_items]
+        cols = [dbc.Col(item, width=12) for item in accordion_items]
+        if active_page is not None:
+            return cols, page_count
+        else:
+            return cols
 
     def render_analytics_layout(self) -> dbc.Row:
         """
@@ -620,7 +729,7 @@ class AppController(Base):
             None,
             "modal-tab-details",
             datetime.date.today().isoformat(),
-            f"edit entry: {yarn_name}",
+            f"Edit Stash Entry: {yarn_name}",
             history_table,
         )
 
