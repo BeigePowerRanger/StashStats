@@ -167,6 +167,8 @@ Plan broken into 4 phases. High risk data stuff first. UI stuff second.
 
 # Ravelry Notes
 
+![[NotebookLM Mind Map.png]]
+
 - [[Platform Features]] 
 	- [[Pattern Data]]
 		- [[Search and Metadata]]
@@ -181,7 +183,25 @@ Plan broken into 4 phases. High risk data stuff first. UI stuff second.
 	- [[User Content]]
 		- [[Personal Notebook]]
 		- [[Project Tracking]]
-
-
-
---- 
+		- [[Yarn Stash]]
+		- [[Queue and Favorites]]
+	- [[Authentication]]
+		- [[Ravelry Basic HTTP Auth|Basic HTTP Auth]]
+		- [[Ravelry OAuth 2.0|OAuth 2.0]]
+		- [[Ravelry Security and Setup|Security & Setup]]
+	- [[SDKs and Libraries]]
+		- [[ravelRy]]
+			- [[Ravelry search_patterns Function|search_patterns()]]
+			- [[Ravelry get_yarns Function|get_yarns()]]
+			- [[Ravelry ravelry_auth Function|ravelry_auth()]]
+		- [[Ravelry Python Ecosystem|Python Ecosystem]]
+			- [[Ravelry Knotion Library|Knotion library]]
+			- [[Ravelry Flask-FastAPI Integration|Flask/FastAPI Integration]]
+			- [[Ravelry Reticulate Bridge|Reticulate Bridge]]
+		- [[Ravelry PHP and Go|PHP & Go]]
+		- [[Ravelry Kotlin and Android|Kotlin & Android]]
+	- [[Ravelry Mobile Ecosystem|Mobile Ecosystem]]
+	- [[Ravelry Technical Architecture|Technical Architecture]]
+		- [[Ravelry Endpoint Design|Endpoint Design]]
+		- [[Ravelry Operational Safety|Operational Safety]]
+		- [[Ravelry Troubleshooting|Troubleshooting]]
