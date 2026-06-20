@@ -144,8 +144,7 @@ class AppController(Base):
                         )
                     ],
                     style={"overflowX": "auto"}
-                ),
-                dcc.Store(id='memory-output')
+                )
             ]
         )
 
@@ -159,6 +158,7 @@ class AppController(Base):
         self,
         query: str,
         sort: str = "best",
+        category: str = None,
     ) -> dbc.Col:
         """
         Execute a yarn search and render results as an accordion.
@@ -167,7 +167,7 @@ class AppController(Base):
             - sort (str): Sort order. Defaults to 'best'.
         - output: dbc.Col with accordion of results, or html.Div('No results found.').
         """
-        yarns = self.MODEL.search_yarn(query=query, sort=sort)
+        yarns = self.MODEL.search_yarn(query=query, sort=sort, category=category)
 
         if yarns is not None:
             self.LOGGER.debug(f"Query: {query}, # of Yarns Found: {len(yarns)}")
@@ -591,7 +591,7 @@ class AppController(Base):
         yarn_name = sd.get("name") or "Unnamed Yarn"
         return (
             True,
-            sd.get("id"),
+            {"id": sd.get("id"), "name": yarn_name},
             current_skeins,
             sd.get("colorway") or "",
             sd.get("dye_lot") or "",

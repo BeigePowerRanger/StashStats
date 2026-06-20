@@ -24,11 +24,11 @@ class StashPost(BaseModel):
         - pack (PackPost | None): Optional pack quantity details.
         - stash_status_id (int): Ravelry status code; 1 = active.
     """
-    yarn_id: int
+    yarn_id: Optional[int] = Field(default=None)
     colorway_name: Optional[str] = Field(default=None)
     dye_lot: Optional[str] = Field(default=None)
     location: Optional[str] = Field(default=None)
     notes: Optional[str] = Field(default=None)
     pack: Optional[PackPost] = Field(default=None)
-    stash_status_id: int = Field(default=1)  # 1 = active
+    stash_status_id: Optional[int] = Field(default=None)  # 1 = active
     '''Ravelry stash status code. 1 = active, 2 = held, 3 = stash-away.'''

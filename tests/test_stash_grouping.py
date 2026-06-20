@@ -87,7 +87,7 @@ def test_toggle_edit_modal_robust_matching():
         triggered_id='{"index": 123, "type": "edit-btn"}.n_clicks'
     )
     assert res[0] is True
-    assert res[1] == 123
+    assert res[1] == {"id": 123, "name": "Soft Wool"}
     assert res[2] == 5.0
     assert res[3] == "Red"
     assert res[4] == "A"
@@ -108,7 +108,7 @@ def test_toggle_edit_modal_robust_matching():
         triggered_id='{"index": 123, "type": "edit-btn"}.n_clicks'
     )
     assert res[0] is True
-    assert res[1] == "123"
+    assert res[1] == {"id": "123", "name": "Soft Wool"}
 
     # Test case 4: Triggered ID doesn't parse
     res = controller.toggle_edit_modal(
@@ -119,4 +119,49 @@ def test_toggle_edit_modal_robust_matching():
         triggered_id="invalid-json"
     )
     assert res == (no_update,) * 14
+
+
+def test_search_yarn_sort_mapping_and_schema_validation():
+    import os
+    os.environ.setdefault("API_USERNAME", "test_user")
+    os.environ.setdefault("API_KEY", "test_key")
+    from stashies.model import Model
+    from stashies.dataclasses import Yarn
+
+    model = Model()
+    model.REQ = MagicMock()
+
+    mock_response = {
+        "yarns": [
+            {
+                "id": 100,
+                "name": "Super Bulky Wool",
+                "discontinued": False,
+                "grams": 100,
+                "yardage": 80,
+                "yarn_company_name": "Cave Company",
+                "machine_washable": True,
+                "colorways": [{"name": "Granite"}, {"name": "Granite"}, {"name": "Basalt"}],
+                "photos": [{"medium_url": "https://example.com/photo.jpg"}]
+            }
+        ]
+    }
+    model.REQ.get_request.return_value = mock_response
+
+    yarns = model.search_yarn(query="wool", sort="best_match")
+
+    model.REQ.get_request.assert_called_once_with(
+        endpoint="yarns/search.json",
+        params={"query": "wool", "page": 1, "page_size": 10, "sort": "best"}
+    )
+
+    assert yarns is not None
+    assert len(yarns) == 1
+    yarn = yarns[0]
+    assert isinstance(yarn, Yarn)
+    assert yarn.id == 100
+    assert yarn.name == "Super Bulky Wool"
+    assert yarn.company == "Cave Company"
+    assert yarn.colorways == ["Basalt", "Granite"]
+
 

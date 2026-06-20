@@ -55,7 +55,7 @@ app.layout = serve_layout
 def handle_search(n_clicks, query, sort, category):
     if not query:
         raise PreventUpdate
-    return CONTROLLER.search_yarn(query=query, sort=sort)
+    return CONTROLLER.search_yarn(query=query, sort=sort, category=category)
 
 
 @callback(
@@ -155,6 +155,9 @@ def toggle_edit_modal(edit_clicks, cancel_click, store_data_list, btn_ids):
     if not ctx.triggered:
         raise PreventUpdate
     triggered_id = ctx.triggered[0]["prop_id"]
+    if "edit-stash-cancel-btn" not in triggered_id:
+        if not edit_clicks or not any(c for c in edit_clicks if c):
+            raise PreventUpdate
     return CONTROLLER.toggle_edit_modal(edit_clicks, cancel_click, store_data_list, btn_ids, triggered_id)
 
 
@@ -172,6 +175,7 @@ def update_remaining_preview(used, current_skeins):
     Output("edit-stash-status-msg", "children", allow_duplicate=True),
     Output("edit-stash-modal", "is_open", allow_duplicate=True),
     Output("stash-update-trigger", "data"),
+    Output("stash-list-container", "children", allow_duplicate=True),
     Input("edit-stash-save-btn", "n_clicks"),
     State("edit-stash-id-store", "data"),
     State("edit-stash-modal-tabs", "active_tab"),
@@ -185,21 +189,26 @@ def update_remaining_preview(used, current_skeins):
     State("edit-stash-current-skeins-store", "data"),
     State("edit-stash-usage-date", "date"),
     State("stash-update-trigger", "data"),
+    State("stash-search-query", "value"),
     prevent_initial_call=True,
 )
 def save_stash_edit(n_clicks, stash_id, active_tab,
                     colorway, dyelot, location, notes, skeins, status_id,
-                    used_skeins, current_skeins, usage_date, trigger_data):
+                    used_skeins, current_skeins, usage_date, trigger_data, search_query):
     if not n_clicks or not stash_id:
         raise PreventUpdate
+    actual_id = stash_id.get("id") if isinstance(stash_id, dict) else stash_id
     res_msg, is_open = CONTROLLER.handle_save_edit(
-        stash_id, active_tab, colorway, dyelot, location, notes,
+        actual_id, active_tab, colorway, dyelot, location, notes,
         skeins, status_id, used_skeins, current_skeins, usage_date
     )
     new_trigger_data = trigger_data
     if not is_open:
         new_trigger_data = (trigger_data or 0) + 1
-    return res_msg, is_open, new_trigger_data
+    stash_list_children = no_update
+    if not is_open:
+        stash_list_children = CONTROLLER.render_stash_cards(search_query)
+    return res_msg, is_open, new_trigger_data, stash_list_children
 
 
 @callback(

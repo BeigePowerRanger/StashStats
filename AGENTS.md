@@ -37,3 +37,5 @@ Output contracts (what main thread can rely on):
 - investigator: `path:line — \`symbol\` — note` bullets + totals
 - builder: `path:line-range — change`. `verified: OK`
 - reviewer: `path:line: emoji severity: problem. fix.` + totals line
+
+Detailed TODOs should be kept in [[Projects/StashStats/StashStats#TODOs]] using Obsidian Tasks/Dataview syntax. see https://blacksmithgu.github.io/obsidian-dataview/annotation/metadata-tasks/ for documentation. use Dataview Syntax, not the tasks emoji notation

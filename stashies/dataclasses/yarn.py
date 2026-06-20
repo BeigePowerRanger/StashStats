@@ -70,7 +70,7 @@ class Yarn(BaseModel):
         - output: Sorted list of unique colorway name strings, or None.
         """
         if v is not None:
-            return sorted(set([colorway['name'] for colorway in v]))
+            return sorted(set([colorway.get('name', '') for colorway in v]))
         return v
 
     @field_validator('photos', mode='before')
