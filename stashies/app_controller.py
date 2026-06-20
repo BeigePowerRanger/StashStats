@@ -569,11 +569,14 @@ class AppController(Base):
             return (no_update,) * 14
 
         sd = None
+        for data in (store_data_list or []):
+            if data and str(data.get("id", "")) == str(btn_index):
+                sd = data
+                break
+
         clicks = None
         for i, btn_id in enumerate(btn_ids or []):
-            if str(btn_id.get("index", "")) == str(btn_index):
-                if i < len(store_data_list):
-                    sd = store_data_list[i]
+            if btn_id and str(btn_id.get("index", "")) == str(btn_index):
                 if i < len(edit_clicks):
                     clicks = edit_clicks[i]
                 break

@@ -302,7 +302,7 @@ def handle_queue_actions(up_clicks, down_clicks, remove_clicks):
 
 if __name__ == "__main__":
     app.run(
-        host="127.0.0.1",
+        host="0.0.0.0",
         debug=True,
         dev_tools_hot_reload=True,
     )
