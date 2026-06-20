@@ -94,16 +94,11 @@ class Model(Base):
         query: str,
         sort: str = "best",
         page_size: int = 10,
-        category: str = None,
     ) -> Union[List['Yarn'], None]:
         """
         Search Ravelry yarn database by keyword.
         """
-        if sort == "best_match":
-            sort = "best"
         params = {"query": query, "page": 1, "page_size": page_size, "sort": sort}
-        if category:
-            params["category"] = category
 
         data: Optional[Dict[str, Any]] = self.REQ.get_request(
             endpoint="yarns/search.json", params=params
@@ -142,6 +137,7 @@ class Model(Base):
         username = os.getenv("RAVELRY_USERNAME") or "Thotsky"
         endpoint = f"people/{username}/stash/unified/list.json"
         
+        # Check Redis cache first for the full stash list. If found, deserialize from JSON.
         r = self.get_redis()
         all_stashes = None
         if r:
@@ -213,6 +209,7 @@ class Model(Base):
                 if len(result["unified_stash"]) < 100:
                     break
                 page += 1
+            # Cache the serialized JSON stash list in Redis with a TTL of 300 seconds.
             if all_stashes and r:
                 try:
                     r.setex(f"stash_list:{username}", 300, json.dumps(all_stashes))
@@ -233,7 +230,7 @@ class Model(Base):
         # 1. Gather all stash IDs
         stash_ids = [str(s["id"]) for s in all_stashes if "id" in s]
         
-        # 2. Bulk fetch from Redis
+        # 2. Bulk fetch from Redis using mget to retrieve cached details for all stash IDs in a single round-trip.
         cached_vals = {}
         if r and stash_ids:
             try:
@@ -292,17 +289,14 @@ class Model(Base):
             bulk_dirty_orig = DBManager.get_bulk_original_values(dirty_ids)
             bulk_dirty_history = DBManager.get_bulk_stash_history(dirty_ids)
 
-            import threading
-            rate_limit = threading.Semaphore(1)
-
+            # Fetch uncached details concurrently, with a 50ms sleep inside the worker to satisfy Ravelry rate limits.
             def fetch_detail(item):
                 import time
                 s_id = item.get("id")
                 is_fiber = item.get("type") == "fiber"
                 if not s_id:
                     return None, None
-                with rate_limit:
-                    time.sleep(0.2)  # rate limit
+                time.sleep(0.05)  # rate limit: ~20 req/s per worker
                 if is_fiber:
                     detail_endpoint = f"people/{username}/fiber/{s_id}.json"
                 else:
@@ -318,11 +312,12 @@ class Model(Base):
                     self.LOGGER.error(f"Error fetching stash detail {s_id}: {e}")
                 return s_id, None
 
+            # Concurrently fetch uncached details using ThreadPoolExecutor.
             max_workers = min(10, len(dirty_items))
             with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
                 results = list(executor.map(fetch_detail, dirty_items))
 
-            # Batch Redis writes via pipeline (1 round-trip vs N)
+            # Batch Redis writes via pipeline to batch-write detailed info in one round-trip.
             redis_pipeline = r.pipeline(transaction=False) if r else None
 
             for s_id, stash_detail in results:
@@ -375,14 +370,17 @@ class Model(Base):
                     # Use pre-fetched DB data instead of per-item queries
                     old_totals = bulk_dirty_orig.get(s_id_str)
 
+                    # Delta history tracking: retrieves original value from DB, gets sum of historical changes,
+                    # computes current totals, finds difference (delta), and saves a backdated/interpolated event
+                    # in SQLite if quantities changed.
                     wrote_history_event = False
                     if old_totals:
                         history_events = bulk_dirty_history.get(s_id_str) or []
                         sum_history = {
-                            "yards": sum(float(event.get("yards") or 0) for event in history_events),
-                            "meters": sum(float(event.get("meters") or 0) for event in history_events),
-                            "skeins": sum(float(event.get("skeins") or 0) for event in history_events),
-                            "grams": sum(float(event.get("grams") or 0) for event in history_events),
+                            "yards": sum(event["yards"] for event in history_events),
+                            "meters": sum(event["meters"] for event in history_events),
+                            "skeins": sum(event["skeins"] for event in history_events),
+                            "grams": sum(event["grams"] for event in history_events),
                         }
                         previous_totals = {
                             "yards": old_totals["yards"] + sum_history["yards"],
@@ -447,7 +445,7 @@ class Model(Base):
                             grams=new_totals["grams"]
                         )
 
-                    # Queue Redis detail write for batch flush
+                    # Queue Redis detail write to batch-write new details in one round-trip.
                     if redis_pipeline:
                         try:
                             redis_pipeline.setex(
@@ -469,7 +467,7 @@ class Model(Base):
                         item_in_list["history"] = bulk_dirty_history.get(s_id_str) or []
                     item_in_list["original_values"] = old_totals
 
-            # Flush all Redis writes in a single round-trip
+            # Execute/flush Redis pipeline to batch-write detailed info in one round-trip.
             if redis_pipeline:
                 try:
                     redis_pipeline.execute()
@@ -483,11 +481,9 @@ class Model(Base):
         Post a new stash entry to the user's Ravelry stash.
         """
         import os
-        from .dataclasses import StashPost
         username = os.getenv("RAVELRY_USERNAME") or "Thotsky"
         endpoint = f"people/{username}/stash/create.json"
-        payload = StashPost(**stash_data).model_dump(exclude_none=True)
-        result = self.REQ.post_request(endpoint=endpoint, data=payload)
+        result = self.REQ.post_request(endpoint=endpoint, data=stash_data)
         
         r = self.get_redis()
         if r:
@@ -501,14 +497,12 @@ class Model(Base):
     def update_stash(self, stash_id: Union[str, int], stash_data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Update a stash entry via POST and invalidate local cache for that entry."""
         import os
-        from .dataclasses import StashPost
 
         username = os.getenv("RAVELRY_USERNAME") or "Thotsky"
         endpoint = f"people/{username}/stash/{stash_id}.json"
-        payload = StashPost(**stash_data).model_dump(exclude_none=True)
-        result = self.REQ.post_request(endpoint=endpoint, data=payload)
+        result = self.REQ.post_request(endpoint=endpoint, data=stash_data)
 
-        # Invalidate Redis cache
+        # Invalidate Redis keys for stash_detail:{stash_id} and stash_list:{username} on write success.
         r = self.get_redis()
         if r:
             try:
@@ -528,6 +522,7 @@ class Model(Base):
         """
         import json
         try:
+            # Check Redis cache first for cached yarn data using key yarn:{yarn_id}.
             r = self.get_redis()
             if r:
                 try:
@@ -547,6 +542,7 @@ class Model(Base):
                 yarn = Yarn(**result['yarn'])
                 yarn.colorways = result['colorways']
 
+                # Cache fetched yarn data in Redis with a 24-hour (86400 seconds) TTL.
                 if r:
                     try:
                         r.setex(
@@ -748,21 +744,17 @@ class Model(Base):
                     })
 
             for event in s.get("history") or []:
-                date_val = event.get("date")
-                if not date_val:
-                    self.LOGGER.warning(f"Skipping history event missing date: {event}")
-                    continue
                 try:
                     data.append({
-                        "date": pd.to_datetime(date_val, format="%Y-%m-%d"),
+                        "date": pd.to_datetime(event["date"], format="%Y-%m-%d"),
                         "category": category,
-                        "yards": float(event.get("yards") or 0),
-                        "meters": float(event.get("meters") or 0),
-                        "skeins": float(event.get("skeins") or 0),
-                        "grams": float(event.get("grams") or 0),
+                        "yards": float(event["yards"]),
+                        "meters": float(event["meters"]),
+                        "skeins": float(event["skeins"]),
+                        "grams": float(event["grams"]),
                     })
-                except Exception as e:
-                    self.LOGGER.warning(f"Skipping malformed history event: {e}")
+                except Exception:
+                    pass
 
         if not data:
             return pd.DataFrame(columns=["date", "category", "yards", "meters", "skeins", "grams",
@@ -918,20 +910,16 @@ class Model(Base):
                     })
 
             for event in s.get("history") or []:
-                date_val = event.get("date")
-                if not date_val:
-                    self.LOGGER.warning(f"Skipping history event missing date: {event}")
-                    continue
                 try:
                     data.append({
-                        "date": pd.to_datetime(date_val, format="%Y-%m-%d"),
-                        "yards": float(event.get("yards") or 0),
-                        "meters": float(event.get("meters") or 0),
-                        "skeins": float(event.get("skeins") or 0),
-                        "grams": float(event.get("grams") or 0),
+                        "date": pd.to_datetime(event["date"], format="%Y-%m-%d"),
+                        "yards": float(event["yards"]),
+                        "meters": float(event["meters"]),
+                        "skeins": float(event["skeins"]),
+                        "grams": float(event["grams"]),
                     })
-                except Exception as e:
-                    self.LOGGER.warning(f"Skipping malformed history event: {e}")
+                except Exception:
+                    pass
 
         if not data:
             return pd.DataFrame(columns=["date", "yards", "meters", "skeins", "grams",
@@ -986,112 +974,4 @@ class Model(Base):
             self.LOGGER.error(f"Error fetching projects list: {e}")
         return None
 
-    def get_queue_list(self) -> Optional[List[Dict[str, Any]]]:
-        """Fetch queued projects for the configured user."""
-        import os
-        import json
-        username = os.getenv("RAVELRY_USERNAME") or "Thotsky"
-        r = self.get_redis()
-        cache_key = f"queue_list:{username}"
-        if r:
-            try:
-                cached = r.get(cache_key)
-                if cached:
-                    return json.loads(cached)
-            except Exception as e:
-                self.LOGGER.error(f"Redis get queue_list failed: {e}")
 
-        try:
-            queue = []
-            page = 1
-            while True:
-                resp = self.REQ.get_request(f"people/{username}/queue/list.json", params={"page_size": 100, "page": page})
-                if not resp or "queued_projects" not in resp or not resp["queued_projects"]:
-                    break
-                queue.extend(resp["queued_projects"])
-                if len(resp["queued_projects"]) < 100:
-                    break
-                page += 1
-                
-            if queue and r:
-                try:
-                    r.setex(cache_key, 600, json.dumps(queue))
-                except Exception as e:
-                    self.LOGGER.error(f"Redis set queue_list failed: {e}")
-            return queue if queue else None
-        except Exception as e:
-            self.LOGGER.error(f"Error fetching queue list: {e}")
-        return None
-
-    def get_needles_list(self) -> Optional[List[Dict[str, Any]]]:
-        """Fetch owned needles/hooks for the configured user."""
-        import os
-        import json
-        username = os.getenv("RAVELRY_USERNAME") or "Thotsky"
-        r = self.get_redis()
-        cache_key = f"needles_list:{username}"
-        if r:
-            try:
-                cached = r.get(cache_key)
-                if cached:
-                    return json.loads(cached)
-            except Exception as e:
-                self.LOGGER.error(f"Redis get needles_list failed: {e}")
-
-        try:
-            resp = self.REQ.get_request(f"people/{username}/needles/list.json")
-            if resp and "needle_records" in resp:
-                needles = resp["needle_records"]
-                if r:
-                    try:
-                        r.setex(cache_key, 3600, json.dumps(needles))
-                    except Exception as e:
-                        self.LOGGER.error(f"Redis set needles_list failed: {e}")
-                return needles
-        except Exception as e:
-            self.LOGGER.error(f"Error fetching needles list: {e}")
-        return None
-
-    def reposition_queue_item(self, queue_id: Union[str, int], new_position: int) -> bool:
-        """Reposition a queued project and invalidate queue cache."""
-        import os
-        import json
-        username = os.getenv("RAVELRY_USERNAME") or "Thotsky"
-        endpoint = f"people/{username}/queue/{queue_id}/reposition.json"
-        
-        try:
-            result = self.REQ.post_request(endpoint, data={"insert_at": new_position})
-            if result:
-                # Invalidate queue cache
-                r = self.get_redis()
-                if r:
-                    try:
-                        r.delete(f"queue_list:{username}")
-                    except Exception as e:
-                        self.LOGGER.error(f"Redis delete queue_list failed: {e}")
-                return True
-        except Exception as e:
-            self.LOGGER.error(f"Error repositioning queue item {queue_id}: {e}")
-        return False
-
-    def remove_queue_item(self, queue_id: Union[str, int]) -> bool:
-        """Delete a queued project and invalidate queue cache."""
-        import os
-        username = os.getenv("RAVELRY_USERNAME") or "Thotsky"
-        endpoint = f"people/{username}/queue/{queue_id}.json"
-        
-        try:
-            result = self.REQ.delete_request(endpoint)
-            # Ravelry returns empty dict or standard response on delete.
-            # Even if result is empty dict, it succeeded if no HTTPError was raised.
-            # Invalidate queue cache
-            r = self.get_redis()
-            if r:
-                try:
-                    r.delete(f"queue_list:{username}")
-                except Exception as e:
-                    self.LOGGER.error(f"Redis delete queue_list failed: {e}")
-            return True
-        except Exception as e:
-            self.LOGGER.error(f"Error deleting queue item {queue_id}: {e}")
-        return False

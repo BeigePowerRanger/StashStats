@@ -7,6 +7,5 @@ from .stash_card import StashCard
 from .edit_modal import EditModal
 from .analytics import AnalyticsComponent
 from .projects import ProjectsComponent
-from .queue import QueueComponent
-from .needles import NeedlesComponent
+
 

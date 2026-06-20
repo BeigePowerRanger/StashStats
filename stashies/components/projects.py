@@ -51,7 +51,7 @@ class ProjectsComponent(BaseComponent):
             photo_url = first_photo.get("medium_url") or first_photo.get("square_url") or first_photo.get("thumbnail_url")
         elif p.get("photos"):
             photos = p.get("photos")
-            if photos and len(photos) > 0:
+            if photos and photos[0]:
                 photo_url = photos[0].get("medium_url") or photos[0].get("square_url") or photos[0].get("thumbnail_url")
 
         img_element = html.Img(

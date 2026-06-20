@@ -8,7 +8,7 @@ from dash import dcc, html
 from .base import Base
 from .components import (
     Header, Search, SearchResults, StashCard, EditModal, AnalyticsComponent,
-    ProjectsComponent, QueueComponent, NeedlesComponent
+    ProjectsComponent
 )
 from .model import Model
 
@@ -65,8 +65,6 @@ class AppController(Base):
         self.EDIT_MODAL: 'EditModal' = EditModal(container_id=modal_id)
         self.ANALYTICS: 'AnalyticsComponent' = AnalyticsComponent(container_id=analytics_id)
         self.PROJECTS: 'ProjectsComponent' = ProjectsComponent(container_id="app-projects")
-        self.QUEUE: 'QueueComponent' = QueueComponent(container_id="app-queue")
-        self.NEEDLES: 'NeedlesComponent' = NeedlesComponent(container_id="app-needles")
 
     def create_initial_layout(self) -> List[dbc.Container]:
         """
@@ -112,26 +110,6 @@ class AppController(Base):
                             selected_style={"backgroundColor": "#333", "color": "#00bc8c"}
                         ),
                         dcc.Tab(
-                            label="Queue",
-                            value="tab-queue",
-                            children=[
-                                html.Div(style={"height": "20px"}),
-                                dbc.Container(id="queue-tab-content")
-                            ],
-                            style={"backgroundColor": "#222", "color": "#fff"},
-                            selected_style={"backgroundColor": "#333", "color": "#00bc8c"}
-                        ),
-                        dcc.Tab(
-                            label="Needles & Hooks",
-                            value="tab-needles",
-                            children=[
-                                html.Div(style={"height": "20px"}),
-                                dbc.Container(id="needles-tab-content")
-                            ],
-                            style={"backgroundColor": "#222", "color": "#fff"},
-                            selected_style={"backgroundColor": "#333", "color": "#00bc8c"}
-                        ),
-                        dcc.Tab(
                             label="Yarn Search",
                             value="tab-search",
                             children=[
@@ -158,7 +136,6 @@ class AppController(Base):
         self,
         query: str,
         sort: str = "best",
-        category: str = None,
     ) -> dbc.Col:
         """
         Execute a yarn search and render results as an accordion.
@@ -167,7 +144,13 @@ class AppController(Base):
             - sort (str): Sort order. Defaults to 'best'.
         - output: dbc.Col with accordion of results, or html.Div('No results found.').
         """
-        yarns = self.MODEL.search_yarn(query=query, sort=sort, category=category)
+        sort_map = {
+            "best_match": "best",
+            "highest_rating": "rating",
+            "most_projects": "projects"
+        }
+        api_sort = sort_map.get(sort, sort)
+        yarns = self.MODEL.search_yarn(query=query, sort=api_sort)
 
         if yarns is not None:
             self.LOGGER.debug(f"Query: {query}, # of Yarns Found: {len(yarns)}")
@@ -207,32 +190,82 @@ class AppController(Base):
         Render layout structure for Personal Stash tab.
         - output: html.Div container.
         """
-        search_bar = dbc.Input(
-            id="stash-search-query",
-            placeholder="Filter stash by yarn name, brand, or colorway...",
-            className="mb-4 mt-3",
-            style={"backgroundColor": "#333", "color": "#fff", "border": "1px solid #444"},
-            debounce=True
+        # Placing search query and sorting inputs side-by-side using Bootstrap columns.
+        # xs=12 stacks on mobile/small screens; md=8 and md=4 sum to 12 to align them on medium+ screens.
+        search_col = dbc.Col(
+            dbc.Input(
+                id="stash-search-query",
+                placeholder="Filter stash by yarn name, brand, or colorway...",
+                className="mb-4 mt-3",
+                style={"backgroundColor": "#333", "color": "#fff", "border": "1px solid #444"},
+                debounce=True
+            ),
+            xs=12, md=8
         )
+        sort_col = dbc.Col(
+            dbc.Select(
+                id="stash-sort-by",
+                options=[
+                    {"label": "Brand (A-Z)", "value": "brand_asc"},
+                    {"label": "Name (A-Z)", "value": "name_asc"},
+                    {"label": "Quantity (High-Low)", "value": "qty_desc"},
+                    {"label": "Date Added (Newest)", "value": "date_desc"}
+                ],
+                value="brand_asc",
+                className="mb-4 mt-3",
+                style={"backgroundColor": "#333", "color": "#fff", "border": "1px solid #444"}
+            ),
+            xs=12, md=4
+        )
+        filter_row = dbc.Row([search_col, sort_col])
+
+        pagination = dbc.Pagination(
+            id="stash-page",
+            active_page=1,
+            max_value=1,
+            fully_expanded=False,
+            previous_next=True,
+            class_name="justify-content-center"
+        )
+        pagination.page_count = 1
+
+        # Instantiate pagination row below the stash container list to navigate through pages.
+        pagination_row = dbc.Row(
+            dbc.Col(
+                pagination,
+                width=12,
+                className="mt-3 d-flex justify-content-center"
+            )
+        )
+
         return html.Div(
             [
                 html.H4("My Personal Stash", className="mt-3 text-success"),
                 html.P("Browse and filter your stashed yarn collection."),
-                search_bar,
-                dbc.Row(id="stash-list-container")
+                filter_row,
+                dbc.Row(id="stash-list-container"),
+                pagination_row
             ]
         )
 
-    def render_stash_cards(self, query: Optional[str]) -> List[dbc.Col]:
+    def render_stash_cards(
+        self,
+        query: Optional[str],
+        sort_by: str = "brand_asc",
+        active_page: Optional[int] = None
+    ) -> Union[List[dbc.Col], Tuple[List[dbc.Col], int]]:
         """
         Filter, group by yarn, and render stash accordion list.
         - Input:
             - query (str | None): Search query for stash filtration.
-        - output: List of dbc.Col containing the single accordion container.
+            - sort_by (str): Sorting criteria. Defaults to 'brand_asc'.
+            - active_page (int | None): Currently active page. Defaults to None.
+        - output: List of dbc.Col containing the single accordion container, or a tuple of (list, total_pages) if page is specified.
         """
         stash_list = self.MODEL.get_stash_list()
         if not stash_list:
-            return [html.Div("No stashed yarns found or API request failed.", className="text-warning mt-3")]
+            fallback_msg = [html.Div("No stashed yarns found or API request failed.", className="text-warning mt-3")]
+            return (fallback_msg, 1) if active_page is not None else fallback_msg
 
         filtered = stash_list
         if query:
@@ -247,9 +280,11 @@ class AppController(Base):
                     filtered.append(s)
 
         if not filtered:
-            return [html.Div("No matching stash entries found.", className="text-info mt-3 ms-2")]
+            fallback_msg = [html.Div("No matching stash entries found.", className="text-info mt-3 ms-2")]
+            return (fallback_msg, 1) if active_page is not None else fallback_msg
 
-        # Group by (brand, name)
+        # Group metrics computing loop. Organises stash list entries by unique brand/name combinations.
+        # Aggregates totals per group (e.g. skeins, yards) to extract total skeins and max dates for sorting.
         grouped_data = {}
         from .model import get_primary_totals
         for s in filtered:
@@ -265,8 +300,69 @@ class AppController(Base):
                 grouped_data[key] = []
             grouped_data[key].append((s, totals))
 
+        # Sorting branching logic to order the grouped stash records based on selected dropdown value.
+        if sort_by == "name_asc":
+            sorted_groups = sorted(
+                grouped_data.items(),
+                key=lambda x: (x[0][1].lower(), x[0][0].lower())
+            )
+        elif sort_by == "qty_desc":
+            # qty_desc branch calculates total skeins across all items in group to sort descending.
+            sorted_groups = sorted(
+                grouped_data.items(),
+                key=lambda x: (
+                    -sum(totals.get("skeins") or 0.0 for _, totals in x[1]),
+                    x[0][0].lower(),
+                    x[0][1].lower()
+                )
+            )
+        elif sort_by == "date_desc":
+            # date_desc parses creation timestamps to float representation to perform chronological sorting.
+            import datetime
+            def get_group_max_timestamp(items):
+                max_ts = 0.0
+                for s, _ in items:
+                    c_at = s.get("created_at")
+                    if c_at:
+                        try:
+                            dt = datetime.datetime.strptime(c_at.split(" ")[0], "%Y/%m/%d")
+                            ts = dt.timestamp()
+                            if ts > max_ts:
+                                max_ts = ts
+                        except Exception:
+                            pass
+                return max_ts
+
+            sorted_groups = sorted(
+                grouped_data.items(),
+                key=lambda x: (
+                    -get_group_max_timestamp(x[1]),
+                    x[0][0].lower(),
+                    x[0][1].lower()
+                )
+            )
+        else: # Default: brand_asc
+            sorted_groups = sorted(
+                grouped_data.items(),
+                key=lambda x: (x[0][0].lower(), x[0][1].lower())
+            )
+
+        # Pagination logic: calculates the ceiling total page count (math.ceil)
+        # and slices the sorted groups using the current active page index.
+        import math
+        total_groups = len(sorted_groups)
+        page_count = max(1, math.ceil(total_groups / 10))
+        
+        if active_page is not None:
+            active_page = max(1, min(active_page, page_count))
+            start_idx = (active_page - 1) * 10
+            end_idx = start_idx + 10
+            sliced_groups = sorted_groups[start_idx:end_idx]
+        else:
+            sliced_groups = sorted_groups
+
         accordion_items = []
-        for (brand, name), items in grouped_data.items():
+        for (brand, name), items in sliced_groups:
             # Calculate combined totals
             comb_t = {"yards": 0.0, "meters": 0.0, "skeins": 0.0, "grams": 0.0}
             for _, totals in items:
@@ -275,6 +371,7 @@ class AppController(Base):
                 comb_t["skeins"] += totals.get("skeins") or 0.0
                 comb_t["grams"] += totals.get("grams") or 0.0
 
+            # Wrap details and item lists into accordion group card components.
             accordion_item = self.STASH_CARD.create_grouped_accordion_item(
                 brand=brand,
                 name=name,
@@ -283,8 +380,12 @@ class AppController(Base):
             )
             accordion_items.append(accordion_item)
 
-        # Return columns containing each custom accordion card directly
-        return [dbc.Col(item, width=12) for item in accordion_items]
+        cols = [dbc.Col(item, width=12) for item in accordion_items]
+        # Return either a tuple containing (columns list, total_pages) if page is specified, or only columns list.
+        if active_page is not None:
+            return cols, page_count
+        else:
+            return cols
 
     def render_analytics_layout(self) -> dbc.Row:
         """
@@ -538,6 +639,42 @@ class AppController(Base):
                 self.LOGGER.error(f"[WRITE ERROR] stash_id={stash_id} | {e}")
                 return f"Error: {e}", True
 
+    def build_history_table(self, stash_id: str) -> html.Div:
+        history = self.MODEL.get_stash_history(stash_id)
+        if not history:
+            return html.Div("No usage history logged yet.", className="text-muted small mt-2")
+        
+        rows = []
+        for event in reversed(history):
+            sk = -event.get("skeins", 0.0)
+            yds = -event.get("yards", 0.0)
+            g = -event.get("grams", 0.0)
+            date = event.get("date", "Unknown Date")
+            
+            rows.append(html.Tr([
+                html.Td(date),
+                html.Td(f"{sk:.2f} sk"),
+                html.Td(f"{yds:,.0f} yds"),
+                html.Td(f"{g:,.0f} g"),
+            ]))
+            
+        table = dbc.Table(
+            [
+                html.Thead(html.Tr([html.Th("Date"), html.Th("Skeins"), html.Th("Yards"), html.Th("Weight")])),
+                html.Tbody(rows)
+            ],
+            bordered=True,
+            hover=True,
+            responsive=True,
+            striped=True,
+            size="sm",
+            style={"fontSize": "0.85rem", "color": "#ccc", "borderColor": "#555"}
+        )
+        return html.Div([
+            html.H6("Usage History", className="text-success mt-3 mb-2"),
+            table
+        ])
+
     def toggle_edit_modal(
         self,
         edit_clicks: list,
@@ -545,7 +682,7 @@ class AppController(Base):
         store_data_list: list,
         btn_ids: list,
         triggered_id: str,
-    ) -> Tuple[bool, Any, Any, Any, Any, Any, Any, Any, Any, str, Any, str, str, Any]:
+    ) -> Tuple[bool, Any, Any, Any, Any, Any, Any, Any, Any, str, Any, str, str, Any, Any]:
         """
         Handle opening the edit modal and loading the correct initial state.
         - Input
@@ -560,38 +697,36 @@ class AppController(Base):
         from dash import no_update
         
         if "edit-stash-cancel-btn" in triggered_id:
-            return False, no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, "", None, "modal-tab-details", datetime.date.today().isoformat(), no_update
+            return False, no_update, no_update, no_update, no_update, no_update, no_update, no_update, no_update, "", None, "modal-tab-details", datetime.date.today().isoformat(), no_update, None
 
         try:
             triggered_obj = json.loads(triggered_id.split(".")[0])
             btn_index = triggered_obj.get("index", "")
         except Exception:
-            return (no_update,) * 14
+            return (no_update,) * 15
 
         sd = None
-        for data in (store_data_list or []):
-            if data and str(data.get("id", "")) == str(btn_index):
-                sd = data
-                break
-
         clicks = None
         for i, btn_id in enumerate(btn_ids or []):
-            if btn_id and str(btn_id.get("index", "")) == str(btn_index):
+            if str(btn_id.get("index", "")) == str(btn_index):
+                if i < len(store_data_list):
+                    sd = store_data_list[i]
                 if i < len(edit_clicks):
                     clicks = edit_clicks[i]
                 break
 
         if not clicks:
-            return (no_update,) * 14
+            return (no_update,) * 15
 
         if not sd:
-            return (no_update,) * 14
+            return (no_update,) * 15
 
         current_skeins = sd.get("skeins") or 0
         yarn_name = sd.get("name") or "Unnamed Yarn"
+        history_table = self.build_history_table(sd.get("id"))
         return (
             True,
-            {"id": sd.get("id"), "name": yarn_name},
+            sd.get("id"),
             current_skeins,
             sd.get("colorway") or "",
             sd.get("dye_lot") or "",
@@ -603,7 +738,8 @@ class AppController(Base):
             None,
             "modal-tab-details",
             datetime.date.today().isoformat(),
-            f"edit entry: {yarn_name}",
+            f"Edit Stash Entry: {yarn_name}",
+            history_table,
         )
 
     def render_projects_tab_layout(self) -> html.Div:
@@ -617,56 +753,5 @@ class AppController(Base):
             return [dbc.Col(html.Div("No projects found or API request failed.", className="text-warning mt-3"))]
         return [self.PROJECTS.build_project_card(p) for p in projects]
 
-    def render_queue_tab_layout(self) -> html.Div:
-        """Render layout structure for Queue tab."""
-        return self.QUEUE.create_init_layout()
 
-    def render_queue_list(self) -> Any:
-        """Fetch and render Ravelry project queue."""
-        queue_items = self.MODEL.get_queue_list()
-        return self.QUEUE.build_queue_list(queue_items)
-
-    def render_needles_tab_layout(self) -> html.Div:
-        """Render layout structure for Needles tab."""
-        return html.Div(
-            [
-                html.H4("Needles & Hooks Organizer", className="mt-3 text-success"),
-                html.P("Keep track of your knitting needles and crochet hooks."),
-                self.NEEDLES.create_init_layout()
-            ]
-        )
-
-    def render_needles_list(self) -> Any:
-        """Fetch and render owned needles and hooks."""
-        needle_records = self.MODEL.get_needles_list()
-        return self.NEEDLES.build_needles_tables(needle_records)
-
-    def handle_reposition_queue(self, queue_id: str, direction: str) -> bool:
-        """Move a queue item up or down in rank and refresh."""
-        queue_items = self.MODEL.get_queue_list()
-        if not queue_items:
-            return False
-        
-        sorted_items = sorted(queue_items, key=lambda x: x.get("sort_order") or x.get("position_in_queue") or 999)
-        target_idx = -1
-        for idx, item in enumerate(sorted_items):
-            if str(item.get("id")) == str(queue_id):
-                target_idx = idx
-                break
-        
-        if target_idx == -1:
-            return False
-            
-        if direction == "up" and target_idx > 0:
-            new_pos = target_idx
-            return self.MODEL.reposition_queue_item(queue_id, new_pos)
-        elif direction == "down" and target_idx < len(sorted_items) - 1:
-            new_pos = target_idx + 2
-            return self.MODEL.reposition_queue_item(queue_id, new_pos)
-            
-        return False
-
-    def handle_remove_queue(self, queue_id: str) -> bool:
-        """Delete an item from Ravelry queue."""
-        return self.MODEL.remove_queue_item(queue_id)
 

@@ -187,6 +187,7 @@ class EditModal(BaseComponent):
                                                             className="mt-2 p-3 rounded",
                                                             style={"backgroundColor": "#1a2a1a", "border": "1px solid #2a5a2a", "minHeight": "60px"}
                                                         ),
+                                                        html.Div(id="edit-stash-history-table", className="mt-3"),
                                                     ],
                                                     xs=12,
                                                 )

@@ -50,12 +50,11 @@ app.layout = serve_layout
     Input("search-button", "n_clicks"),
     State("search-query", "value"),
     State("search-sort", "value"),
-    State("search-category", "value"),
 )
-def handle_search(n_clicks, query, sort, category):
+def handle_search(n_clicks, query, sort):
     if not query:
         raise PreventUpdate
-    return CONTROLLER.search_yarn(query=query, sort=sort, category=category)
+    return CONTROLLER.search_yarn(query=query, sort=sort)
 
 
 @callback(
@@ -107,14 +106,38 @@ def render_stash_tab(tab_value):
 
 @callback(
     Output("stash-list-container", "children"),
+    Output("stash-page", "max_value"),
+    Output("stash-page", "active_page"),
     Input("stash-search-query", "value"),
+    Input("stash-sort-by", "value"),
+    Input("stash-page", "active_page"),
     Input("app-tabs", "value"),
     Input("stash-update-trigger", "data"),
 )
-def filter_stash_items(query, tab_value, trigger_data):
+def filter_stash_items(query, sort_by, active_page, tab_value, trigger_data):
+    # Callback Inputs/Outputs tie together search query, sorting, active page, current tab, and update trigger.
+    # Inputs: query, sort_by, active_page, tab_value, trigger_data.
+    # Outputs: Stash list cards, total pages (max_value), and the active page.
     if tab_value != "tab-stash":
-        return no_update
-    return CONTROLLER.render_stash_cards(query)
+        return no_update, no_update, no_update
+    
+    # Context parsing: Check which input triggered the callback.
+    # If the search query or sorting option is changed, reset the page to 1.
+    ctx = callback_context
+    triggered_id = ""
+    if ctx.triggered:
+        triggered_id = ctx.triggered[0]["prop_id"]
+    
+    if "stash-search-query" in triggered_id or "stash-sort-by" in triggered_id:
+        active_page = 1
+
+    sort_by = sort_by or "brand_asc"
+    active_page = active_page or 1
+    
+    # Call the controller to render stash cards and calculate total pages based on current filters.
+    # Returns: lists of cards, total pages count, and the active page value.
+    cards, total_pages = CONTROLLER.render_stash_cards(query, sort_by, active_page)
+    return cards, total_pages, active_page
 
 
 @callback(
@@ -144,6 +167,7 @@ def toggle_yarn_collapse(n_clicks, is_open):
     Output("edit-stash-modal-tabs", "active_tab"),
     Output("edit-stash-usage-date", "date"),
     Output("edit-stash-modal-title", "children"),
+    Output("edit-stash-history-table", "children"),
     Input({"type": "stash-edit-btn", "index": ALL}, "n_clicks"),
     Input("edit-stash-cancel-btn", "n_clicks"),
     State({"type": "stash-data-store", "index": ALL}, "data"),
@@ -151,12 +175,16 @@ def toggle_yarn_collapse(n_clicks, is_open):
     prevent_initial_call=True,
 )
 def toggle_edit_modal(edit_clicks, cancel_click, store_data_list, btn_ids):
+    # State passing and validation of parameters/inputs:
+    # State containing list of stash items' data and their button IDs is passed.
+    # Trigger is validated using callback context to see if modal is opened or cancelled.
+    # If open is requested, validates that a click actually occurred before continuing.
     ctx = callback_context
     if not ctx.triggered:
         raise PreventUpdate
     triggered_id = ctx.triggered[0]["prop_id"]
     if "edit-stash-cancel-btn" not in triggered_id:
-        if not edit_clicks or not any(c for c in edit_clicks if c):
+        if not edit_clicks or not any(click for click in edit_clicks if click):
             raise PreventUpdate
     return CONTROLLER.toggle_edit_modal(edit_clicks, cancel_click, store_data_list, btn_ids, triggered_id)
 
@@ -175,7 +203,6 @@ def update_remaining_preview(used, current_skeins):
     Output("edit-stash-status-msg", "children", allow_duplicate=True),
     Output("edit-stash-modal", "is_open", allow_duplicate=True),
     Output("stash-update-trigger", "data"),
-    Output("stash-list-container", "children", allow_duplicate=True),
     Input("edit-stash-save-btn", "n_clicks"),
     State("edit-stash-id-store", "data"),
     State("edit-stash-modal-tabs", "active_tab"),
@@ -189,26 +216,28 @@ def update_remaining_preview(used, current_skeins):
     State("edit-stash-current-skeins-store", "data"),
     State("edit-stash-usage-date", "date"),
     State("stash-update-trigger", "data"),
-    State("stash-search-query", "value"),
     prevent_initial_call=True,
 )
 def save_stash_edit(n_clicks, stash_id, active_tab,
                     colorway, dyelot, location, notes, skeins, status_id,
-                    used_skeins, current_skeins, usage_date, trigger_data, search_query):
+                    used_skeins, current_skeins, usage_date, trigger_data):
+    # State passing and validation:
+    # Passes inputs from modal fields (colorway, dyelot, location, notes, skeins, status, usage_date)
+    # and State stores (stash_id, current_skeins, active_tab, and the trigger tracker).
+    # Validates parameters/inputs by checking that save button was clicked and stash_id exists.
     if not n_clicks or not stash_id:
         raise PreventUpdate
-    actual_id = stash_id.get("id") if isinstance(stash_id, dict) else stash_id
     res_msg, is_open = CONTROLLER.handle_save_edit(
-        actual_id, active_tab, colorway, dyelot, location, notes,
+        stash_id, active_tab, colorway, dyelot, location, notes,
         skeins, status_id, used_skeins, current_skeins, usage_date
     )
+    # Cache trigger incrementation:
+    # If the modal is successfully saved and closed (is_open is False),
+    # increment the update trigger tracker to refresh the stash list.
     new_trigger_data = trigger_data
     if not is_open:
         new_trigger_data = (trigger_data or 0) + 1
-    stash_list_children = no_update
-    if not is_open:
-        stash_list_children = CONTROLLER.render_stash_cards(search_query)
-    return res_msg, is_open, new_trigger_data, stash_list_children
+    return res_msg, is_open, new_trigger_data
 
 
 @callback(
@@ -232,86 +261,10 @@ def load_projects_list(tab_content, tab_value):
     return CONTROLLER.render_projects_list()
 
 
-@callback(
-    Output("queue-tab-content", "children"),
-    Input("app-tabs", "value"),
-)
-def render_queue_tab(tab_value):
-    if tab_value != "tab-queue":
-        return no_update
-    return CONTROLLER.render_queue_tab_layout()
-
-
-@callback(
-    Output("queue-list-container", "children"),
-    Input("queue-tab-content", "children"),
-    State("app-tabs", "value"),
-)
-def load_queue_list(tab_content, tab_value):
-    if tab_value != "tab-queue" or not tab_content:
-        raise PreventUpdate
-    return CONTROLLER.render_queue_list()
-
-
-@callback(
-    Output("needles-tab-content", "children"),
-    Input("app-tabs", "value"),
-)
-def render_needles_tab(tab_value):
-    if tab_value != "tab-needles":
-        return no_update
-    return CONTROLLER.render_needles_tab_layout()
-
-
-@callback(
-    Output("needles-list-container", "children"),
-    Input("needles-tab-content", "children"),
-    State("app-tabs", "value"),
-)
-def load_needles_list(tab_content, tab_value):
-    if tab_value != "tab-needles" or not tab_content:
-        raise PreventUpdate
-    return CONTROLLER.render_needles_list()
-
-
-@callback(
-    Output("queue-list-container", "children", allow_duplicate=True),
-    Input({"type": "queue-up-btn", "index": ALL}, "n_clicks"),
-    Input({"type": "queue-down-btn", "index": ALL}, "n_clicks"),
-    Input({"type": "queue-remove-btn", "index": ALL}, "n_clicks"),
-    prevent_initial_call=True,
-)
-def handle_queue_actions(up_clicks, down_clicks, remove_clicks):
-    ctx = callback_context
-    if not ctx.triggered:
-        raise PreventUpdate
-    
-    triggered_prop = ctx.triggered[0]["prop_id"]
-    try:
-        btn_id_str = triggered_prop.split(".")[0]
-        btn_id = json.loads(btn_id_str)
-        btn_type = btn_id["type"]
-        queue_id = btn_id["index"]
-    except Exception:
-        raise PreventUpdate
-        
-    n_clicks = ctx.triggered[0]["value"]
-    if not n_clicks:
-        raise PreventUpdate
-        
-    if btn_type == "queue-up-btn":
-        CONTROLLER.handle_reposition_queue(queue_id, "up")
-    elif btn_type == "queue-down-btn":
-        CONTROLLER.handle_reposition_queue(queue_id, "down")
-    elif btn_type == "queue-remove-btn":
-        CONTROLLER.handle_remove_queue(queue_id)
-        
-    return CONTROLLER.render_queue_list()
-
 
 if __name__ == "__main__":
     app.run(
-        host="0.0.0.0",
+        host="127.0.0.1",
         debug=True,
         dev_tools_hot_reload=True,
     )
