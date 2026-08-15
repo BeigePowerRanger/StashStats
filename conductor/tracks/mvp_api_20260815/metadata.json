@@ -1,0 +1,8 @@
+{
+  "track_id": "mvp_api_20260815",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-08-15T03:05:00Z",
+  "updated_at": "2026-08-15T03:05:00Z",
+  "description": "Finish MVP API functionality and history tracking via App Data API"
+}
