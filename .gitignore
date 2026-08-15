@@ -24,3 +24,5 @@ dist/
 .DS_Store
 .obsidian/workspace*.json
 
+# Local scripts
+build_wiki.py
