@@ -1,8 +1,10 @@
-from typing import Any
+from typing import Any, Self
+
 import httpx
 from pydantic import BaseModel, ConfigDict
 
-from stashstats.config import Settings, settings as default_settings
+from stashstats.config import Settings
+from stashstats.config import settings as default_settings
 from stashstats.exceptions import raise_for_status_code
 
 
@@ -54,7 +56,8 @@ class BaseAPIClient(BaseModel):
             timeout=self.settings.timeout_seconds,
         )
 
-    def __enter__(self) -> "BaseAPIClient":
+    def __enter__(self) -> Self:
+
         if self._client is not None and not self._client.is_closed:
             self._client.close()
         self._client = httpx.Client(
@@ -65,7 +68,7 @@ class BaseAPIClient(BaseModel):
         )
         return self
 
-    def __exit__(self, *args: Any) -> None:
+    def __exit__(self, *args: object) -> None:
         if self._client is not None and not self._client.is_closed:
             self._client.close()
             self._client = None

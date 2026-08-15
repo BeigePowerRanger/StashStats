@@ -1,9 +1,11 @@
 from typing import Any
+
 import httpx
 from pydantic import BaseModel
 
 from stashstats.base import BaseAPIClient
-from stashstats.config import Settings, settings as default_settings
+from stashstats.config import Settings
+from stashstats.config import settings as default_settings
 from stashstats.exceptions import RavelryAPIError, RavelryAuthError
 
 

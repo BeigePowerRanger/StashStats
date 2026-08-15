@@ -5,4 +5,6 @@
 - [Metadata](./metadata.json)
 
 ## Subtracks
-- [Phase 1: Reference and Yarn Pydantic Models](./subtracks/phase1_yarn_reference/)
+- [Phase 1: Reference and Yarn Pydantic Models (Completed)](./subtracks/phase1_yarn_reference/)
+- [Phase 2: Stash and History Models (Completed)](./subtracks/phase2_stash_history/)
+- [Phase 3: App Data Client Integration (Completed)](./subtracks/phase3_app_data_client/)

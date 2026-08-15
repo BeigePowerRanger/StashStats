@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from stashstats.models.common import Paginator, PersonalAttributes, Photo, YarnCompany
 
@@ -121,11 +121,12 @@ class Yarn(BaseModel):
     gauge_description: str | None = None
     """Human-readable gauge description string."""
 
-    yarn_fibers: list[YarnFiber] = []
+    yarn_fibers: list[YarnFiber] = Field(default_factory=list)
     """Fiber composition percentage breakdown."""
 
-    photos: list[Photo] = []
+    photos: list[Photo] = Field(default_factory=list)
     """Gallery photos of the commercial yarn."""
+
 
 
 class YarnSearchResult(BaseModel):

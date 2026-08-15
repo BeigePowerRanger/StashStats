@@ -53,3 +53,22 @@ class FiberCategory(BaseModel):
 
     permalink: str
     """URL-safe slug for fiber category."""
+
+
+class ColorFamiliesResponse(BaseModel):
+    """Payload structure returned by GET /color_families.json."""
+
+    color_families: list[ColorFamily]
+
+
+class YarnWeightsResponse(BaseModel):
+    """Payload structure returned by GET /yarn_weights.json."""
+
+    yarn_weights: list[YarnWeightReference]
+
+
+class FiberCategoriesResponse(BaseModel):
+    """Payload structure returned by GET /fiber_categories.json."""
+
+    fiber_categories: list[FiberCategory]
+

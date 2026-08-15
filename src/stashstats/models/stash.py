@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from stashstats.models.common import Paginator, Photo, YarnCompany
 from stashstats.models.user import UserProfile
@@ -103,7 +103,7 @@ class StashYarn(BaseModel):
     rating_count: int | None = None
     """Total number of community ratings."""
 
-    photos: list[Photo] = []
+    photos: list[Photo] = Field(default_factory=list)
     """Gallery photos of the commercial yarn."""
 
 
@@ -153,7 +153,7 @@ class StashItem(BaseModel):
     updated_at: str | None = None
     """Last update timestamp string."""
 
-    tag_names: list[str] = []
+    tag_names: list[str] = Field(default_factory=list)
     """User tags applied to this stash entry."""
 
     yarn_weight_name: str | None = None
@@ -174,7 +174,7 @@ class StashItem(BaseModel):
     primary_pack: Pack | None = None
     """Primary skein and purchase pack."""
 
-    packs: list[Pack] = []
+    packs: list[Pack] = Field(default_factory=list)
     """Allocated skein and purchase packs."""
 
     first_photo: Photo | None = None
@@ -207,6 +207,7 @@ class StashSearchResponse(BaseModel):
     paginator: Paginator
     """Pagination metrics."""
 
-    stashes: list[StashItem] = []
+    stashes: list[StashItem] = Field(default_factory=list)
     """List of matching stash items."""
+
 

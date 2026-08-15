@@ -1,5 +1,5 @@
-from datetime import datetime, timezone
 import json
+from datetime import UTC, datetime
 from typing import Any
 
 from stashstats.base import BaseAPIClient
@@ -16,7 +16,6 @@ from stashstats.models import (
     YarnSearchResponse,
     YarnWeightReference,
 )
-
 
 
 class RavelryClient(BaseAPIClient):
@@ -504,7 +503,7 @@ class RavelryClient(BaseAPIClient):
             timestamp
             or stash_item.updated_at
             or stash_item.created_at
-            or datetime.now(timezone.utc).strftime("%Y/%m/%d %H:%M:%S +0000")
+            or datetime.now(UTC).strftime("%Y/%m/%d %H:%M:%S +0000")
         )
 
         entry = StashHistoryEntry(
@@ -515,11 +514,21 @@ class RavelryClient(BaseAPIClient):
         )
 
         history = self.get_stash_history(stash_item.id)
+        if history.entries:
+            latest = history.entries[-1]
+            if (latest.skeins, latest.total_grams, latest.total_yards) == (
+                entry.skeins,
+                entry.total_grams,
+                entry.total_yards,
+            ):
+                return history
+
         history.entries.append(entry)
 
         key = self._stash_history_key(stash_item.id)
         self.set_app_data(**{key: history.model_dump_json()})
         return history
+
 
     def delete_stash_history(self, stash_id: int) -> dict[str, str]:
         """Delete stored quantity history for a stash item.

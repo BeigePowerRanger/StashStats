@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class StashHistoryEntry(BaseModel):
@@ -40,5 +40,6 @@ class StashHistory(BaseModel):
     stash_id: int
     """Associated stash item ID."""
 
-    entries: list[StashHistoryEntry] = []
+    entries: list[StashHistoryEntry] = Field(default_factory=list)
     """Chronological list of history snapshots."""
+

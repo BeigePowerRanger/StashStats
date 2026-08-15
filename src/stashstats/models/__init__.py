@@ -1,6 +1,13 @@
 from stashstats.models.common import Paginator, PersonalAttributes, Photo
 from stashstats.models.history import StashHistory, StashHistoryEntry
-from stashstats.models.reference import ColorFamily, FiberCategory, YarnWeightReference
+from stashstats.models.reference import (
+    ColorFamiliesResponse,
+    ColorFamily,
+    FiberCategoriesResponse,
+    FiberCategory,
+    YarnWeightReference,
+    YarnWeightsResponse,
+)
 from stashstats.models.stash import (
     Pack,
     StashDetailResponse,
@@ -24,10 +31,13 @@ from stashstats.models.yarn import (
 )
 
 __all__ = [
+    "ColorFamiliesResponse",
     "ColorFamily",
     "Colorway",
     "CurrentUserResponse",
+    "FiberCategoriesResponse",
     "FiberCategory",
+
     "FiberType",
     "Pack",
     "Paginator",
@@ -50,6 +60,8 @@ __all__ = [
     "YarnSearchResult",
     "YarnWeight",
     "YarnWeightReference",
+    "YarnWeightsResponse",
 ]
+
 
 

@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 
 class RavelryAPIError(Exception):
@@ -7,8 +7,8 @@ class RavelryAPIError(Exception):
     def __init__(
         self,
         message: str,
-        status_code: Optional[int] = None,
-        response_body: Optional[Any] = None,
+        status_code: int | None = None,
+        response_body: Any | None = None,
     ):
         super().__init__(message)
         self.status_code = status_code
@@ -34,7 +34,7 @@ class RavelryServerError(RavelryAPIError):
 def raise_for_status_code(
     status_code: int,
     message: str,
-    response_body: Optional[Any] = None,
+    response_body: Any | None = None,
 ) -> None:
     """Map an HTTP status code to the appropriate exception."""
     if status_code in (401, 403):

@@ -1,0 +1,11 @@
+{
+  "subtrack_id": "phase2_stash_history",
+  "parent_track_id": "mvp_api_20260815",
+  "phase": 2,
+  "type": "feature",
+  "status": "completed",
+  "created_at": "2026-08-15T03:26:00Z",
+  "updated_at": "2026-08-15T03:27:00Z",
+
+  "description": "Phase 2: Stash and History Models with DateTime parsing and validation tests"
+}
