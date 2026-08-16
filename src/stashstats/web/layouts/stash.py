@@ -111,6 +111,12 @@ def create_stash_layout(
                 debounce=True,
                 className="bg-dark text-light border-secondary",
             ),
+            dbc.Button(
+                [html.I(className="bi bi-search me-1"), "Search"],
+                id="stash-search-btn",
+                color="primary",
+                className="fw-semibold",
+            ),
         ],
         className="mb-2 mb-md-0",
     )
@@ -151,6 +157,12 @@ def create_stash_layout(
         accordion_component,
         id="stash-list-container",
         className="stash-items-wrapper",
+    )
+    list_spinner = dbc.Spinner(
+        list_container,
+        color="primary",
+        type="border",
+        size="md",
     )
 
     # 4. Pagination Controls
@@ -199,7 +211,7 @@ def create_stash_layout(
             *stores,
             sync_row,
             filter_row,
-            list_container,
+            list_spinner,
             pagination_container,
             modal,
         ],

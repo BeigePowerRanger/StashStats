@@ -452,12 +452,23 @@ def test_create_stash_layout_structure() -> None:
     search_input = find_component_by_id(layout, "stash-search-input")
     assert search_input is not None
 
+    search_btn = find_component_by_id(layout, "stash-search-btn")
+    assert search_btn is not None
+    assert "Search" in str(search_btn.to_plotly_json())
+    assert "bi-search" in str(search_btn.to_plotly_json())
+
     sort_dropdown = find_component_by_id(layout, "stash-sort-dropdown")
     assert sort_dropdown is not None
 
-    # List container
+    # List container wrapped in spinner
     list_container = find_component_by_id(layout, "stash-list-container")
     assert list_container is not None
+
+    spinner = next((c for c in layout.children if isinstance(c, dbc.Spinner)), None)
+    assert spinner is not None
+    assert getattr(spinner, "color", None) == "primary"
+    assert getattr(spinner, "type", None) == "border"
+    assert getattr(spinner, "size", None) == "md"
 
     # Pagination controls
     pagination = find_component_by_id(layout, "stash-pagination")
@@ -484,6 +495,14 @@ def test_stash_callbacks_registration() -> None:
     # Register callbacks
     register_stash_callbacks(app)
     assert len(app.callback_map) >= 1
+
+    # Verify search button and submit inputs are registered
+    stash_callback_key = next((k for k in app.callback_map if "stash-list-container" in k), None)
+    assert stash_callback_key is not None
+    stash_callback = app.callback_map[stash_callback_key]
+    input_ids = [inp["id"] for inp in stash_callback["inputs"]]
+    assert "stash-search-btn" in input_ids
+    assert "stash-search-input" in input_ids
 
 
 def test_update_stash_view_callback_logic() -> None:
@@ -521,6 +540,26 @@ def test_update_stash_view_callback_logic() -> None:
     )
     assert total_pages == 1
     assert "No stash items found" in str(accordion.to_plotly_json())
+
+    # 4. Search button click resets page to 1
+    _accordion, _total_pages, page, _info = update_stash_view_logic(
+        search_query="Malabrigo",
+        sort_by="brand_asc",
+        active_page=3,
+        raw_data=raw_items,
+        triggered_id="stash-search-btn",
+    )
+    assert page == 1
+
+    # 5. Search input submit resets page to 1
+    _accordion, _total_pages, page, _info = update_stash_view_logic(
+        search_query="Malabrigo",
+        sort_by="brand_asc",
+        active_page=3,
+        raw_data=raw_items,
+        triggered_id="stash-search-input",
+    )
+    assert page == 1
 
 
 def test_handle_stash_sync_callback_logic() -> None:

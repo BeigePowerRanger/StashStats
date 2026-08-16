@@ -242,6 +242,10 @@ def test_full_application_assembly() -> None:
 
     # Tab content container
     assert find_component_by_id(layout, "tab-content") is not None
+    assert find_component_by_id(layout, "stash-tab-content") is not None
+    assert find_component_by_id(layout, "analytics-tab-content") is not None
+    assert find_component_by_id(layout, "projects-tab-content") is not None
+    assert find_component_by_id(layout, "search-tab-content") is not None
     assert find_component_by_id(layout, "personal-stash-container") is not None
 
     # Stash controls

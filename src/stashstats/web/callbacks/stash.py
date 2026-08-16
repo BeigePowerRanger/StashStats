@@ -20,6 +20,7 @@ def update_stash_view_logic(
     sort_by: str | None,
     active_page: int | None,
     raw_data: list[dict[str, Any]] | None,
+    triggered_id: str | None = None,
 ) -> tuple[Any, int, int, str]:
     """Filter, sort, and paginate stash items based on UI controls."""
     items = raw_data or []
@@ -27,7 +28,11 @@ def update_stash_view_logic(
     filtered = filter_stash_groups(groups, search_query)
     sorted_groups = sort_stash_groups(filtered, sort_by or "brand_asc")
 
-    page_num = active_page if active_page and active_page > 0 else 1
+    if triggered_id in ("stash-search-btn", "stash-search-input"):
+        page_num = 1
+    else:
+        page_num = active_page if active_page and active_page > 0 else 1
+
     paginated_groups, total_pages = paginate_stash_groups(
         sorted_groups, page=page_num, page_size=10
     )
@@ -66,6 +71,8 @@ def register_stash_callbacks(app: dash.Dash) -> None:
         Output("stash-pagination", "max_value"),
         Output("stash-pagination", "active_page"),
         Output("stash-pagination-info", "children"),
+        Input("stash-search-btn", "n_clicks"),
+        Input("stash-search-input", "n_submit"),
         Input("stash-search-input", "value"),
         Input("stash-sort-dropdown", "value"),
         Input("stash-pagination", "active_page"),
@@ -73,12 +80,21 @@ def register_stash_callbacks(app: dash.Dash) -> None:
         prevent_initial_call=False,
     )
     def update_stash_view(
+        search_btn_clicks: int | None,
+        search_submit: int | None,
         search_query: str | None,
         sort_by: str | None,
         active_page: int | None,
         raw_data: list[dict[str, Any]] | None,
     ) -> tuple[Any, int, int, str]:
-        return update_stash_view_logic(search_query, sort_by, active_page, raw_data)
+        triggered_id = dash.ctx.triggered_id if dash.ctx else None
+        return update_stash_view_logic(
+            search_query,
+            sort_by,
+            active_page,
+            raw_data,
+            triggered_id=triggered_id,
+        )
 
     @app.callback(
         Output("stash-pending-badge", "children"),

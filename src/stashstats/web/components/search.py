@@ -105,7 +105,7 @@ def create_yarn_search_form(
     )
 
     search_btn = dbc.Button(
-        "Submit",
+        [html.I(className="bi bi-search me-1"), "Search"],
         id="yarn-search-btn",
         color="primary",
         className="w-100 w-sm-auto fw-semibold",

@@ -13,11 +13,21 @@ TAB_STYLE = {"backgroundColor": "#222", "color": "#fff"}
 SELECTED_TAB_STYLE = {"backgroundColor": "#333", "color": "#00bc8c"}
 
 
-def create_navigation_tabs(active_tab: str = "tab-stash") -> dcc.Tabs:
-    """Create the 4 primary navigation tabs.
+def create_navigation_tabs(
+    active_tab: str = "tab-stash",
+    items: Any = None,
+    sync_status: str = "Synced",
+    pending_count: int = 0,
+    last_synced: str | None = None,
+) -> dcc.Tabs:
+    """Create the 4 primary navigation tabs with embedded tab content.
 
     Args:
         active_tab: ID/value of the currently active tab.
+        items: Optional initial list of stash items.
+        sync_status: Sync state indicator string.
+        pending_count: Number of uncommitted local mutations.
+        last_synced: Timestamp string for last sync.
 
     Returns:
         Configured dcc.Tabs component.
@@ -29,6 +39,14 @@ def create_navigation_tabs(active_tab: str = "tab-stash") -> dcc.Tabs:
         normalized_tab = "tab-analytics"
     elif active_tab == "tab-yarn-search":
         normalized_tab = "tab-search"
+
+    stash_layout = create_stash_layout(
+        items=items,
+        sync_status=sync_status,
+        pending_count=pending_count,
+        last_synced=last_synced,
+    )
+    search_layout = create_yarn_search_layout()
 
     return dcc.Tabs(
         id="main-tabs",
@@ -42,6 +60,15 @@ def create_navigation_tabs(active_tab: str = "tab-stash") -> dcc.Tabs:
                 id="tab-stash-nav",
                 style=TAB_STYLE,
                 selected_style=SELECTED_TAB_STYLE,
+                children=[
+                    html.Div(style={"height": "15px"}),
+                    dbc.Container(
+                        stash_layout,
+                        id="stash-tab-content",
+                        fluid=True,
+                        className="p-0",
+                    ),
+                ],
             ),
             dcc.Tab(
                 label="Stash Analytics",
@@ -49,6 +76,19 @@ def create_navigation_tabs(active_tab: str = "tab-stash") -> dcc.Tabs:
                 id="tab-analytics-nav",
                 style=TAB_STYLE,
                 selected_style=SELECTED_TAB_STYLE,
+                children=[
+                    html.Div(style={"height": "15px"}),
+                    dbc.Container(
+                        dbc.Alert(
+                            "Stash Analytics coming soon.",
+                            color="info",
+                            className="text-center my-4",
+                        ),
+                        id="analytics-tab-content",
+                        fluid=True,
+                        className="p-0",
+                    ),
+                ],
             ),
             dcc.Tab(
                 label="Projects",
@@ -56,6 +96,19 @@ def create_navigation_tabs(active_tab: str = "tab-stash") -> dcc.Tabs:
                 id="tab-projects-nav",
                 style=TAB_STYLE,
                 selected_style=SELECTED_TAB_STYLE,
+                children=[
+                    html.Div(style={"height": "15px"}),
+                    dbc.Container(
+                        dbc.Alert(
+                            "Projects coming soon.",
+                            color="info",
+                            className="text-center my-4",
+                        ),
+                        id="projects-tab-content",
+                        fluid=True,
+                        className="p-0",
+                    ),
+                ],
             ),
             dcc.Tab(
                 label="Yarn Search",
@@ -63,6 +116,15 @@ def create_navigation_tabs(active_tab: str = "tab-stash") -> dcc.Tabs:
                 id="tab-search-nav",
                 style=TAB_STYLE,
                 selected_style=SELECTED_TAB_STYLE,
+                children=[
+                    html.Div(style={"height": "15px"}),
+                    dbc.Container(
+                        search_layout,
+                        id="search-tab-content",
+                        fluid=True,
+                        className="p-0",
+                    ),
+                ],
             ),
         ],
     )
@@ -85,7 +147,7 @@ def create_main_layout(
         sync_status: Sync state indicator string.
         pending_count: Number of uncommitted local mutations.
         last_synced: Timestamp string for last sync.
-        tab_content: Initial content for the active tab content container.
+        tab_content: Optional custom content for the tab container.
         items: Optional initial list of stash items.
 
     Returns:
@@ -98,30 +160,22 @@ def create_main_layout(
         last_synced=last_synced,
     )
 
-    tabs = create_navigation_tabs(active_tab=active_tab)
-
-    if tab_content is None:
-        if active_tab in ("tab-stash", "tab-personal-stash"):
-            tab_content = create_stash_layout(
-                items=items,
-                sync_status=sync_status,
-                pending_count=pending_count,
-                last_synced=last_synced,
-            )
-        elif active_tab in ("tab-search", "tab-yarn-search"):
-            tab_content = create_yarn_search_layout()
-        else:
-            tab_content = []
+    tabs = create_navigation_tabs(
+        active_tab=active_tab,
+        items=items,
+        sync_status=sync_status,
+        pending_count=pending_count,
+        last_synced=last_synced,
+    )
 
     content_area = html.Div(
         id="tab-content",
         className="tab-content-container p-2",
-        children=tab_content,
+        children=[tabs] if tab_content is None else tab_content,
     )
 
     body_container = dbc.Container(
         children=[
-            tabs,
             content_area,
         ],
         fluid=True,

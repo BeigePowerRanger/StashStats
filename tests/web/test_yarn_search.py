@@ -153,7 +153,8 @@ def test_create_yarn_search_form_structure() -> None:
     search_btn = find_component_by_id(form, "yarn-search-btn")
     assert search_btn is not None
     json_repr = str(search_btn.to_plotly_json())
-    assert "Submit" in json_repr
+    assert "Search" in json_repr
+    assert "bi-search" in json_repr
 
 
 def test_create_yarn_search_form_defaults() -> None:

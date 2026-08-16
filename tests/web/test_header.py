@@ -116,6 +116,12 @@ def test_main_layout_tabs_structure() -> None:
     tab_content = find_component_by_id(layout, "tab-content")
     assert tab_content is not None
 
+    # Verify embedded tab content containers
+    assert find_component_by_id(layout, "stash-tab-content") is not None
+    assert find_component_by_id(layout, "analytics-tab-content") is not None
+    assert find_component_by_id(layout, "projects-tab-content") is not None
+    assert find_component_by_id(layout, "search-tab-content") is not None
+
 
 def test_main_layout_with_username() -> None:
     """Verify main layout passes username to header."""
@@ -139,3 +145,6 @@ def test_app_integration_with_main_layout() -> None:
 
     brand = find_component_by_id(app.layout, "header-brand")
     assert brand is not None
+
+    stash_search_btn = find_component_by_id(app.layout, "stash-search-btn")
+    assert stash_search_btn is not None
