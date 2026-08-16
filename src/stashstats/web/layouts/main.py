@@ -6,6 +6,7 @@ import dash_bootstrap_components as dbc
 from dash import html
 
 from stashstats.web.components.header import create_header
+from stashstats.web.layouts.search import create_yarn_search_layout
 from stashstats.web.layouts.stash import create_stash_layout
 
 
@@ -95,6 +96,8 @@ def create_main_layout(
                 pending_count=pending_count,
                 last_synced=last_synced,
             )
+        elif active_tab == "tab-yarn-search":
+            tab_content = create_yarn_search_layout()
         else:
             tab_content = []
 

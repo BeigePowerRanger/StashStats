@@ -1,4 +1,6 @@
-from pydantic import BaseModel, Field
+from typing import Any
+
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from stashstats.models.common import Paginator, PersonalAttributes, Photo, YarnCompany
 
@@ -30,6 +32,37 @@ class YarnWeight(BaseModel):
     max_gauge: float | None = None
     """Maximum gauge value."""
 
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        v_stripped = v.strip()
+        if not v_stripped:
+            raise ValueError("Yarn weight name cannot be empty")
+        return v_stripped
+
+    @field_validator("ply", "wpi", mode="before")
+    @classmethod
+    def normalize_str_fields(cls, v: Any) -> str | None:
+        if v is None:
+            return None
+        s = str(v).strip()
+        return s if s else None
+
+    @field_validator("min_gauge", "max_gauge")
+    @classmethod
+    def validate_gauge_non_negative(cls, v: float | None) -> float | None:
+        if v is not None and v < 0:
+            raise ValueError("Gauge values cannot be negative")
+        return v
+
+    @model_validator(mode="after")
+    def validate_gauge_range(self) -> "YarnWeight":
+        if self.min_gauge is not None and self.max_gauge is not None and self.min_gauge > self.max_gauge:
+            raise ValueError(
+                f"min_gauge ({self.min_gauge}) cannot be greater than max_gauge ({self.max_gauge})"
+            )
+        return self
+
 
 class FiberType(BaseModel):
     """Fiber material classification."""
@@ -49,6 +82,21 @@ class FiberType(BaseModel):
     vegetable: bool = False
     """Whether fiber is plant/vegetable derived."""
 
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        v_stripped = v.strip()
+        if not v_stripped:
+            raise ValueError("Fiber type name cannot be empty")
+        return v_stripped
+
+    @field_validator("animal_fiber", "synthetic", "vegetable", mode="before")
+    @classmethod
+    def normalize_bool_flags(cls, v: Any) -> bool:
+        if v is None:
+            return False
+        return bool(v)
+
 
 class YarnFiber(BaseModel):
     """Fiber composition entry with percentage breakdown."""
@@ -62,6 +110,19 @@ class YarnFiber(BaseModel):
     fiber_type: FiberType
     """Detailed fiber classification."""
 
+    @field_validator("percentage", mode="before")
+    @classmethod
+    def validate_percentage(cls, v: Any) -> int:
+        if v is None:
+            raise ValueError("Fiber percentage cannot be None")
+        try:
+            val = round(float(v))
+        except (ValueError, TypeError):
+            raise ValueError(f"Invalid fiber percentage: {v}")
+        if not (0 <= val <= 100):
+            raise ValueError(f"Fiber percentage must be between 0 and 100, got {val}")
+        return val
+
 
 class Colorway(BaseModel):
     """Colorway classification and grouping."""
@@ -74,6 +135,21 @@ class Colorway(BaseModel):
 
     color_family_id: int | None = None
     """Associated color family ID."""
+
+    @field_validator("name")
+    @classmethod
+    def validate_name(cls, v: str) -> str:
+        v_stripped = v.strip()
+        if not v_stripped:
+            raise ValueError("Colorway name cannot be empty")
+        return v_stripped
+
+    @field_validator("color_family_id")
+    @classmethod
+    def validate_color_family_id(cls, v: int | None) -> int | None:
+        if v is not None and v < 0:
+            raise ValueError("color_family_id cannot be negative")
+        return v
 
 
 class Yarn(BaseModel):
@@ -127,6 +203,54 @@ class Yarn(BaseModel):
     photos: list[Photo] = Field(default_factory=list)
     """Gallery photos of the commercial yarn."""
 
+    @field_validator("name", "permalink")
+    @classmethod
+    def validate_non_empty_str(cls, v: str) -> str:
+        v_stripped = v.strip()
+        if not v_stripped:
+            raise ValueError("Field cannot be empty")
+        return v_stripped
+
+    @field_validator("grams", "yardage")
+    @classmethod
+    def validate_non_negative_measurements(cls, v: float | None) -> float | None:
+        if v is not None and v < 0:
+            raise ValueError("Measurement cannot be negative")
+        return v
+
+    @field_validator("rating_average")
+    @classmethod
+    def validate_rating_average(cls, v: float | None) -> float | None:
+        if v is not None and not (0.0 <= v <= 5.0):
+            raise ValueError(f"Rating average must be between 0.0 and 5.0, got {v}")
+        return v
+
+    @field_validator("rating_count")
+    @classmethod
+    def validate_rating_count(cls, v: int | None) -> int | None:
+        if v is not None and v < 0:
+            raise ValueError("Rating count cannot be negative")
+        return v
+
+    @field_validator("yarn_fibers", "photos", mode="before")
+    @classmethod
+    def normalize_list_fields(cls, v: Any) -> list:
+        if v is None:
+            return []
+        return v
+
+    @field_validator("discontinued", mode="before")
+    @classmethod
+    def normalize_discontinued(cls, v: Any) -> bool:
+        if v is None:
+            return False
+        return bool(v)
+
+    @model_validator(mode="after")
+    def sync_company_name(self) -> "Yarn":
+        if self.yarn_company and self.yarn_company.name and not self.yarn_company_name:
+            self.yarn_company_name = self.yarn_company.name
+        return self
 
 
 class YarnSearchResult(BaseModel):
@@ -189,6 +313,52 @@ class YarnSearchResult(BaseModel):
     personal_attributes: PersonalAttributes | None = None
     """Authenticated user interaction state if requested."""
 
+    @field_validator("name", "permalink")
+    @classmethod
+    def validate_non_empty_str(cls, v: str) -> str:
+        v_stripped = v.strip()
+        if not v_stripped:
+            raise ValueError("Field cannot be empty")
+        return v_stripped
+
+    @field_validator(
+        "grams",
+        "yardage",
+        "wpi",
+        "min_gauge",
+        "max_gauge",
+        "gauge_divisor",
+        "rating_count",
+        "rating_total",
+    )
+    @classmethod
+    def validate_non_negative(cls, v: float | None) -> float | None:
+        if v is not None and v < 0:
+            raise ValueError("Value cannot be negative")
+        return v
+
+    @field_validator("rating_average")
+    @classmethod
+    def validate_rating_average(cls, v: float | None) -> float | None:
+        if v is not None and not (0.0 <= v <= 5.0):
+            raise ValueError(f"Rating average must be between 0.0 and 5.0, got {v}")
+        return v
+
+    @field_validator("discontinued", mode="before")
+    @classmethod
+    def normalize_discontinued(cls, v: Any) -> bool:
+        if v is None:
+            return False
+        return bool(v)
+
+    @model_validator(mode="after")
+    def validate_gauge_range(self) -> "YarnSearchResult":
+        if self.min_gauge is not None and self.max_gauge is not None and self.min_gauge > self.max_gauge:
+            raise ValueError(
+                f"min_gauge ({self.min_gauge}) cannot be greater than max_gauge ({self.max_gauge})"
+            )
+        return self
+
 
 class YarnSearchResponse(BaseModel):
     """Payload structure returned by GET /yarns/search.json."""
@@ -196,8 +366,15 @@ class YarnSearchResponse(BaseModel):
     paginator: Paginator
     """Pagination metrics."""
 
-    yarns: list[YarnSearchResult]
+    yarns: list[YarnSearchResult] = Field(default_factory=list)
     """List of matching yarn search results."""
+
+    @field_validator("yarns", mode="before")
+    @classmethod
+    def normalize_yarns(cls, v: Any) -> list:
+        if v is None:
+            return []
+        return v
 
 
 class YarnDetailResponse(BaseModel):

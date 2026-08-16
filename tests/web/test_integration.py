@@ -273,7 +273,7 @@ def test_full_application_assembly() -> None:
 
 
 def test_application_callbacks_registered() -> None:
-    """Verify all callbacks for stash and modal are registered on Dash app."""
+    """Verify all callbacks for stash, modal, and yarn search are registered on Dash app."""
     app = create_app()
     assert len(app.callback_map) >= 5
 
@@ -284,6 +284,9 @@ def test_application_callbacks_registered() -> None:
     # Verify modal callbacks
     assert any("modal-usage-preview" in o for o in outputs)
     assert any("stash-modal" in o for o in outputs)
+    # Verify search callbacks
+    assert any("yarn-search-list-container" in o for o in outputs)
+
 
 
 # ===========================================================================

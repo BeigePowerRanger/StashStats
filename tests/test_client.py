@@ -6,6 +6,7 @@ import pytest
 from stashstats.client import RavelryClient
 from stashstats.config import Settings
 from stashstats.models.stash import Pack, StashItem
+from stashstats.models.yarn import YarnDetailResponse, YarnSearchResponse
 
 
 @pytest.fixture
@@ -232,3 +233,143 @@ class TestStashHistoryAndDeduplication:
 
         res = client.delete_stash_history(777)
         assert "stash_history_777" in res
+
+
+class TestYarnAPI:
+    def test_search_yarns_default(self, mock_settings):
+        def handler(request: httpx.Request) -> httpx.Response:
+            assert request.method == "GET"
+            assert request.url.path == "/yarns/search.json"
+            assert request.url.params["query"] == "Cascade 220"
+            assert request.url.params["page"] == "1"
+            assert request.url.params["page_size"] == "50"
+            assert request.url.params["sort"] == "best"
+            assert "personal_attributes" not in request.url.params
+            return httpx.Response(
+                200,
+                json={
+                    "paginator": {
+                        "page": 1,
+                        "page_size": 50,
+                        "page_count": 1,
+                        "last_page": 1,
+                        "results": 1,
+                    },
+                    "yarns": [
+                        {
+                            "id": 1001,
+                            "name": "Cascade 220",
+                            "permalink": "cascade-220",
+                            "yarn_company_name": "Cascade Yarns",
+                            "rating_average": 4.5,
+                            "rating_count": 500,
+                        }
+                    ],
+                },
+            )
+
+        client = RavelryClient(settings=mock_settings)
+        client._client = httpx.Client(
+            transport=MockTransport(handler),
+            base_url=client.base_url,
+            auth=client.auth,
+        )
+
+        res = client.search_yarns("Cascade 220")
+        assert isinstance(res, YarnSearchResponse)
+        assert res.paginator.results == 1
+        assert len(res.yarns) == 1
+        assert res.yarns[0].id == 1001
+        assert res.yarns[0].name == "Cascade 220"
+        assert res.yarns[0].yarn_company_name == "Cascade Yarns"
+
+    def test_search_yarns_with_params(self, mock_settings):
+        def handler(request: httpx.Request) -> httpx.Response:
+            assert request.method == "GET"
+            assert request.url.path == "/yarns/search.json"
+            assert request.url.params["query"] == "merino"
+            assert request.url.params["page"] == "2"
+            assert request.url.params["page_size"] == "20"
+            assert request.url.params["sort"] == "rating"
+            assert request.url.params["personal_attributes"] == "1"
+            return httpx.Response(
+                200,
+                json={
+                    "paginator": {
+                        "page": 2,
+                        "page_size": 20,
+                        "page_count": 5,
+                        "last_page": 5,
+                        "results": 100,
+                    },
+                    "yarns": [
+                        {
+                            "id": 2002,
+                            "name": "Merino Extrafine",
+                            "permalink": "merino-extrafine",
+                            "yarn_company_name": "Drops",
+                            "first_photo": {
+                                "id": 555,
+                                "square_url": "https://images.ravelry.com/photo.jpg",
+                            },
+                            "personal_attributes": {
+                                "favorited": True,
+                                "bookmark_id": 42,
+                            },
+                        }
+                    ],
+                },
+            )
+
+        client = RavelryClient(settings=mock_settings)
+        client._client = httpx.Client(
+            transport=MockTransport(handler),
+            base_url=client.base_url,
+            auth=client.auth,
+        )
+
+        res = client.search_yarns(
+            "merino",
+            page=2,
+            page_size=20,
+            sort="rating",
+            personal_attributes=True,
+        )
+        assert isinstance(res, YarnSearchResponse)
+        assert res.paginator.page == 2
+        assert res.paginator.page_size == 20
+        assert len(res.yarns) == 1
+        assert res.yarns[0].id == 2002
+        assert res.yarns[0].first_photo is not None
+        assert res.yarns[0].first_photo.square_url == "https://images.ravelry.com/photo.jpg"
+        assert res.yarns[0].personal_attributes is not None
+        assert res.yarns[0].personal_attributes.favorited is True
+
+    def test_get_yarn_details(self, mock_settings):
+        def handler(request: httpx.Request) -> httpx.Response:
+            assert request.method == "GET"
+            assert request.url.path == "/yarns/2420.json"
+            return httpx.Response(
+                200,
+                json={
+                    "yarn": {
+                        "id": 2420,
+                        "name": "Rios",
+                        "permalink": "malabrigo-yarn-rios",
+                        "yarn_company_name": "Malabrigo Yarn",
+                    }
+                },
+            )
+
+        client = RavelryClient(settings=mock_settings)
+        client._client = httpx.Client(
+            transport=MockTransport(handler),
+            base_url=client.base_url,
+            auth=client.auth,
+        )
+
+        res = client.get_yarn_details(2420)
+        assert isinstance(res, YarnDetailResponse)
+        assert res.yarn.id == 2420
+        assert res.yarn.name == "Rios"
+
