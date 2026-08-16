@@ -4,8 +4,7 @@
 
 ## User Notes
 
-- [-] it seems like pydantic BaseModel was implemented just because I told it to, there doesn't seem to be any actual validation going on because almost everything is `x` | None = None
-   - I think this is my biggest issue right now honestly  
+- [x] Pydantic models have been strengthened with strict `@field_validator` and `@model_validator` logic (Issue resolved in Yarn Search Integration).
 
 ## Overview
 
@@ -57,12 +56,6 @@ Official documentation details: see \[\[API Auth]].
 
 ## Implementation Roadmap
 
-1. **Phase 1: Project Initialization & Environment Setup**
-   - Initialize project with `uv` and configure `pyproject.toml`.
-   - Setup `.gitignore` and `.env.example`.
-2. **Phase 2: Configuration & Authentication Module**
-   - Implement `config.py` using `pydantic-settings`.
-   - Implement `auth.py` and `client.py` using `httpx`.
-   - Write tests verifying authentication headers and endpoint connectivity (e.g. `/current_user.json`).
-3. **Phase 3: Core API Endpoints & Data Models**
-   - Stash querying, pagination, and data schemas.
+1. **Core API Endpoints & Data Models**: Stash querying, history tracking, yarn search, strict Pydantic schemas.
+2. **Web App Frontend**: Dash/FastAPI shell, 4-tab layout, interactive modal.
+3. **Yarn Search Integration**: Global Ravelry yarn search tab with accordion results and pagination.
