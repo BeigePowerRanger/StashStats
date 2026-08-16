@@ -19,5 +19,7 @@
 - **Docker & Docker Compose**: Containerization and multi-container orchestration for running the application stack.
 - **Redis**: In-memory data store to be used for caching API responses and data.
 
-## Frontend (Planned)
-- Web Dashboard framework (To be determined as development progresses)
+## Frontend
+- **Dash 2.x**: Reactive Python framework for building analytical web applications.
+- **Dash Bootstrap Components**: For responsive layout and pre-built UI components using the DARKLY theme.
+- **FastAPI**: Underlying ASGI server for handling routing and API endpoints.
