@@ -20,6 +20,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Yarn Search Integration (Ravelry API)**
+- [x] **Track: Yarn Search Integration (Ravelry API)**
   *Link: [./tracks/yarn_search_20260816/](./tracks/yarn_search_20260816/)*
 
