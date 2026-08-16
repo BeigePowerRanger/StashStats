@@ -18,3 +18,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Web App Frontend - Core Shell, Navigation, and Personal Stash View**
   *Link: [./tracks/webapp_frontend_20260816/](./tracks/webapp_frontend_20260816/)*
 
+---
+
+- [ ] **Track: Yarn Search Integration (Ravelry API)**
+  *Link: [./tracks/yarn_search_20260816/](./tracks/yarn_search_20260816/)*
+
