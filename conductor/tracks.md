@@ -15,14 +15,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Web App Frontend - Core Shell, Navigation, and Personal Stash View**
+- [x] **Track: Web App Frontend - Core Shell, Navigation, and Personal Stash View**
   *Link: [./tracks/webapp_frontend_20260816/](./tracks/webapp_frontend_20260816/)*
-  - [ ] **Subtrack: Phase 1 - Web App Shell & Navigation Layout**
-    *Link: [./tracks/webapp_frontend_20260816/subtracks/phase1_app_shell/](./tracks/webapp_frontend_20260816/subtracks/phase1_app_shell/)*
-  - [ ] **Subtrack: Phase 2 - Personal Stash Grouped Accordion View**
-    *Link: [./tracks/webapp_frontend_20260816/subtracks/phase2_stash_accordion/](./tracks/webapp_frontend_20260816/subtracks/phase2_stash_accordion/)*
-  - [ ] **Subtrack: Phase 3 - Stash Edit & Usage Modal Dialog**
-    *Link: [./tracks/webapp_frontend_20260816/subtracks/phase3_edit_modal/](./tracks/webapp_frontend_20260816/subtracks/phase3_edit_modal/)*
-  - [ ] **Subtrack: Phase 4 - Integration & Local Verification**
-    *Link: [./tracks/webapp_frontend_20260816/subtracks/phase4_integration/](./tracks/webapp_frontend_20260816/subtracks/phase4_integration/)*
 
