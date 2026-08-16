@@ -9,8 +9,8 @@ def create_header(
     sync_status: str = "Synced",
     pending_count: int = 0,
     last_synced: str | None = None,
-) -> dbc.Navbar:
-    """Create global navbar header for StashStats.
+) -> html.Div:
+    """Create global header for StashStats with logo, greeting, and meta chips.
 
     Args:
         username: Authenticated Ravelry username, or None for guest/offline.
@@ -19,20 +19,8 @@ def create_header(
         last_synced: Optional timestamp string of last successful sync.
 
     Returns:
-        Configured dbc.Navbar component.
+        Configured header component.
     """
-    brand_content = [
-        html.I(className="bi bi-box-seam me-2 text-success"),
-        html.Span("StashStats", className="fw-bold"),
-    ]
-
-    brand_element = dbc.NavbarBrand(
-        children=brand_content,
-        href="#",
-        className="d-flex align-items-center text-decoration-none fs-4 text-white",
-        id="header-brand",
-    )
-
     user_label = f"@{username}" if username else "@Guest"
     user_badge = dbc.Badge(
         user_label,
@@ -76,25 +64,55 @@ def create_header(
         id="header-sync-indicator",
     )
 
-    right_col = html.Div(
-        children=[
-            sync_container,
-            user_badge,
-        ],
-        className="d-flex align-items-center ms-auto",
+    meta_chips = dbc.Row(
+        dbc.Col(
+            html.Div(
+                [sync_container, user_badge],
+                className="d-flex align-items-center justify-content-end",
+            ),
+            width=12,
+        ),
+        className="px-3 pt-2",
     )
 
-    return dbc.Navbar(
-        dbc.Container(
-            [
-                brand_element,
-                right_col,
-            ],
-            fluid=True,
-            className="px-3",
-        ),
-        color="dark",
-        dark=True,
-        className="border-bottom border-secondary py-2",
+    logo_img = html.Img(
+        src="/assets/Images/logo_color.png",
+        alt="StashStats",
+        id="header-logo",
+        style={"width": "75%", "maxHeight": "125px", "objectFit": "contain"},
+    )
+
+    logo_row = dbc.Row(
+        dbc.Col(logo_img, width="auto", className="text-center"),
+        justify="center",
+        className="justify-content-center align-items-center my-2",
+        id="header-brand",
+    )
+
+    children: list[html.Component] = [
+        meta_chips,
+        logo_row,
+    ]
+
+    if username:
+        greeting_row = dbc.Row(
+            dbc.Col(
+                html.H5(
+                    f"Hello {username}!",
+                    className="text-info text-center mt-2",
+                    id="header-greeting",
+                ),
+                width=12,
+            ),
+            justify="center",
+            className="justify-content-center align-items-center",
+        )
+        children.append(greeting_row)
+
+    children.append(html.Hr(style={"margin": "20px 0"}))
+
+    return html.Div(
+        children=children,
         id="global-header",
+        className="w-100",
     )

@@ -1,5 +1,6 @@
 """Dash application factory for StashStats."""
 
+from pathlib import Path
 from typing import Any
 
 import dash
@@ -11,12 +12,17 @@ from stashstats.web.callbacks.search import register_search_callbacks
 from stashstats.web.callbacks.stash import register_stash_callbacks
 from stashstats.web.layouts.main import create_main_layout
 
+# Resolve default absolute project assets directory (<root>/assets)
+PROJECT_ROOT = Path(__file__).resolve().parents[3]
+DEFAULT_ASSETS_FOLDER = str(PROJECT_ROOT / "assets")
+
 
 def create_app(
     client: RavelryClient | None = None,
     title: str = "StashStats",
     external_stylesheets: list[str] | None = None,
     items: list[Any] | None = None,
+    assets_folder: str | None = None,
     **dash_kwargs: Any,
 ) -> dash.Dash:
     """Create and configure the Dash application instance.
@@ -26,6 +32,7 @@ def create_app(
         title: Title of the web application.
         external_stylesheets: List of external stylesheets (defaults to DARKLY and Bootstrap Icons).
         items: Optional initial list of stash items.
+        assets_folder: Optional path to static assets folder (defaults to absolute project root / assets).
         **dash_kwargs: Additional keyword arguments passed directly to `dash.Dash`.
 
     Returns:
@@ -38,10 +45,12 @@ def create_app(
         ]
 
     suppress_callback_exceptions = dash_kwargs.pop("suppress_callback_exceptions", True)
+    resolved_assets_folder = assets_folder or dash_kwargs.pop("assets_folder", DEFAULT_ASSETS_FOLDER)
 
     app = dash.Dash(
         __name__,
         title=title,
+        assets_folder=resolved_assets_folder,
         external_stylesheets=external_stylesheets,
         suppress_callback_exceptions=suppress_callback_exceptions,
         **dash_kwargs,
@@ -62,4 +71,3 @@ def create_app(
     register_search_callbacks(app)
 
     return app
-

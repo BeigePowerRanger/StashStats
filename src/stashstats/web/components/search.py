@@ -1,174 +1,342 @@
 """Yarn Search UI components, search forms, and expanding accordion cards."""
 
+from datetime import UTC, datetime
 from typing import Any
 
 import dash_bootstrap_components as dbc
-from dash import html
+from dash import dcc, html
 
 from stashstats.models.yarn import YarnSearchResult
 
+SEARCH_CATEGORIES: list[dict[str, str]] = [
+    {"label": "Yarns", "value": "yarns"},
+    {"label": "Yarn Companies", "value": "yarn_companies"},
+    {"label": "Personal Stash", "value": "personal_stash"},
+    {"label": "Projects", "value": "projects"},
+    {"label": "Patterns", "value": "patterns"},
+]
 
-def create_yarn_search_form(query: str = "", brand: str = "") -> dbc.Row:
-    """Render the dual search input form for keyword and brand filters.
+SORT_CATEGORIES: list[dict[str, str]] = [
+    {"label": "Best Match", "value": "best_match"},
+    {"label": "Highest Rating", "value": "highest_rating"},
+    {"label": "Most Projects", "value": "most_projects"},
+]
+
+DEFAULT_SEARCH_CATEGORY = "yarns"
+DEFAULT_SORT_CATEGORY = "best_match"
+
+DARK_INPUT_STYLE = {"backgroundColor": "#333", "color": "#fff", "border": "1px solid #555"}
+DARK_LABEL_STYLE = {"backgroundColor": "#444", "color": "#ccc", "border": "1px solid #555"}
+
+
+def create_yarn_search_form(
+    query: str = "",
+    brand: str = "",
+    category: str = DEFAULT_SEARCH_CATEGORY,
+    sort: str = DEFAULT_SORT_CATEGORY,
+) -> dbc.Row:
+    """Render the search input form with category, query, sort, and submit button.
 
     Args:
         query: Initial search keyword string.
         brand: Initial brand / yarn company filter string.
+        category: Selected search category.
+        sort: Selected sort order.
 
     Returns:
-        dbc.Row component containing keyword input, brand input, and search trigger button.
+        dbc.Row component containing category select, query input, sort select, and submit button.
     """
+    category_input = dbc.InputGroup(
+        [
+            dbc.InputGroupText("Category", style=DARK_LABEL_STYLE),
+            dbc.Select(
+                id="yarn-search-category-input",
+                options=SEARCH_CATEGORIES,
+                value=category or DEFAULT_SEARCH_CATEGORY,
+                placeholder="Select Category",
+                style=DARK_INPUT_STYLE,
+            ),
+        ],
+        className="mb-2 mb-sm-0",
+    )
+
     query_input = dbc.InputGroup(
         [
-            dbc.InputGroupText(
-                html.I(className="bi bi-search text-muted"),
-                className="bg-dark border-secondary",
-            ),
+            dbc.InputGroupText("Search", style=DARK_LABEL_STYLE),
             dbc.Input(
                 id="yarn-search-query-input",
                 type="search",
-                placeholder="Search yarn name or keywords...",
+                placeholder="Flux Capacitor",
                 value=query,
                 debounce=True,
-                className="bg-dark text-light border-secondary",
+                style=DARK_INPUT_STYLE,
             ),
         ],
-        className="mb-2 mb-md-0",
+        className="mb-2 mb-sm-0",
     )
 
     brand_input = dbc.InputGroup(
         [
-            dbc.InputGroupText(
-                html.I(className="bi bi-building text-muted"),
-                className="bg-dark border-secondary",
-            ),
+            dbc.InputGroupText("Brand", style=DARK_LABEL_STYLE),
             dbc.Input(
                 id="yarn-search-brand-input",
                 type="search",
-                placeholder="Filter by brand / company...",
+                placeholder="Filter by brand...",
                 value=brand,
                 debounce=True,
-                className="bg-dark text-light border-secondary",
+                style=DARK_INPUT_STYLE,
             ),
         ],
-        className="mb-2 mb-md-0",
+        className="mb-2 mb-sm-0",
+    )
+
+    sort_input = dbc.InputGroup(
+        [
+            dbc.InputGroupText("Sort", style=DARK_LABEL_STYLE),
+            dbc.Select(
+                id="yarn-search-sort-input",
+                options=SORT_CATEGORIES,
+                value=sort or DEFAULT_SORT_CATEGORY,
+                placeholder="Select Sort",
+                style=DARK_INPUT_STYLE,
+            ),
+        ],
+        className="mb-2 mb-sm-0",
     )
 
     search_btn = dbc.Button(
-        [html.I(className="bi bi-search me-1"), "Search"],
+        "Submit",
         id="yarn-search-btn",
         color="primary",
-        className="fw-semibold d-flex align-items-center justify-content-center w-100",
+        className="w-100 w-sm-auto fw-semibold",
     )
 
     return dbc.Row(
         [
-            dbc.Col(query_input, xs=12, md=5, lg=5),
-            dbc.Col(brand_input, xs=12, md=5, lg=5),
-            dbc.Col(search_btn, xs=12, md=2, lg=2),
+            dbc.Col(category_input, xs=12, sm="auto"),
+            dbc.Col(query_input, xs=12, sm="auto"),
+            dbc.Col(brand_input, xs=12, sm="auto"),
+            dbc.Col(sort_input, xs=12, sm="auto"),
+            dbc.Col(search_btn, xs=12, sm="auto"),
+            html.Hr(style={"margin": "20px 0"}),
         ],
         className="mb-3 g-2 align-items-center",
     )
 
 
-def create_yarn_search_details(yarn: YarnSearchResult | dict[str, Any]) -> html.Div:
-    """Render structured technical specifications and attributes in the expanded accordion body.
+def create_yarn_search_details(
+    yarn: YarnSearchResult | dict[str, Any],
+) -> html.Div:
+    """Render structured technical specifications, colorway badges, and inline stash form.
 
     Args:
         yarn: YarnSearchResult model or dictionary.
 
     Returns:
-        html.Div component containing spec badges and Ravelry link.
+        html.Div component containing specs, colorway badges, and stash form.
     """
     if not isinstance(yarn, YarnSearchResult):
         yarn = YarnSearchResult.model_validate(yarn)
 
+    yarn_id = yarn.id or 0
+    company = yarn.yarn_company_name or ""
+    grams = yarn.grams
+    yardage = yarn.yardage
+    discontinued = yarn.discontinued
+    machine_washable = yarn.machine_washable
+    colorways = getattr(yarn, "colorways", None) or []
+
+    # 1. Specs
     specs: list[html.Component] = []
+    if company and company.strip():
+        specs.append(html.P(html.Strong(f"Company: {company}")))
 
-    # 1. Weight & Texture
-    weight_name = yarn.yarn_weight.name if yarn.yarn_weight else None
-    if weight_name:
+    if yarn.yarn_weight and yarn.yarn_weight.name:
+        specs.append(html.P(f"Weight: {yarn.yarn_weight.name}"))
+    elif grams is not None:
         specs.append(
-            dbc.Badge(f"Weight: {weight_name}", color="info", pill=True, className="me-2 mb-2 p-2")
+            html.P(f"Weight: {grams:g}g" if isinstance(grams, (int, float)) else f"Weight: {grams}g")
         )
 
-    if yarn.texture:
+    if yardage is not None:
         specs.append(
-            dbc.Badge(f"Texture: {yarn.texture}", color="secondary", pill=True, className="me-2 mb-2 p-2")
-        )
-
-    wpi = yarn.wpi or (yarn.yarn_weight.wpi if yarn.yarn_weight else None)
-    if wpi:
-        specs.append(
-            dbc.Badge(f"WPI: {wpi}", color="dark", className="border border-secondary me-2 mb-2 p-2 text-light", pill=True)
-        )
-
-    # 2. Yardage & Grams
-    unit_parts = []
-    if yarn.yardage is not None:
-        unit_parts.append(f"Yardage: {yarn.yardage:g} yds")
-    if yarn.grams is not None:
-        unit_parts.append(f"Grams: {yarn.grams:g} g")
-
-    if unit_parts:
-        specs.append(
-            dbc.Badge(" / ".join(unit_parts), color="dark", className="border border-secondary me-2 mb-2 p-2 text-light", pill=True)
-        )
-
-    # 3. Gauge Information
-    gauge_text = None
-    if yarn.yarn_weight and yarn.yarn_weight.knit_gauge:
-        gauge_text = f"Gauge: {yarn.yarn_weight.knit_gauge}"
-    elif yarn.min_gauge is not None:
-        divisor = yarn.gauge_divisor or 4
-        if yarn.max_gauge is not None and yarn.max_gauge != yarn.min_gauge:
-            gauge_text = f"Gauge: {yarn.min_gauge:g}-{yarn.max_gauge:g} sts / {divisor} in"
-        else:
-            gauge_text = f"Gauge: {yarn.min_gauge:g} sts / {divisor} in"
-
-    if gauge_text:
-        specs.append(
-            dbc.Badge(gauge_text, color="secondary", pill=True, className="me-2 mb-2 p-2")
-        )
-
-    # 4. Care & Washability
-    if yarn.machine_washable is not None:
-        wash_color = "success" if yarn.machine_washable else "warning"
-        wash_label = "Machine Washable" if yarn.machine_washable else "Hand Wash Only"
-        specs.append(
-            dbc.Badge(wash_label, color=wash_color, pill=True, className="me-2 mb-2 p-2")
-        )
-
-    # 5. Community Rating
-    if yarn.rating_average is not None and yarn.rating_average > 0:
-        specs.append(
-            dbc.Badge(
-                f"{yarn.rating_average:.2f} ★ ({yarn.rating_count or 0} ratings)",
-                color="warning",
-                pill=True,
-                className="text-dark me-2 mb-2 p-2 fw-semibold",
+            html.P(
+                f"Yardage: {yardage:g} yards"
+                if isinstance(yardage, (int, float))
+                else f"Yardage: {yardage} yards"
             )
         )
 
-    specs_container = html.Div(specs, className="d-flex flex-wrap align-items-center mb-2")
+    if discontinued is not None:
+        specs.append(html.P(f"Discontinued: {'Yes' if discontinued else 'No'}"))
 
-    # Link button to Ravelry
-    link_btn = dbc.Button(
-        [html.I(className="bi bi-box-arrow-up-right me-1"), "View on Ravelry"],
-        href=f"https://www.ravelry.com/yarns/library/{yarn.permalink}",
-        target="_blank",
-        color="primary",
-        outline=True,
-        size="sm",
-        className="mt-1 d-inline-flex align-items-center",
+    if machine_washable is not None:
+        specs.append(html.P(f"Machine Washable: {'Yes' if machine_washable else 'No'}"))
+
+    if yarn.texture:
+        specs.append(html.P(f"Texture: {yarn.texture}"))
+
+    if yarn.rating_average is not None and yarn.rating_average > 0:
+        specs.append(html.P(f"Rating: {yarn.rating_average:.2f} ★ ({yarn.rating_count or 0} ratings)"))
+
+    if yarn.permalink:
+        link_btn = dbc.Button(
+            [html.I(className="bi bi-box-arrow-up-right me-1"), "View on Ravelry"],
+            href=f"https://www.ravelry.com/yarns/library/{yarn.permalink}",
+            target="_blank",
+            color="primary",
+            outline=True,
+            size="sm",
+            className="mt-1 mb-2 d-inline-flex align-items-center",
+        )
+        specs.append(link_btn)
+
+    # 2. Colorways
+    colorway_components: list[html.Component] = []
+    if colorways:
+        colorway_components.append(html.Strong("Colorways:"))
+        colorway_components.append(
+            html.Div(
+                [
+                    dbc.Badge(c, color="secondary", className="me-1 mb-1")
+                    for c in colorways
+                ],
+                style={"flexWrap": "wrap", "display": "flex", "marginTop": "5px"},
+            )
+        )
+
+    # 3. Inline Add to Stash Form
+    colorway_options = [{"label": c, "value": c} for c in colorways] if colorways else []
+    stash_form = html.Div(
+        [
+            html.Hr(),
+            html.H6("Add to Stash", className="text-primary"),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            dbc.Label("Skeins"),
+                            dbc.Input(
+                                type="number",
+                                id={"type": "stash-skeins", "index": yarn_id},
+                                placeholder="1.0",
+                                min=0,
+                                step=0.1,
+                                style=DARK_INPUT_STYLE,
+                            ),
+                        ],
+                        xs=12,
+                        sm=4,
+                        className="mb-2 mb-sm-0",
+                    ),
+                    dbc.Col(
+                        [
+                            dbc.Label("Colorway"),
+                            dbc.Select(
+                                id={"type": "stash-colorway", "index": yarn_id},
+                                options=colorway_options,
+                                placeholder="Select or leave blank",
+                                style=DARK_INPUT_STYLE,
+                            )
+                            if colorways
+                            else dbc.Input(
+                                type="text",
+                                id={"type": "stash-colorway", "index": yarn_id},
+                                placeholder="Colorway name",
+                                style=DARK_INPUT_STYLE,
+                            ),
+                        ],
+                        xs=12,
+                        sm=4,
+                        className="mb-2 mb-sm-0",
+                    ),
+                    dbc.Col(
+                        [
+                            dbc.Label("Dye Lot"),
+                            dbc.Input(
+                                type="text",
+                                id={"type": "stash-dyelot", "index": yarn_id},
+                                placeholder="e.g. 42",
+                                style=DARK_INPUT_STYLE,
+                            ),
+                        ],
+                        xs=12,
+                        sm=4,
+                    ),
+                ],
+                className="mb-2",
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            dbc.Label("Location"),
+                            dbc.Input(
+                                type="text",
+                                id={"type": "stash-location", "index": yarn_id},
+                                placeholder="e.g. Closet",
+                                style=DARK_INPUT_STYLE,
+                            ),
+                        ],
+                        xs=12,
+                        sm=6,
+                        className="mb-2 mb-sm-0",
+                    ),
+                    dbc.Col(
+                        [
+                            dbc.Label("Notes"),
+                            dbc.Input(
+                                type="text",
+                                id={"type": "stash-notes", "index": yarn_id},
+                                placeholder="e.g. soft texture",
+                                style=DARK_INPUT_STYLE,
+                            ),
+                        ],
+                        xs=12,
+                        sm=6,
+                    ),
+                ],
+                className="mb-3",
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            dbc.Label("Date Added"),
+                            html.Br(),
+                            dcc.DatePickerSingle(
+                                id={"type": "stash-date-added", "index": yarn_id},
+                                date=datetime.now(tz=UTC).date().isoformat(),
+                                display_format="YYYY-MM-DD",
+                                className="w-100",
+                            ),
+                        ],
+                        xs=12,
+                    )
+                ],
+                className="mb-3",
+            ),
+            dbc.Button(
+                "Add Yarn to Stash",
+                id={"type": "stash-submit-btn", "index": yarn_id},
+                color="success",
+                size="sm",
+                className="w-100",
+            ),
+            html.Div(id={"type": "stash-status-msg", "index": yarn_id}, className="mt-2 text-info"),
+        ],
+        style={
+            "padding": "10px",
+            "border": "1px solid #444",
+            "borderRadius": "5px",
+            "backgroundColor": "#222",
+            "marginTop": "15px",
+        },
     )
 
     return html.Div(
-        [
-            specs_container,
-            html.Div(link_btn, className="mt-2 pt-2 border-top border-secondary"),
-        ],
-        className="py-2 px-3 bg-dark text-light",
+        specs + colorway_components + [stash_form],
+        className="yarn-search-details py-2",
     )
 
 
@@ -188,71 +356,80 @@ def create_yarn_search_accordion_item(
     if not isinstance(yarn, YarnSearchResult):
         yarn = YarnSearchResult.model_validate(yarn)
 
-    # Thumbnail photo
-    photo_url = None
-    if yarn.first_photo:
-        photo_url = (
-            yarn.first_photo.square_url
-            or yarn.first_photo.small_url
-            or yarn.first_photo.thumbnail_url
-            or yarn.first_photo.medium_url
-        )
+    company_name = yarn.yarn_company_name or ""
+    title = f"{company_name} — {yarn.name}" if company_name and company_name.strip() else yarn.name
+    yarn_id = yarn.id if yarn.id else index
 
-    if photo_url:
-        thumbnail = html.Img(
-            src=photo_url,
-            alt=yarn.name,
-            style={"width": "35px", "height": "35px", "objectFit": "cover"},
-            className="rounded me-2 flex-shrink-0",
-        )
-    else:
-        thumbnail = html.Div(
-            html.I(className="bi bi-box-seam text-info"),
-            className="d-inline-flex align-items-center justify-content-center bg-secondary rounded me-2 flex-shrink-0",
-            style={"width": "35px", "height": "35px"},
-        )
+    body_details = create_yarn_search_details(yarn)
 
-    company_name = yarn.yarn_company_name or "Unknown Brand"
-    display_title = f"{company_name} — {yarn.name}"
-    title_text = html.Span(display_title, className="fw-bold fs-6 text-light me-auto")
-
-    badges: list[html.Component] = []
-
-    if yarn.yarn_weight and yarn.yarn_weight.name:
-        badges.append(
-            dbc.Badge(
-                yarn.yarn_weight.name,
-                color="info",
-                pill=True,
-                className="me-2 px-2 py-1 fs-7 align-self-center",
-            )
-        )
-
-    if yarn.discontinued:
-        badges.append(
-            dbc.Badge(
-                "Discontinued",
-                color="danger",
-                pill=True,
-                className="me-2 px-2 py-1 fs-7 align-self-center",
-            )
-        )
-
-    header_title = html.Div(
-        [
-            thumbnail,
-            title_text,
-            html.Div(badges, className="d-flex align-items-center ms-auto"),
-        ],
-        className="d-flex align-items-center w-100 pe-2",
+    labels_col = dbc.Col(
+        body_details,
+        xs=12,
+        md=8,
     )
 
-    body = create_yarn_search_details(yarn)
+    # Photo Carousel or Image (150px height)
+    photos: list[str] = []
+    if getattr(yarn, "photos", None) and yarn.photos:
+        photos = [
+            str(p.medium_url or p.square_url or p.small_url or p.thumbnail_url)
+            for p in yarn.photos
+            if (p.medium_url or p.square_url or p.small_url or p.thumbnail_url)
+        ]
+    elif getattr(yarn, "first_photo", None) and yarn.first_photo:
+        fp = yarn.first_photo
+        fp_url = fp.medium_url or fp.square_url or fp.small_url or fp.thumbnail_url
+        if fp_url:
+            photos = [str(fp_url)]
+
+    if photos and len(photos) > 1:
+        carousel_items = [{"key": str(i), "src": str(url)} for i, url in enumerate(photos)]
+        img_element: html.Component = dbc.Carousel(
+            items=carousel_items,
+            controls=True,
+            indicators=True,
+            interval=None,
+            style={
+                "height": "150px",
+                "width": "150px",
+                "margin": "10px",
+                "borderRadius": "8px",
+                "overflow": "hidden",
+            },
+        )
+    elif photos:
+        img_element = html.Img(
+            src=str(photos[0]),
+            alt=yarn.name,
+            style={
+                "height": "150px",
+                "width": "auto",
+                "maxWidth": "100%",
+                "objectFit": "cover",
+                "margin": "10px",
+                "borderRadius": "8px",
+            },
+        )
+    else:
+        img_element = html.Div(
+            html.I(className="bi bi-box-seam text-info fs-1"),
+            className="d-flex align-items-center justify-content-center bg-dark border border-secondary rounded",
+            style={"height": "150px", "width": "150px", "margin": "10px"},
+        )
+
+    thumbnail_col = dbc.Col(
+        [img_element] if img_element is not None else [],
+        xs=12,
+        md=4,
+        className="d-flex align-items-center justify-content-center",
+    )
 
     return dbc.AccordionItem(
-        title=header_title,
-        item_id=f"yarn-search-item-{yarn.id if yarn.id else index}",
-        children=body,
+        dbc.Row(
+            [labels_col, thumbnail_col],
+        ),
+        title=title,
+        item_id=f"yarn-search-item-{yarn_id}",
         className="mb-2 border border-secondary rounded overflow-hidden",
     )
 

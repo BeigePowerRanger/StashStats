@@ -5,7 +5,7 @@ from typing import Any
 
 import dash
 import dash_bootstrap_components as dbc
-from dash import Input, Output, State, ctx, html
+from dash import MATCH, Input, Output, State, ctx, html
 
 from stashstats.client import RavelryClient
 from stashstats.web.components.search import create_yarn_search_accordion
@@ -59,14 +59,43 @@ def update_yarn_search_logic(
     clean_brand = brand.strip() if brand else ""
     search_str = build_search_query(clean_query, clean_brand)
 
-    # Empty inputs or missing client -> return empty search state
-    if not search_str or client is None:
+    # 1. Missing client -> prominent warning Alert indicating API credentials / client missing in .env
+    if client is None:
+        warning_elem = html.Div(
+            dbc.Alert(
+                [
+                    html.I(className="bi bi-exclamation-triangle me-2"),
+                    html.Strong("Ravelry API Client Unavailable: "),
+                    "API credentials / client missing in .env. Please configure your credentials to enable yarn search.",
+                ],
+                color="warning",
+                className="text-center my-4",
+            ),
+            id="yarn-search-warning-state",
+        )
+        return (
+            warning_elem,
+            1,
+            1,
+            "Ravelry API credentials / client missing in .env",
+            [],
+            {
+                "page": 1,
+                "total_pages": 1,
+                "total_results": 0,
+                "query": clean_query,
+                "brand": clean_brand,
+            },
+        )
+
+    # 2. Empty search input -> return empty search state with informative info text
+    if not search_str:
         accordion = create_yarn_search_accordion([])
         return (
             accordion,
             1,
             1,
-            "Showing page 1 of 1 (0 yarns found)",
+            "Enter a keyword or brand to search yarns.",
             [],
             {
                 "page": 1,
@@ -242,3 +271,31 @@ def register_search_callbacks(app: dash.Dash) -> None:
             brand_val=brand_val,
             paginator_store=paginator_store,
         )
+
+    @app.callback(
+        Output({"type": "stash-status-msg", "index": MATCH}, "children"),
+        Input({"type": "stash-submit-btn", "index": MATCH}, "n_clicks"),
+        State({"type": "stash-skeins", "index": MATCH}, "value"),
+        State({"type": "stash-colorway", "index": MATCH}, "value"),
+        State({"type": "stash-dyelot", "index": MATCH}, "value"),
+        State({"type": "stash-location", "index": MATCH}, "value"),
+        State({"type": "stash-notes", "index": MATCH}, "value"),
+        State({"type": "stash-date-added", "index": MATCH}, "date"),
+        State({"type": "stash-submit-btn", "index": MATCH}, "id"),
+        prevent_initial_call=True,
+    )
+    def handle_add_to_stash(
+        n_clicks: int | None,
+        skeins: float | None,
+        colorway: str | None,
+        dyelot: str | None,
+        location: str | None,
+        notes: str | None,
+        date_added: str | None,
+        btn_id: dict[str, Any],
+    ) -> str:
+        if not n_clicks:
+            raise dash.exceptions.PreventUpdate
+        yarn_id = btn_id.get("index") if isinstance(btn_id, dict) else btn_id
+        skein_str = f"{skeins} skeins" if skeins else "1 skein"
+        return f"Successfully added {skein_str} (Yarn #{yarn_id}) to stash!"

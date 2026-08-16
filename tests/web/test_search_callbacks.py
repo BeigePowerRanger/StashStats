@@ -249,7 +249,7 @@ def test_update_yarn_search_logic_empty_results() -> None:
 
 
 def test_update_yarn_search_logic_no_client() -> None:
-    """Verify update_yarn_search_logic handles client=None gracefully."""
+    """Verify update_yarn_search_logic handles client=None by returning warning alert."""
     accordion, total_pages, page, info, results_store, paginator_store = update_yarn_search_logic(
         client=None,
         query="merino",
@@ -259,17 +259,20 @@ def test_update_yarn_search_logic_no_client() -> None:
 
     assert total_pages == 1
     assert page == 1
-    assert "0 yarns found" in info
+    assert "missing in .env" in info or "credentials" in info.lower()
     assert results_store == []
     assert paginator_store["total_results"] == 0
-    empty_elem = find_component_by_id(accordion, "yarn-search-empty-state")
-    assert empty_elem is not None
+    warning_elem = find_component_by_id(accordion, "yarn-search-warning-state")
+    assert warning_elem is not None
+    json_repr = str(warning_elem.to_plotly_json())
+    assert "warning" in json_repr
+    assert ".env" in json_repr
 
 
 def test_update_yarn_search_logic_empty_inputs() -> None:
-    """Verify update_yarn_search_logic with empty inputs returns initial empty state."""
+    """Verify update_yarn_search_logic with empty inputs returns informative info text."""
     mock_client = MagicMock()
-    accordion, total_pages, page, _info, results_store, _paginator_store = update_yarn_search_logic(
+    accordion, total_pages, page, info, results_store, _paginator_store = update_yarn_search_logic(
         client=mock_client,
         query="",
         brand="",
@@ -279,6 +282,7 @@ def test_update_yarn_search_logic_empty_inputs() -> None:
     mock_client.search_yarns.assert_not_called()
     assert total_pages == 1
     assert page == 1
+    assert info == "Enter a keyword or brand to search yarns."
     assert results_store == []
     assert find_component_by_id(accordion, "yarn-search-empty-state") is not None
 

@@ -2,7 +2,7 @@
 
 from typing import Any
 
-import dash_bootstrap_components as dbc
+from dash import dcc
 from dash.development.base_component import Component
 
 from stashstats.web.app import create_app
@@ -37,13 +37,14 @@ def find_component_by_id(tree: Any, component_id: str) -> Component | None:
 
 
 def test_header_branding() -> None:
-    """Verify header component contains StashStats branding."""
+    """Verify header component contains StashStats branding and logo."""
     header = create_header()
     brand = find_component_by_id(header, "header-brand")
     assert brand is not None
-    # Verify brand text
-    json_repr = str(brand.to_plotly_json())
-    assert "StashStats" in json_repr
+    logo = find_component_by_id(header, "header-logo")
+    assert logo is not None
+    json_repr = str(logo.to_plotly_json())
+    assert "/assets/Images/logo_color.png" in json_repr
 
 
 def test_header_user_badge_default() -> None:
@@ -55,11 +56,15 @@ def test_header_user_badge_default() -> None:
 
 
 def test_header_user_badge_authenticated() -> None:
-    """Verify header displays @username badge when authenticated."""
+    """Verify header displays @username badge and greeting when authenticated."""
     header = create_header(username="Thotsky")
     badge = find_component_by_id(header, "header-user-badge")
     assert badge is not None
     assert "@Thotsky" in str(badge.to_plotly_json())
+
+    greeting = find_component_by_id(header, "header-greeting")
+    assert greeting is not None
+    assert "Hello Thotsky!" in str(greeting.to_plotly_json())
 
 
 def test_header_sync_indicator_clean() -> None:
@@ -88,18 +93,24 @@ def test_main_layout_tabs_structure() -> None:
     layout = create_main_layout()
     tabs = find_component_by_id(layout, "main-tabs")
     assert tabs is not None
-    assert isinstance(tabs, dbc.Tabs)
-    assert getattr(tabs, "active_tab", None) == "tab-personal-stash"
+    assert isinstance(tabs, dcc.Tabs)
+    assert getattr(tabs, "value", None) == "tab-stash"
 
     # Verify tab children
-    tab_ids = [getattr(tab, "tab_id", None) for tab in tabs.children if isinstance(tab, dbc.Tab)]
-    expected_tab_ids = [
-        "tab-personal-stash",
-        "tab-stash-analytics",
+    tab_values = [getattr(tab, "value", None) for tab in tabs.children if isinstance(tab, dcc.Tab)]
+    expected_tab_values = [
+        "tab-stash",
+        "tab-analytics",
         "tab-projects",
-        "tab-yarn-search",
+        "tab-search",
     ]
-    assert tab_ids == expected_tab_ids
+    assert tab_values == expected_tab_values
+
+    # Verify tab styling
+    for tab in tabs.children:
+        if isinstance(tab, dcc.Tab):
+            assert tab.style == {"backgroundColor": "#222", "color": "#fff"}
+            assert tab.selected_style == {"backgroundColor": "#333", "color": "#00bc8c"}
 
     # Verify tab content container exists
     tab_content = find_component_by_id(layout, "tab-content")
@@ -112,6 +123,9 @@ def test_main_layout_with_username() -> None:
     badge = find_component_by_id(layout, "header-user-badge")
     assert badge is not None
     assert "@Thotsky" in str(badge.to_plotly_json())
+    greeting = find_component_by_id(layout, "header-greeting")
+    assert greeting is not None
+    assert "Hello Thotsky!" in str(greeting.to_plotly_json())
 
 
 def test_app_integration_with_main_layout() -> None:

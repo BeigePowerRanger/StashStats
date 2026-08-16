@@ -235,10 +235,10 @@ def test_full_application_assembly() -> None:
 
     # Navigation tabs
     assert find_component_by_id(layout, "main-tabs") is not None
-    assert find_component_by_id(layout, "tab-personal-stash-nav") is not None
-    assert find_component_by_id(layout, "tab-stash-analytics-nav") is not None
+    assert find_component_by_id(layout, "tab-stash-nav") is not None
+    assert find_component_by_id(layout, "tab-analytics-nav") is not None
     assert find_component_by_id(layout, "tab-projects-nav") is not None
-    assert find_component_by_id(layout, "tab-yarn-search-nav") is not None
+    assert find_component_by_id(layout, "tab-search-nav") is not None
 
     # Tab content container
     assert find_component_by_id(layout, "tab-content") is not None

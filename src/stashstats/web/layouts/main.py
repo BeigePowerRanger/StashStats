@@ -3,54 +3,66 @@
 from typing import Any
 
 import dash_bootstrap_components as dbc
-from dash import html
+from dash import dcc, html
 
 from stashstats.web.components.header import create_header
 from stashstats.web.layouts.search import create_yarn_search_layout
 from stashstats.web.layouts.stash import create_stash_layout
 
+TAB_STYLE = {"backgroundColor": "#222", "color": "#fff"}
+SELECTED_TAB_STYLE = {"backgroundColor": "#333", "color": "#00bc8c"}
 
-def create_navigation_tabs(active_tab: str = "tab-personal-stash") -> dbc.Tabs:
+
+def create_navigation_tabs(active_tab: str = "tab-stash") -> dcc.Tabs:
     """Create the 4 primary navigation tabs.
 
     Args:
-        active_tab: ID of the currently active tab.
+        active_tab: ID/value of the currently active tab.
 
     Returns:
-        Configured dbc.Tabs component.
+        Configured dcc.Tabs component.
     """
-    return dbc.Tabs(
+    normalized_tab = active_tab
+    if active_tab == "tab-personal-stash":
+        normalized_tab = "tab-stash"
+    elif active_tab == "tab-stash-analytics":
+        normalized_tab = "tab-analytics"
+    elif active_tab == "tab-yarn-search":
+        normalized_tab = "tab-search"
+
+    return dcc.Tabs(
         id="main-tabs",
-        active_tab=active_tab,
-        className="nav-tabs mt-2 mb-3 border-bottom border-secondary",
+        value=normalized_tab,
+        className="main-navigation-tabs mt-2 mb-3",
+        style={"overflowX": "auto"},
         children=[
-            dbc.Tab(
+            dcc.Tab(
                 label="Personal Stash",
-                tab_id="tab-personal-stash",
-                id="tab-personal-stash-nav",
-                label_class_name="fw-semibold text-light",
-                active_label_class_name="fw-bold text-success border-bottom border-success border-2",
+                value="tab-stash",
+                id="tab-stash-nav",
+                style=TAB_STYLE,
+                selected_style=SELECTED_TAB_STYLE,
             ),
-            dbc.Tab(
+            dcc.Tab(
                 label="Stash Analytics",
-                tab_id="tab-stash-analytics",
-                id="tab-stash-analytics-nav",
-                label_class_name="fw-semibold text-light",
-                active_label_class_name="fw-bold text-success border-bottom border-success border-2",
+                value="tab-analytics",
+                id="tab-analytics-nav",
+                style=TAB_STYLE,
+                selected_style=SELECTED_TAB_STYLE,
             ),
-            dbc.Tab(
+            dcc.Tab(
                 label="Projects",
-                tab_id="tab-projects",
+                value="tab-projects",
                 id="tab-projects-nav",
-                label_class_name="fw-semibold text-light",
-                active_label_class_name="fw-bold text-success border-bottom border-success border-2",
+                style=TAB_STYLE,
+                selected_style=SELECTED_TAB_STYLE,
             ),
-            dbc.Tab(
+            dcc.Tab(
                 label="Yarn Search",
-                tab_id="tab-yarn-search",
-                id="tab-yarn-search-nav",
-                label_class_name="fw-semibold text-light",
-                active_label_class_name="fw-bold text-success border-bottom border-success border-2",
+                value="tab-search",
+                id="tab-search-nav",
+                style=TAB_STYLE,
+                selected_style=SELECTED_TAB_STYLE,
             ),
         ],
     )
@@ -58,7 +70,7 @@ def create_navigation_tabs(active_tab: str = "tab-personal-stash") -> dbc.Tabs:
 
 def create_main_layout(
     username: str | None = None,
-    active_tab: str = "tab-personal-stash",
+    active_tab: str = "tab-stash",
     sync_status: str = "Synced",
     pending_count: int = 0,
     last_synced: str | None = None,
@@ -89,14 +101,14 @@ def create_main_layout(
     tabs = create_navigation_tabs(active_tab=active_tab)
 
     if tab_content is None:
-        if active_tab == "tab-personal-stash":
+        if active_tab in ("tab-stash", "tab-personal-stash"):
             tab_content = create_stash_layout(
                 items=items,
                 sync_status=sync_status,
                 pending_count=pending_count,
                 last_synced=last_synced,
             )
-        elif active_tab == "tab-yarn-search":
+        elif active_tab in ("tab-search", "tab-yarn-search"):
             tab_content = create_yarn_search_layout()
         else:
             tab_content = []

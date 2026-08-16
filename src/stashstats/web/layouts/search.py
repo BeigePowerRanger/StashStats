@@ -39,12 +39,17 @@ def create_yarn_search_layout(
     # 1. Search form row
     search_form = create_yarn_search_form(query=query, brand=brand)
 
-    # 2. Results accordion container
+    # 2. Results accordion container with loading spinner
     accordion_component = create_yarn_search_accordion(raw_yarns)
-    list_container = html.Div(
-        accordion_component,
-        id="yarn-search-list-container",
-        className="yarn-search-results-wrapper",
+    list_container = dbc.Spinner(
+        html.Div(
+            accordion_component,
+            id="yarn-search-list-container",
+            className="yarn-search-results-wrapper",
+        ),
+        color="primary",
+        type="border",
+        size="md",
     )
 
     # 3. Pagination container

@@ -9,6 +9,8 @@ from dash.development.base_component import Component
 from stashstats.models.common import Photo
 from stashstats.models.yarn import YarnSearchResult, YarnWeight
 from stashstats.web.components.search import (
+    SEARCH_CATEGORIES,
+    SORT_CATEGORIES,
     create_yarn_search_accordion,
     create_yarn_search_accordion_item,
     create_yarn_search_details,
@@ -120,37 +122,52 @@ def make_sample_yarn_search_results() -> list[YarnSearchResult]:
 
 
 def test_create_yarn_search_form_structure() -> None:
-    """Verify search form renders keyword input, brand input, and search button."""
-    form = create_yarn_search_form(query="merino", brand="Malabrigo")
+    """Verify search form renders category, query, sort, and submit button."""
+    form = create_yarn_search_form(query="merino", brand="Malabrigo", category="yarns", sort="best_match")
     assert isinstance(form, (dbc.Row, dbc.Form, html.Div))
+
+    # Category selector
+    cat_input = find_component_by_id(form, "yarn-search-category-input")
+    assert cat_input is not None
+    assert getattr(cat_input, "value", None) == "yarns"
+    assert getattr(cat_input, "options", None) == SEARCH_CATEGORIES
 
     # Search keyword input
     query_input = find_component_by_id(form, "yarn-search-query-input")
     assert query_input is not None
     assert getattr(query_input, "value", None) == "merino"
-    assert getattr(query_input, "placeholder", None) is not None
+    assert getattr(query_input, "placeholder", None) == "Flux Capacitor"
 
     # Brand input
     brand_input = find_component_by_id(form, "yarn-search-brand-input")
     assert brand_input is not None
     assert getattr(brand_input, "value", None) == "Malabrigo"
-    assert getattr(brand_input, "placeholder", None) is not None
 
-    # Search button
+    # Sort selector
+    sort_input = find_component_by_id(form, "yarn-search-sort-input")
+    assert sort_input is not None
+    assert getattr(sort_input, "value", None) == "best_match"
+    assert getattr(sort_input, "options", None) == SORT_CATEGORIES
+
+    # Submit button
     search_btn = find_component_by_id(form, "yarn-search-btn")
     assert search_btn is not None
     json_repr = str(search_btn.to_plotly_json())
-    assert "Search" in json_repr
+    assert "Submit" in json_repr
 
 
 def test_create_yarn_search_form_defaults() -> None:
-    """Verify search form renders empty input strings by default."""
+    """Verify search form renders default input values."""
     form = create_yarn_search_form()
     query_input = find_component_by_id(form, "yarn-search-query-input")
     brand_input = find_component_by_id(form, "yarn-search-brand-input")
+    cat_input = find_component_by_id(form, "yarn-search-category-input")
+    sort_input = find_component_by_id(form, "yarn-search-sort-input")
 
     assert getattr(query_input, "value", None) == ""
     assert getattr(brand_input, "value", None) == ""
+    assert getattr(cat_input, "value", None) == "yarns"
+    assert getattr(sort_input, "value", None) == "best_match"
 
 
 # ===========================================================================
@@ -171,7 +188,6 @@ def test_create_yarn_search_accordion_item_with_photo_and_specs() -> None:
     # Header elements
     assert "Rios" in json_repr
     assert "Malabrigo" in json_repr
-    assert "Worsted" in json_repr
     assert "https://images.ravelry.com/rios_sq.jpg" in json_repr
 
     # Body details
@@ -180,6 +196,7 @@ def test_create_yarn_search_accordion_item_with_photo_and_specs() -> None:
     assert "4.8" in json_repr or "4.75" in json_repr  # Rating
     assert "plied" in json_repr  # Texture
     assert "malabrigo-yarn-rios" in json_repr  # Permalink / Link
+    assert "Add to Stash" in json_repr  # Inline stash form
 
 
 def test_create_yarn_search_accordion_item_discontinued_and_fallback_photo() -> None:
@@ -211,9 +228,10 @@ def test_create_yarn_search_accordion_item_from_dict() -> None:
 
 
 def test_create_yarn_search_details_structure() -> None:
-    """Verify create_yarn_search_details produces structured spec badges/rows."""
+    """Verify create_yarn_search_details produces structured specs and stash form."""
     yarns = make_sample_yarn_search_results()
     details = create_yarn_search_details(yarns[0])
+    assert isinstance(details, html.Div)
     json_repr = str(details.to_plotly_json())
 
     assert "Weight:" in json_repr or "Worsted" in json_repr
@@ -221,6 +239,7 @@ def test_create_yarn_search_details_structure() -> None:
     assert "Grams:" in json_repr or "100" in json_repr
     assert "Machine Washable" in json_repr or "Washable" in json_repr
     assert "Ravelry" in json_repr
+    assert "Add to Stash" in json_repr
 
 
 # ===========================================================================
@@ -303,13 +322,19 @@ def test_create_yarn_search_layout_structure() -> None:
     assert getattr(layout, "id", None) == "yarn-search-container"
 
     # Search form inputs
+    assert find_component_by_id(layout, "yarn-search-category-input") is not None
     assert find_component_by_id(layout, "yarn-search-query-input") is not None
-    assert find_component_by_id(layout, "yarn-search-brand-input") is not None
+    assert find_component_by_id(layout, "yarn-search-sort-input") is not None
     assert find_component_by_id(layout, "yarn-search-btn") is not None
 
-    # Results container
+    # Results container wrapped in spinner
     assert find_component_by_id(layout, "yarn-search-list-container") is not None
     assert find_component_by_id(layout, "yarn-search-accordion") is not None
+
+    spinner = next((c for c in layout.children if isinstance(c, dbc.Spinner)), None)
+    assert spinner is not None
+    assert getattr(spinner, "color", None) == "primary"
+    assert getattr(spinner, "type", None) == "border"
 
     # Pagination container
     assert find_component_by_id(layout, "yarn-search-pagination") is not None
@@ -333,12 +358,12 @@ def test_create_yarn_search_layout_default_empty() -> None:
 
 
 def test_main_layout_yarn_search_tab_integration() -> None:
-    """Verify create_main_layout with active_tab='tab-yarn-search' renders yarn search layout."""
-    layout = create_main_layout(active_tab="tab-yarn-search")
+    """Verify create_main_layout with active_tab='tab-search' renders yarn search layout."""
+    layout = create_main_layout(active_tab="tab-search")
 
     tabs = find_component_by_id(layout, "main-tabs")
     assert tabs is not None
-    assert getattr(tabs, "active_tab", None) == "tab-yarn-search"
+    assert getattr(tabs, "value", None) == "tab-search"
 
     tab_content = find_component_by_id(layout, "tab-content")
     assert tab_content is not None
