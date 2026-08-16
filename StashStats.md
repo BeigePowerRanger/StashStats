@@ -4,14 +4,16 @@
 
 ## User Notes
 
-
+- [-] it seems like pydantic BaseModel was implemented just because I told it to, there doesn't seem to be any actual validation going on because almost everything is `x` | None = None
+   - I think this is my biggest issue right now honestly  
 
 ## Overview
 
 StashStats is being rebuilt from the ground up as a modern Python application to interact with and analyze data from the Ravelry API.
 
+- **UI & Functional Specification**: see [[web-app-specification]] for visual layout, component hierarchy, and supported user capabilities.
 - **Knowledge Wiki**: see [[index|Wiki Index]] for complete API docs, endpoints, and schema models.
-- **Development Diary**: see [[2026-08-14|Daily Diary]] for chronological changelogs of work done.
+- **Development Diary**: see [[2026-08-16|Daily Diary]] for chronological changelogs of work done.
 
 ## Tech Stack & Tooling
 

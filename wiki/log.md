@@ -32,3 +32,7 @@
 - Documented findings that Ravelry Pack records are append-only but lack native timestamps.
 - Updated 2026-08-15 daily journal with these findings and decisions.
 
+## [2026-08-16] create | Web Application Specification Extracted
+- Created [[web-app-specification]] in `concepts/` defining all UI appearances, view layouts, components, and supported functionalities from legacy StashStats.
+- Updated [[index|Wiki Index]] and created daily diary [[2026-08-16]].
+

@@ -2,9 +2,10 @@
 
 > Content catalog for Ravelry API Documentation & StashStats Architecture.
 > Read this first to find relevant pages for any query.
-> Last updated: 2026-08-14 | Total pages: 29
+> Last updated: 2026-08-16 | Total pages: 30
 
 ## Daily Diary & Journal
+- [[2026-08-16]]: Extracted UI appearance, component hierarchy, and supported capabilities from StashStats into [[web-app-specification]].
 - [[2026-08-15]]: Stash Consumption Velocity & Horizon Lifespan Analytics Engine design; created repository `plans/` documentation directory.
 - [[2026-08-14]]: Project inception, LLM wiki creation, Python 3.12+ scaffolding with uv, Ravelry auth implementation, stash CRUD, App Data history tracking, MVP data models, and live verification.
 
@@ -16,6 +17,7 @@
 - [[module-exceptions]]: `stashstats.exceptions` — Custom exception hierarchy and HTTP status dispatching.
 
 ## Concepts
+- [[web-app-specification]]: UI appearance, visual layout, component hierarchy, and supported user workflows.
 - [[auth-and-permissions]]: Authentication protocols (Basic Auth, OAuth 2.0, OAuth 1.0a) and permission scopes.
 - [[pagination-and-sorting]]: API pagination mechanics, `sort_` conventions, and `paginator` payload structure.
 - [[http-status-codes-and-errors]]: HTTP 4xx/5xx status codes, rate limits, and failure recovery.

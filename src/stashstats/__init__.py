@@ -1,5 +1,6 @@
 from stashstats.auth import AuthVerificationResult, RavelryAuthVerifier
 from stashstats.base import BaseAPIClient
+from stashstats.cli import build_parser, main, run_server
 from stashstats.client import RavelryClient
 from stashstats.config import Settings, settings
 from stashstats.exceptions import (
@@ -75,6 +76,9 @@ __all__ = [
     "YarnSearchResult",
     "YarnWeight",
     "YarnWeightReference",
+    "build_parser",
+    "main",
+    "run_server",
     "settings",
 ]
 
