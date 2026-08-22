@@ -55,6 +55,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Prod/Dev Scaffolding & Multi-User API Storage**
+- [~] **Track: Prod/Dev Scaffolding & Multi-User API Storage**
   *Link: [./tracks/prod_dev_scaffolding_20260822/](./tracks/prod_dev_scaffolding_20260822/)*
 
