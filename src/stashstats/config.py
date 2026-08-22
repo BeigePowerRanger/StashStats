@@ -13,13 +13,13 @@ class Settings(BaseSettings):
 
     access_key: str = Field(
         default="",
-        validation_alias=AliasChoices("API_USERNAME", "RAVELRY_ACCESS_KEY", "ACCESS_KEY"),
+        validation_alias=AliasChoices("API_USERNAME", "RAVELRY_ACCESS_KEY", "ACCESS_KEY", "DEV_USERNAME", "PROD_USERNAME"),
     )
     """Ravelry API Access Key (HTTP Basic Auth username)."""
 
     personal_key: SecretStr = Field(
         default=SecretStr(""),
-        validation_alias=AliasChoices("API_KEY", "RAVELRY_PERSONAL_KEY", "PERSONAL_KEY"),
+        validation_alias=AliasChoices("API_KEY", "RAVELRY_PERSONAL_KEY", "PERSONAL_KEY", "DEV_API_KEY", "PROD_API_KEY"),
     )
     """Ravelry Personal Key (HTTP Basic Auth password)."""
 

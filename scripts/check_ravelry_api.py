@@ -2,7 +2,7 @@
 """
 Live Ravelry API Print Test Script.
 
-Exercises all 7 Ravelry API modules in stashies using live credentials from .env.
+Exercises all 7 Ravelry API modules in stashstats.client using live credentials from .env.
 Prints structured section headers, HTTP status, execution latency, and pretty-printed
 JSON payloads to stdout.
 
@@ -16,7 +16,7 @@ import time
 from typing import Any, Callable, Tuple
 
 from dotenv import load_dotenv
-from stashies.ravelry_client import RavelryClient
+from stashstats.client.ravelry_client import Client
 
 
 # ---------------------------------------------------------------------------
@@ -101,7 +101,7 @@ def main() -> None:
         print(LINE)
         sys.exit(1)
 
-    client = RavelryClient(api_username=api_username, api_key=api_key)
+    client = Client(api_username=api_username, api_key=api_key)
 
     print(f"\n{LINE}")
     print(f"  LIVE RAVELRY API TEST SCRIPT")

@@ -1,4 +1,5 @@
-from pydantic import BaseModel, Field, model_validator
+from typing import Any
+from pydantic import BaseModel, Field, model_validator, field_validator
 
 from stashstats.models.common import Paginator, Photo, YarnCompany
 from stashstats.models.user import UserProfile
@@ -33,31 +34,31 @@ class Pack(BaseModel):
     dye_lot: str | None = None
     """Dye lot identifier."""
 
-    skeins: float | None = None
+    skeins: float | None = Field(default=None, ge=0)
     """Number of skeins allocated."""
 
-    total_grams: float | None = None
+    total_grams: float | None = Field(default=None, ge=0)
     """Total weight in grams."""
 
-    total_yards: float | None = None
+    total_yards: float | None = Field(default=None, ge=0)
     """Total length in yards."""
 
-    total_meters: float | None = None
+    total_meters: float | None = Field(default=None, ge=0)
     """Total length in meters."""
 
-    total_ounces: float | None = None
+    total_ounces: float | None = Field(default=None, ge=0)
     """Total weight in ounces."""
 
-    grams_per_skein: float | None = None
+    grams_per_skein: float | None = Field(default=None, ge=0)
     """Weight per skein in grams."""
 
-    yards_per_skein: float | None = None
+    yards_per_skein: float | None = Field(default=None, ge=0)
     """Length per skein in yards."""
 
-    meters_per_skein: float | None = None
+    meters_per_skein: float | None = Field(default=None, ge=0)
     """Length per skein in meters."""
 
-    ounces_per_skein: float | None = None
+    ounces_per_skein: float | None = Field(default=None, ge=0)
     """Weight per skein in ounces."""
 
     quantity_description: str | None = None
@@ -144,7 +145,7 @@ class StashItem(BaseModel):
     handspun: bool = False
     """Whether the yarn is handspun fiber."""
 
-    has_photo: bool | None = False
+    has_photo: bool = False
     """Whether user uploaded photos for this stash item."""
 
     created_at: str | None = None
@@ -177,16 +178,16 @@ class StashItem(BaseModel):
     packs: list[Pack] = Field(default_factory=list)
     """Allocated skein and purchase packs."""
 
-    skeins: float | None = None
+    skeins: float | None = Field(default=None, ge=0)
     """Top-level or computed total skein count."""
 
-    total_yards: float | None = None
+    total_yards: float | None = Field(default=None, ge=0)
     """Top-level or computed total yards."""
 
-    total_grams: float | None = None
+    total_grams: float | None = Field(default=None, ge=0)
     """Top-level or computed total grams."""
 
-    total_meters: float | None = None
+    total_meters: float | None = Field(default=None, ge=0)
     """Top-level or computed total meters."""
 
     notes: str | None = None
@@ -218,6 +219,11 @@ class StashItem(BaseModel):
             if not self.dye_lot and self.primary_pack.dye_lot:
                 self.dye_lot = self.primary_pack.dye_lot
         return self
+
+    @field_validator("has_photo", mode="before")
+    @classmethod
+    def coerce_has_photo(cls, v: Any) -> bool:
+        return bool(v)
 
 
 class StashListResponse(BaseModel):

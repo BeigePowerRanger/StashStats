@@ -28,7 +28,8 @@ class Paginator(BaseModel):
 
 class Photo(BaseModel):
     """Image assets and URLs associated with Ravelry entities."""
-
+    #TODO: `_url` fields need to be validated as proper URLS. alternatively, the pydantic `HttpUrl` type can be used instead of `str` on input and a field validator can be used so the final result, if a string is provided, is a valid URL stored as a regular string.
+    
     id: int
     """Unique photo ID."""
 

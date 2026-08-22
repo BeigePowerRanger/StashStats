@@ -14,13 +14,13 @@ class ProjectListResult(BaseModel):
     name: str = ""
     """User-given project title."""
 
-    status_name: str | None = None
+    status_name: str | None = None # can use Literal type for known status values, but Ravelry may add new ones in the future
     """Status description (e.g., 'In progress', 'Finished', 'Hibernating', 'Frogged')."""
 
     progress: int = 0
     """Completion percentage (0 to 100)."""
 
-    craft_name: str | None = None
+    craft_name: str | None = None # can use Literal type for known craft values, but Ravelry may add new ones in the future
     """Craft type name (e.g., 'Crochet', 'Knitting', 'Weaving')."""
 
     pattern_name: str | None = None

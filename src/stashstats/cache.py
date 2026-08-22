@@ -9,7 +9,7 @@ logger = logging.getLogger("stashstats.cache")
 
 def get_redis_client():
     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
-    return redis.Redis.from_url(redis_url, decode_responses=True, socket_connect_timeout=3)
+    return redis.Redis.from_url(redis_url, decode_responses=True, socket_connect_timeout=1)
 
 def cached_yarn_search(func):
     @wraps(func)

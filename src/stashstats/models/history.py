@@ -12,16 +12,16 @@ class StashHistoryEntry(BaseModel):
     date: str | None = None
     """ISO date string (YYYY-MM-DD)."""
 
-    timestamp: str = "" 
+    timestamp: str = "" # TODO: needs to be validated as a proper Ravelry timestamp string (YYYY/MM/DD HH:MM:SS ±HHMM)
     """Ravelry timestamp string for the change event."""
 
-    skeins: float
+    skeins: float # can't be negative, but can be zero
     """Number of skeins or delta skeins."""
 
-    yards: float | None = None
+    yards: float | None = None # can't be negative, but can be zero
     """Deducted or delta yards."""
 
-    grams: float | None = None
+    grams: float | None = None # can't be negative, but can be zero
     """Deducted or delta grams."""
 
     total_grams: float = 0.0
