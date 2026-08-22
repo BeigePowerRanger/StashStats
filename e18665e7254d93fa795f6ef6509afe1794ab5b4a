@@ -1,0 +1,3 @@
+Task: Update Environment Templates and App Config
+Files: .env.example
+Why: Refactor project scaffolding to support isolated dev/prod environments
