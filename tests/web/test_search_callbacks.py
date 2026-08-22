@@ -162,6 +162,7 @@ def test_update_yarn_search_logic_success() -> None:
         query="Malabrigo Rios",
         page=1,
         page_size=25,
+        sort="best",
     )
 
     assert total_pages == 3
@@ -176,6 +177,7 @@ def test_update_yarn_search_logic_success() -> None:
         "total_results": 75,
         "query": "Rios",
         "brand": "Malabrigo",
+        "sort": "best_match",
     }
 
 
@@ -207,6 +209,7 @@ def test_update_yarn_search_logic_pagination() -> None:
         query="wool",
         page=2,
         page_size=25,
+        sort="best",
     )
 
     assert total_pages == 5
@@ -327,10 +330,11 @@ def test_handle_yarn_search_callback_search_btn_trigger() -> None:
         n_clicks=1,
         query_submit=None,
         brand_submit=None,
+        sort_val="highest_rating",
         active_page=5,  # Old pagination state should be ignored on new search click
         query_val="Worsted",
         brand_val="Cascade",
-        paginator_store={"page": 5, "query": "old", "brand": "old"},
+        paginator_store={"page": 5, "query": "old", "brand": "old", "sort": "best_match"},
     )
 
     accordion, total_pages, page, info, results_store, paginator_store = res
@@ -338,6 +342,7 @@ def test_handle_yarn_search_callback_search_btn_trigger() -> None:
         query="Cascade Worsted",
         page=1,
         page_size=25,
+        sort="rating",
     )
     assert page == 1
     assert total_pages == 2
@@ -361,6 +366,7 @@ def test_handle_yarn_search_callback_enter_submit_trigger() -> None:
         n_clicks=None,
         query_submit=1,
         brand_submit=None,
+        sort_val=None,
         active_page=1,
         query_val="Rios",
         brand_val="",
@@ -372,6 +378,7 @@ def test_handle_yarn_search_callback_enter_submit_trigger() -> None:
         query="Rios",
         page=1,
         page_size=25,
+        sort="best",
     )
     assert page == 1
     assert isinstance(accordion, dbc.Accordion)
@@ -391,10 +398,11 @@ def test_handle_yarn_search_callback_pagination_trigger() -> None:
         n_clicks=1,
         query_submit=None,
         brand_submit=None,
+        sort_val=None,
         active_page=3,
         query_val="typing new query",  # User typed something else but clicked page 3 of current results
         brand_val="",
-        paginator_store={"page": 2, "total_pages": 4, "query": "merino", "brand": "Malabrigo"},
+        paginator_store={"page": 2, "total_pages": 4, "query": "merino", "brand": "Malabrigo", "sort": "most_projects"},
     )
 
     accordion, _total_pages, page, _info, _results_store, _paginator_store = res
@@ -402,6 +410,7 @@ def test_handle_yarn_search_callback_pagination_trigger() -> None:
         query="Malabrigo merino",
         page=3,
         page_size=25,
+        sort="projects",
     )
     assert page == 3
     assert isinstance(accordion, dbc.Accordion)
@@ -416,6 +425,7 @@ def test_handle_yarn_search_callback_prevent_update_on_no_trigger() -> None:
             n_clicks=None,
             query_submit=None,
             brand_submit=None,
+            sort_val=None,
             active_page=None,
             query_val=None,
             brand_val=None,

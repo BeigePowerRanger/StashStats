@@ -1,23 +1,29 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 
 class Paginator(BaseModel):
     """Pagination metadata envelope returned by Ravelry endpoints."""
 
-    page: int
+    page: int = 1
     """Current 1-indexed page number."""
 
-    page_size: int
+    page_size: int = 25
     """Number of items per page."""
 
-    page_count: int
+    page_count: int = 1
     """Total number of pages available."""
 
-    last_page: int
+    last_page: int | None = None
     """Index of the last available page."""
 
-    results: int
+    results: int = 0
     """Total count of matching records across all pages."""
+
+    @model_validator(mode="after")
+    def sync_last_page(self) -> "Paginator":
+        if self.last_page is None:
+            self.last_page = self.page_count
+        return self
 
 
 class Photo(BaseModel):

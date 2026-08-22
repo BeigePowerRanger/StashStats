@@ -1,12 +1,13 @@
 # Product Guidelines: StashStats
 
-## Prose Style & Tone
-- **Approachable & Friendly**: The application should use welcoming and clear language. 
-- **Crafting Terminology**: Use familiar terms like "yarn", "stash", and "projects" naturally to connect with the target audience.
+## Prose & Code Documentation Style
+- **Strict Pythonic**: Maintain explicit, clear, and comprehensive docstrings for all classes, methods, and functions. Code readability and clean docstrings are required.
+- Note: External communication rules (like terse caveman-style responses) apply only to agent-human interactions as defined in AGENTS.md, whereas codebase prose, comments, and documentation must remain standard and grammatically correct.
 
-## Visual Branding
-- **Minimalist Data-centric**: The design must be clean and high-contrast, stripping away unnecessary embellishments to focus entirely on charts, numbers, and data visualizations.
+## UI/UX Styling & Branding
+- **Bootstrap Darkly**: Build upon the existing dark theme (`dbc.themes.DARKLY`) to maintain consistency in styling, fonts, and colors across all layout elements.
+- **Clean Layouts**: Align all components (search, cards, analytics) neatly within responsive grids.
 
-## UX Principles
-- **Data Density**: Prioritize showing as much information and statistics on a single screen as possible without compromising readability, minimizing the need for the user to navigate or scroll excessively.
-- **Progressive Scope (Ravelry Replacement)**: The UX architecture must be scalable enough to eventually serve as a full replacement for the Ravelry website. However, initial workflows must heavily prioritize and streamline yarn management, adding to stash, and time-series data visualizations before other site functionalities are introduced.
+## Interaction & UX Principles
+- **Sync Indicators**: Provide clear, visible loading feedback (such as spinners or progress bars) during Ravelry API synchronization and network operations.
+- **Modal-based Editing**: Use interactive modals for modifying stash entry quantities, logging usage history, and inputting metadata, ensuring a clean, focused user experience.

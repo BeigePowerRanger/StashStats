@@ -110,8 +110,16 @@ def group_stash_items(items: list[StashItem] | list[dict[str, Any]]) -> list[Par
             item_date = _resolve_item_date(item)
             latest_date = max(latest_date, item_date)
 
-            # Accumulate pack totals
-            if item.packs:
+            # Accumulate totals
+            if item.skeins is not None:
+                total_skeins += float(item.skeins)
+                if item.total_yards is not None:
+                    total_yards += float(item.total_yards)
+                if item.total_meters is not None:
+                    total_meters += float(item.total_meters)
+                if item.total_grams is not None:
+                    total_grams += float(item.total_grams)
+            elif item.packs:
                 for pack in item.packs:
                     if pack.skeins is not None:
                         total_skeins += pack.skeins
@@ -312,7 +320,11 @@ def create_stash_item_row(
     skeins = 0.0
     yards = 0.0
     grams = 0.0
-    if item.packs:
+    if item.skeins is not None:
+        skeins = float(item.skeins)
+        yards = float(item.total_yards or 0.0)
+        grams = float(item.total_grams or 0.0)
+    elif item.packs:
         for p in item.packs:
             skeins += p.skeins or 0.0
             yards += p.total_yards or 0.0

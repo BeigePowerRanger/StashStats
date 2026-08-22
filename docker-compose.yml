@@ -1,0 +1,43 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: stashstats-web
+    restart: unless-stopped
+    command: python app.py
+    ports:
+      - "${PORT:-8050}:8050"
+    volumes:
+      - .:/app:z
+      - /app/.venv
+    env_file:
+      - .env
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8050
+      - APP_DEBUG=true
+      - REDIS_URL=redis://cache:6379/0
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    depends_on:
+      cache:
+        condition: service_healthy
+
+  cache:
+    image: redis:7-alpine
+    container_name: stashstats-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 2s
+
+volumes:
+  redisdata:

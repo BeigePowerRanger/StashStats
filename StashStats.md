@@ -1,61 +1,68 @@
+---
+aliases: []
+tags: []
+---
+
 # StashStats
 
+Dash-based web app. Search, track, manage personal [[Yarn Stash|yarn stash]] via [[ravelRy|Ravelry]] [[api|API]].
+
+---
+
+# Current Issues
+
+- Sync doesn't work
+- Edit stash modal -> no actual change in stash
+	- makes change but immediately reverts back to previous state
+	-above `delete entry` it says "usage entry deleted"
+
+## TODOs
+
+- [ ] #TODO the comments in the code are terrible i'm having to interpret everything myself at least in app.py
+- [ ] #TODO this working directory (where the code is ) is a clusterfuck. we need to clean it up a lot.
+- [ ] #TODO the typing library is deprecated now :( we're supposed to use dict and list mostly normal built in objects instead of special objects
+- [ ] #TODO need to get main branch set up to use Katies account and then the dev branch which can use my account
+	- [ ] time to use 0 auth if its that easy
+
+# User Code Review
+
+ - [ ] #TODO create work tree before beginning refactor/ rework of code [priority:: highest]
+
+## App.py
+
+### App Initiation
+
+- prevent initial callbacks
+- suppress callback exceptions
+- darkly theme
+- metatags
+- Initializes `AppController` Object
+
+### Dash Callbacks
+
+- Handle Search callback
+  - calls `CONTROLLER.search_yarn` passing in the user query, sorting mechanism, and category to search
+
+- `toggle_search_collapse`: logically this handles collapsing search results once they've been expanded but not really sure why
+
+- `handle_add_to_stash`: add yarn to stash from search interface
+
+  - skeins, colorway, dyelot, location (?), notes, and date added are all potential inputs
+    - I believe the `MATCH` thing is for updating the values of thiings dynamically so objects can have different ids without having to have a million `STATE` objects in the callback definition
+
+- `render_analytics_layout` `render_stash_tab`, `update_remaining_preview` `render_projects_tab`, `load_projects_list` : just passthroughs to the `CONTROLLER` object.
+
+- `save_stash_edit` is kind of a cluster fuck
+
+## Stashies
+
+### base.py
+
+creates a base class that assigns a `Logger` object to all child classes
+
+I feel like this `Base` class either needs to do more or just go away
 
 
-## User Notes
+### ravelry_client.py
 
-- [x] Pydantic models have been strengthened with strict `@field_validator` and `@model_validator` logic (Issue resolved in Yarn Search Integration).
-
-## Overview
-
-StashStats is being rebuilt from the ground up as a modern Python application to interact with and analyze data from the Ravelry API.
-
-- **UI & Functional Specification**: see [[web-app-specification]] for visual layout, component hierarchy, and supported user capabilities.
-- **Knowledge Wiki**: see [[index|Wiki Index]] for complete API docs, endpoints, and schema models.
-- **Development Diary**: see [[2026-08-16|Daily Diary]] for chronological changelogs of work done.
-
-## Tech Stack & Tooling
-
-- **Language / Runtime**: Python 3.12+
-- **Project & Package Manager**: `uv` + `pyproject.toml`
-- **HTTP Client**: `httpx` (supports sync and async client workflows, default timeouts, HTTP/2)
-- **Configuration & Validation**: `pydantic-settings` (type-safe configuration loaded from `.env`)
-- **Code Quality & Testing**: `pytest`, `pytest-asyncio`, `ruff`
-
-## API Integration
-
-### Authentication
-
-Official documentation details: see \[\[API Auth]].
-
-- **Method**: HTTP Basic Auth (Personal Account Access)
-  - **Username**: Access Key (`RAVELRY_ACCESS_KEY`)
-  - **Password**: Personal Key (`RAVELRY_PERSONAL_KEY`)
-  - **Endpoint Base URL**: `https://api.ravelry.com`
-- **Configuration Source**: Environment variables via `.env` file (with `.env.example` template provided).
-
-## Planned Project Structure
-
-```text
-2Stash2Stats/
-├── .env.example              # Template for Ravelry API credentials
-├── .gitignore                # Ignoring .env, .venv, build/cache files
-├── pyproject.toml            # Project metadata, dependencies, tool configs
-├── README.md
-├── src/
-│   └── stashstats/
-│       ├── __init__.py
-│       ├── config.py         # Loads and validates settings via Pydantic
-│       ├── auth.py           # HTTP Basic Auth handlers & helpers
-│       └── client.py         # Ravelry API client using httpx
-└── tests/
-    ├── __init__.py
-    ├── conftest.py
-    └── test_auth.py          # Unit & integration tests for auth and client
-```
-
-## Implementation Roadmap
-
-1. **Core API Endpoints & Data Models**: Stash querying, history tracking, yarn search, strict Pydantic schemas.
-2. **Web App Frontend**: Dash/FastAPI shell, 4-tab layout, interactive modal.
-3. **Yarn Search Integration**: Global Ravelry yarn search tab with accordion results and pagination.
+okay what the hell is this 

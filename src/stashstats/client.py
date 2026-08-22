@@ -1,4 +1,5 @@
 import json
+import logging
 from datetime import UTC, datetime
 from typing import Any
 
@@ -16,6 +17,10 @@ from stashstats.models import (
     YarnSearchResponse,
     YarnWeightReference,
 )
+from stashstats.cache import cached_yarn_search, cached_yarn_details
+from stashstats.reference_db import init_db, get_reference_data, set_reference_data
+
+logger = logging.getLogger("stashstats.client")
 
 
 class RavelryClient(BaseAPIClient):
@@ -25,11 +30,14 @@ class RavelryClient(BaseAPIClient):
 
     def get_current_user(self) -> CurrentUserResponse:
         """Fetch the authenticated user's profile and cache username."""
+        logger.debug("Fetching current authenticated user profile")
         data = self.get("/current_user.json")
         res = CurrentUserResponse.model_validate(data)
         self._cached_username = res.user.username
+        logger.info(f"Authenticated as @{res.user.username}")
         return res
 
+    @cached_yarn_search
     def search_yarns(
         self,
         query: str = "",
@@ -61,6 +69,7 @@ class RavelryClient(BaseAPIClient):
         data = self.get("/yarns/search.json", params=params)
         return YarnSearchResponse.model_validate(data)
 
+    @cached_yarn_details
     def get_yarn_details(self, yarn_id: int) -> YarnDetailResponse:
         """Fetch detailed information for a specific yarn.
 
@@ -70,7 +79,7 @@ class RavelryClient(BaseAPIClient):
         Returns:
             YarnDetailResponse containing full yarn details.
         """
-        data = self.get(f"/yarns/{yarn_id}.json")
+        data = self.get(f"/yarns/{yarn_id}.json", params={"include": "colorways"})
         return YarnDetailResponse.model_validate(data)
 
     def search_stash(
@@ -273,6 +282,7 @@ class RavelryClient(BaseAPIClient):
         skeins: float | None = None,
         total_grams: float | None = None,
         total_yards: float | None = None,
+        pack_id: int | None = None,
         username: str | None = None,
     ) -> StashItem:
         """Update fields on an existing stash record.
@@ -289,6 +299,7 @@ class RavelryClient(BaseAPIClient):
             skeins: Number of skeins allocated.
             total_grams: Total weight in grams.
             total_yards: Total length in yards.
+            pack_id: Associated pack ID to update.
             username: Optional username override.
 
         Returns:
@@ -316,6 +327,8 @@ class RavelryClient(BaseAPIClient):
             payload["tag_list"] = tag_list
 
         pack_data: dict[str, Any] = {}
+        if pack_id is not None:
+            pack_data["id"] = pack_id
         if colorway_name is not None:
             pack_data["colorway"] = colorway_name
         if dye_lot is not None:
@@ -365,16 +378,19 @@ class RavelryClient(BaseAPIClient):
         data = self.get("/app/data/get.json", params={"keys": " ".join(keys)})
         return data.get("data", data)
 
-    def set_app_data(self, **key_values: str) -> dict[str, str]:
+    def set_app_data(self, data_dict: dict[str, str] | None = None, **key_values: str) -> dict[str, str]:
         """Store user and application-specific key/value data.
 
         Args:
+            data_dict: Optional dictionary of key/value pairs.
             **key_values: Key/value pairs to set in app storage.
 
         Returns:
             Dictionary of updated key/value pairs.
         """
-        data = self.post("/app/data/set.json", params=key_values)
+        params = dict(data_dict or {})
+        params.update(key_values)
+        data = self.post("/app/data/set.json", params=params)
         return data.get("data", data)
 
     def delete_app_data(self, keys: list[str]) -> dict[str, str]:
@@ -480,17 +496,24 @@ class RavelryClient(BaseAPIClient):
         self,
         stash_item: StashItem,
         timestamp: str | None = None,
+        pack_id: int | None = None,
+        delta_skeins: float | None = None,
+        notes: str | None = None,
     ) -> StashHistory:
         """Record a quantity snapshot entry for a stash item in app data.
 
         Args:
             stash_item: The StashItem instance to snapshot.
             timestamp: Optional timestamp string override (defaults to item update time).
+            pack_id: Optional pack ID.
+            delta_skeins: Optional quantity delta.
+            notes: Optional note.
 
         Returns:
             Updated StashHistory object.
         """
         pack = stash_item.primary_pack or (stash_item.packs[0] if stash_item.packs else None)
+        resolved_pack_id = pack_id or (pack.id if pack else None)
         skeins = float(pack.skeins) if pack and pack.skeins is not None else 0.0
         total_grams = (
             float(pack.total_grams) if pack and pack.total_grams is not None else 0.0
@@ -511,12 +534,19 @@ class RavelryClient(BaseAPIClient):
             skeins=skeins,
             total_grams=total_grams,
             total_yards=total_yards,
+            pack_id=resolved_pack_id,
+            delta_skeins=delta_skeins,
+            notes=notes,
         )
 
         history = self.get_stash_history(stash_item.id)
         if history.entries:
             latest = history.entries[-1]
-            if (latest.skeins, latest.total_grams, latest.total_yards) == (
+            if (
+                latest.skeins,
+                latest.total_grams,
+                latest.total_yards,
+            ) == (
                 entry.skeins,
                 entry.total_grams,
                 entry.total_yards,
@@ -543,29 +573,38 @@ class RavelryClient(BaseAPIClient):
         return self.delete_app_data([key])
 
     def get_color_families(self) -> list[ColorFamily]:
-        """Fetch reference list of all Ravelry color families.
-
-        Returns:
-            List of ColorFamily reference objects.
-        """
+        """Fetch reference list of all Ravelry color families."""
+        init_db()
+        cached = get_reference_data("color_families")
+        if cached:
+            return [ColorFamily.model_validate(c) for c in cached]
+            
         data = self.get("/color_families.json")
-        return [ColorFamily.model_validate(c) for c in data.get("color_families", [])]
+        color_families = data.get("color_families", [])
+        set_reference_data("color_families", color_families)
+        return [ColorFamily.model_validate(c) for c in color_families]
 
     def get_yarn_weights(self) -> list[YarnWeightReference]:
-        """Fetch reference list of standard yarn weight classifications.
-
-        Returns:
-            List of YarnWeightReference objects.
-        """
+        """Fetch reference list of standard yarn weight classifications."""
+        init_db()
+        cached = get_reference_data("yarn_weights")
+        if cached:
+            return [YarnWeightReference.model_validate(w) for w in cached]
+            
         data = self.get("/yarn_weights.json")
-        return [YarnWeightReference.model_validate(w) for w in data.get("yarn_weights", [])]
+        yarn_weights = data.get("yarn_weights", [])
+        set_reference_data("yarn_weights", yarn_weights)
+        return [YarnWeightReference.model_validate(w) for w in yarn_weights]
 
     def get_fiber_categories(self) -> list[FiberCategory]:
-        """Fetch reference list of top-level fiber categories.
-
-        Returns:
-            List of FiberCategory reference objects.
-        """
+        """Fetch reference list of top-level fiber categories."""
+        init_db()
+        cached = get_reference_data("fiber_categories")
+        if cached:
+            return [FiberCategory.model_validate(f) for f in cached]
+            
         data = self.get("/fiber_categories.json")
-        return [FiberCategory.model_validate(f) for f in data.get("fiber_categories", [])]
+        fiber_categories = data.get("fiber_categories", [])
+        set_reference_data("fiber_categories", fiber_categories)
+        return [FiberCategory.model_validate(f) for f in fiber_categories]
 

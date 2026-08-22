@@ -130,19 +130,36 @@ class Colorway(BaseModel):
     id: int
     """Colorway database ID."""
 
-    name: str
+    name: str = ""
     """Name or identifier of colorway."""
+
+    code: str | None = None
+    """Manufacturer colorway code or dye number."""
+
+    yarn_id: int | None = None
+    """Associated catalog yarn ID."""
+
+    projects_count: int | None = None
+    """Count of projects using this colorway."""
+
+    stashes_count: int | None = None
+    """Count of stash entries with this colorway."""
 
     color_family_id: int | None = None
     """Associated color family ID."""
 
-    @field_validator("name")
+    @field_validator("name", mode="before")
     @classmethod
-    def validate_name(cls, v: str) -> str:
-        v_stripped = v.strip()
-        if not v_stripped:
-            raise ValueError("Colorway name cannot be empty")
-        return v_stripped
+    def normalize_name(cls, v: Any) -> str:
+        if v is None:
+            return ""
+        return str(v).strip()
+
+    @model_validator(mode="after")
+    def populate_display_name(self) -> "Colorway":
+        if not self.name and self.code:
+            self.name = f"#{self.code}"
+        return self
 
     @field_validator("color_family_id")
     @classmethod
@@ -203,6 +220,9 @@ class Yarn(BaseModel):
     photos: list[Photo] = Field(default_factory=list)
     """Gallery photos of the commercial yarn."""
 
+    colorways: list[Colorway] = Field(default_factory=list)
+    """Colorway options and catalog colorways for the commercial yarn."""
+
     @field_validator("name", "permalink")
     @classmethod
     def validate_non_empty_str(cls, v: str) -> str:
@@ -232,7 +252,7 @@ class Yarn(BaseModel):
             raise ValueError("Rating count cannot be negative")
         return v
 
-    @field_validator("yarn_fibers", "photos", mode="before")
+    @field_validator("yarn_fibers", "photos", "colorways", mode="before")
     @classmethod
     def normalize_list_fields(cls, v: Any) -> list:
         if v is None:
@@ -382,4 +402,17 @@ class YarnDetailResponse(BaseModel):
 
     yarn: Yarn
     """Full yarn detail record."""
+
+    colorways: list[Colorway] = Field(default_factory=list)
+    """Colorways returned in the top-level envelope."""
+
+    @model_validator(mode="before")
+    @classmethod
+    def populate_top_level_colorways(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            cws = data.get("colorways")
+            yarn_obj = data.get("yarn")
+            if cws and isinstance(yarn_obj, dict) and not yarn_obj.get("colorways"):
+                yarn_obj["colorways"] = cws
+        return data
 

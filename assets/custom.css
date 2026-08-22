@@ -3,3 +3,39 @@
     color: #fff !important;
     background-color: #303030 !important;
 }
+
+/* Rounded UI Components (Original StashStats aesthetics) */
+.card,
+.modal-content,
+.accordion-item,
+.accordion-header .accordion-button {
+    border-radius: 8px !important;
+}
+
+.accordion-item {
+    margin-bottom: 0.5rem;
+    overflow: hidden;
+}
+
+.nav-tabs .nav-link {
+    border-top-left-radius: 8px !important;
+    border-top-right-radius: 8px !important;
+}
+
+.btn,
+.form-control,
+.form-select,
+.input-group-text {
+    border-radius: 6px !important;
+}
+
+/* Modal dark theme adjustments */
+.modal-content {
+    background-color: #222222 !important;
+    border: 1px solid #444444 !important;
+}
+
+.modal-header,
+.modal-footer {
+    border-color: #333333 !important;
+}

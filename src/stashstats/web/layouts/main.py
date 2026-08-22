@@ -178,8 +178,9 @@ def create_main_layout(
         children=[
             content_area,
         ],
-        fluid=True,
-        className="px-4 py-2",
+        fluid=False,
+        style={"maxWidth": "85%", "width": "85%", "margin": "0 auto"},
+        className="px-2 py-2",
     )
 
     return dbc.Container(

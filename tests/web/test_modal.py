@@ -1,12 +1,20 @@
 """Tests for Stash Edit & Usage Modal, proportional math, and ledger rollback."""
 
 from typing import Any
+from unittest.mock import MagicMock, patch
 
+import dash
 import dash_bootstrap_components as dbc
+import pytest
 from dash.development.base_component import Component
 
 from stashstats.web.app import create_app
-from stashstats.web.callbacks.modal import register_modal_callbacks
+from stashstats.web.callbacks.modal import (
+    handle_history_rollback,
+    handle_save_modal,
+    handle_usage_preview_update,
+    register_modal_callbacks,
+)
 from stashstats.web.components.modal import (
     apply_usage_to_stash,
     calculate_proportional_deduction,
@@ -196,6 +204,39 @@ def test_apply_usage_to_stash_exhaustion_updates_status() -> None:
     updated_stash, _ = apply_usage_to_stash(stash, used_skeins=1.0)
     assert updated_stash["skeins"] == 0.0
     assert updated_stash["stash_status"]["name"] == "Used up"
+
+
+def test_apply_usage_to_stash_with_packs() -> None:
+    """Verify apply_usage_to_stash correctly pulls quantity from primary_pack when skeins is None."""
+    stash = {
+        "id": 456,
+        "name": "Bernat Satin Solids - Aqua",
+        "skeins": None,
+        "total_yards": None,
+        "total_grams": None,
+        "primary_pack": {
+            "id": 999,
+            "skeins": 6.0,
+            "total_yards": 1200.0,
+            "total_grams": 600.0,
+        },
+        "stash_status": {"id": 1, "name": "In stash"},
+    }
+
+    updated_stash, entry = apply_usage_to_stash(
+        stash_item=stash,
+        used_skeins=1.0,
+        date_used="2026-08-17",
+        notes="Crochet swatch",
+    )
+
+    assert updated_stash["skeins"] == 5.0
+    assert updated_stash["total_yards"] == 1000.0
+    assert updated_stash["total_grams"] == 500.0
+    assert entry["skeins"] == -1.0
+    assert entry["yards"] == -200.0
+    assert entry["grams"] == -100.0
+    assert entry["notes"] == "Crochet swatch"
 
 
 def test_rollback_usage_from_stash() -> None:
@@ -399,3 +440,104 @@ def test_modal_callbacks_registered() -> None:
     assert len(app.callback_map) > 0
     registered_outputs = list(app.callback_map.keys())
     assert any("modal-usage-preview" in out for out in registered_outputs)
+    assert any("modal-input-colorway" in out for out in registered_outputs)
+
+
+def test_handle_usage_preview_update_with_packs() -> None:
+    """Verify preview update pulls skeins from primary_pack when stash_item skeins is None."""
+    stash_data = {
+        "id": 456,
+        "name": "Bernat Satin Solids - Aqua",
+        "skeins": None,
+        "primary_pack": {
+            "skeins": 6.0,
+            "total_yards": 1200.0,
+            "total_grams": 600.0,
+        },
+    }
+
+    preview = handle_usage_preview_update(used_skeins=1.0, stash_data=stash_data)
+    preview_str = str(preview.to_plotly_json())
+    assert "Currently have: 6.0 skeins" in preview_str
+    assert "Used: 1.0 skeins" in preview_str
+    assert "Remaining: 5.0 skeins" in preview_str
+    assert "exceeds" not in preview_str.lower()
+
+
+def test_handle_save_modal_calls_client_update_and_app_data() -> None:
+    """Verify handle_save_modal invokes client.update_stash_item and client.set_app_data."""
+    mock_client = MagicMock()
+    mock_client.update_stash_item = MagicMock()
+    mock_client.set_app_data = MagicMock()
+
+    handle_save_modal(
+        n_clicks=1,
+        active_tab="tab-log-usage",
+        colorway=None,
+        dye_lot=None,
+        location=None,
+        skeins=None,
+        status=None,
+        notes="sample notes",
+        used_skeins=1.0,
+        date_used="2026-08-17",
+        stash_data={"id": 123, "skeins": 6.0, "primary_pack": {"id": 999, "skeins": 6.0}},
+        history_data=[],
+        client=mock_client,
+    )
+
+    mock_client.update_stash_item.assert_called_once()
+    _, kwargs = mock_client.update_stash_item.call_args
+    assert kwargs.get("stash_id") == 123
+    assert kwargs.get("skeins") == 5.0
+    assert kwargs.get("pack_id") == 999
+    mock_client.set_app_data.assert_called_once()
+
+
+def test_handle_history_rollback_calls_client_update_and_app_data() -> None:
+    """Verify handle_history_rollback invokes client.update_stash_item and client.set_app_data."""
+    mock_client = MagicMock()
+    mock_client.update_stash_item = MagicMock()
+    mock_client.set_app_data = MagicMock()
+
+    with patch.object(
+        dash._callback_context.CallbackContext,
+        "triggered_id",
+        {"type": "modal-btn-delete-usage", "index": 0},
+    ):
+        handle_history_rollback(
+            n_clicks_list=[1],
+            stash_data={"id": 123, "skeins": 5.0, "primary_pack": {"id": 999, "skeins": 5.0}},
+            history_data=[{"id": "entry-1", "skeins": -1.0}],
+            used_skeins_val=0.0,
+            client=mock_client,
+        )
+
+    mock_client.update_stash_item.assert_called_once()
+    _, kwargs = mock_client.update_stash_item.call_args
+    assert kwargs.get("stash_id") == 123
+    assert kwargs.get("skeins") == 6.0
+    assert kwargs.get("pack_id") == 999
+    mock_client.set_app_data.assert_called_once()
+
+
+def test_handle_save_modal_tab_log_usage_zero_skeins_prevents_update() -> None:
+    """Verify handle_save_modal raises PreventUpdate if saving on log usage tab with 0 skeins."""
+    with pytest.raises(dash.exceptions.PreventUpdate):
+        handle_save_modal(
+            n_clicks=1,
+            active_tab="tab-log-usage",
+            colorway=None,
+            dye_lot=None,
+            location=None,
+            skeins=None,
+            status=None,
+            notes="",
+            used_skeins=0.0,
+            date_used="2026-08-18",
+            stash_data={"id": 123, "skeins": 5.0},
+            history_data=[],
+        )
+
+
+

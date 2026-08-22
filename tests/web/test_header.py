@@ -145,6 +145,3 @@ def test_app_integration_with_main_layout() -> None:
 
     brand = find_component_by_id(app.layout, "header-brand")
     assert brand is not None
-
-    stash_search_btn = find_component_by_id(app.layout, "stash-search-btn")
-    assert stash_search_btn is not None

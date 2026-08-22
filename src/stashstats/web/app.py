@@ -59,11 +59,18 @@ def create_app(
     # Attach client reference for component access
     app.client = client  # type: ignore[attr-defined]
 
-    # Resolve username if cached on client
+    # Resolve username and initial items if client is available
     username = getattr(client, "_cached_username", None) if client is not None else None
+    resolved_items = items
+    if resolved_items is None and client is not None:
+        try:
+            stash_resp = client.get_my_stash()
+            resolved_items = stash_resp.stash
+        except Exception:
+            resolved_items = []
 
     # Initialize root layout container
-    app.layout = create_main_layout(username=username, items=items)
+    app.layout = create_main_layout(username=username, items=resolved_items)
 
     # Register reactive callbacks
     register_stash_callbacks(app)

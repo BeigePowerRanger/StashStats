@@ -1,3 +1,5 @@
+import logging
+import time
 from typing import Any, Self
 
 import httpx
@@ -6,6 +8,8 @@ from pydantic import BaseModel, ConfigDict
 from stashstats.config import Settings
 from stashstats.config import settings as default_settings
 from stashstats.exceptions import raise_for_status_code
+
+logger = logging.getLogger("stashstats.base")
 
 
 class BaseAPIClient(BaseModel):
@@ -86,12 +90,19 @@ class BaseAPIClient(BaseModel):
                 body = response.json()
             except (ValueError, httpx.DecodingError):
                 body = response.text
+            logger.error(
+                f"[API ERROR] {response.request.method} {response.request.url} -> {response.status_code}: {body}"
+            )
             raise_for_status_code(
                 response.status_code,
                 f"API request failed ({response.status_code}): {response.reason_phrase}",
                 response_body=body,
             )
-        return response.json()
+        try:
+            return response.json()
+        except (ValueError, httpx.DecodingError) as e:
+            logger.error(f"[API JSON ERROR] Failed to parse JSON response: {e}")
+            raise
 
     def request(
         self,
@@ -115,6 +126,8 @@ class BaseAPIClient(BaseModel):
         client = self._get_or_create_client()
 
         managed_internally = self._client is None
+        start_time = time.perf_counter()
+        logger.debug(f"[API REQ] {method} {path} params={cleaned_params}")
         try:
             response = client.request(
                 method=method,
@@ -122,6 +135,10 @@ class BaseAPIClient(BaseModel):
                 params=cleaned_params,
                 json=json,
                 headers=headers,
+            )
+            elapsed_ms = (time.perf_counter() - start_time) * 1000
+            logger.debug(
+                f"[API RESP] {method} {path} -> {response.status_code} ({elapsed_ms:.1f}ms)"
             )
             return self._handle_response(response)
         finally:

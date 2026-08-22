@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from stashstats.models.common import Paginator, Photo, YarnCompany
 from stashstats.models.user import UserProfile
@@ -177,11 +177,47 @@ class StashItem(BaseModel):
     packs: list[Pack] = Field(default_factory=list)
     """Allocated skein and purchase packs."""
 
+    skeins: float | None = None
+    """Top-level or computed total skein count."""
+
+    total_yards: float | None = None
+    """Top-level or computed total yards."""
+
+    total_grams: float | None = None
+    """Top-level or computed total grams."""
+
+    total_meters: float | None = None
+    """Top-level or computed total meters."""
+
+    notes: str | None = None
+    """Personal notes or usage commentary."""
+
     first_photo: Photo | None = None
     """Primary photo asset for the stash entry."""
 
     user: UserProfile | None = None
     """Owner user profile."""
+
+    @model_validator(mode="after")
+    def normalize_packs_and_quantities(self) -> "StashItem":
+        """Normalize pack collections and fallback quantities directly on ingestion."""
+        if not self.packs and self.primary_pack:
+            self.packs = [self.primary_pack]
+
+        if self.primary_pack:
+            if self.skeins is None and self.primary_pack.skeins is not None:
+                self.skeins = self.primary_pack.skeins
+            if self.total_yards is None and self.primary_pack.total_yards is not None:
+                self.total_yards = self.primary_pack.total_yards
+            if self.total_grams is None and self.primary_pack.total_grams is not None:
+                self.total_grams = self.primary_pack.total_grams
+            if self.total_meters is None and self.primary_pack.total_meters is not None:
+                self.total_meters = self.primary_pack.total_meters
+            if not self.colorway_name and self.primary_pack.colorway:
+                self.colorway_name = self.primary_pack.colorway
+            if not self.dye_lot and self.primary_pack.dye_lot:
+                self.dye_lot = self.primary_pack.dye_lot
+        return self
 
 
 class StashListResponse(BaseModel):

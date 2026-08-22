@@ -1,5 +1,4 @@
-"""Reactive callbacks for Personal Stash filtering, sorting, pagination, and sync."""
-
+import logging
 from datetime import UTC, datetime
 from typing import Any
 
@@ -14,6 +13,8 @@ from stashstats.web.components.stash import (
     sort_stash_groups,
 )
 
+logger = logging.getLogger("stashstats.web.stash")
+
 
 def update_stash_view_logic(
     search_query: str | None,
@@ -24,6 +25,9 @@ def update_stash_view_logic(
 ) -> tuple[Any, int, int, str]:
     """Filter, sort, and paginate stash items based on UI controls."""
     items = raw_data or []
+    logger.debug(
+        f"Filtering stash: items={len(items)}, query={search_query!r}, sort={sort_by!r}, page={active_page}"
+    )
     groups = group_stash_items(items)
     filtered = filter_stash_groups(groups, search_query)
     sorted_groups = sort_stash_groups(filtered, sort_by or "brand_asc")
@@ -47,13 +51,30 @@ def update_stash_view_logic(
 def handle_stash_sync_logic(
     n_clicks: int | None,
     raw_data: list[dict[str, Any]] | None,
-) -> tuple[str, str, str]:
+    client: Any = None,
+) -> tuple[str, str, str, list[dict[str, Any]]]:
     """Handle Sync Now button click to synchronize with Ravelry."""
     if not n_clicks:
         raise dash.exceptions.PreventUpdate
 
+    fresh_items = raw_data or []
+    if client:
+        try:
+            logger.info("Executing manual stash sync with Ravelry API...")
+            stash_resp = client.get_my_stash()
+            fresh_items = [
+                it.model_dump() if hasattr(it, "model_dump") else it
+                for it in stash_resp.stash
+            ]
+            logger.info(f"Manual sync complete: {len(fresh_items)} items retrieved")
+            now_str = datetime.now(UTC).strftime("Today %H:%M")
+            return "Synced", "success", f"Last synced: {now_str}", fresh_items
+        except Exception as e:
+            logger.warning(f"Manual sync failed: {e}")
+            return "Sync Failed", "danger", "Sync failed (offline/error)", fresh_items
+
     now_str = datetime.now(UTC).strftime("Today %H:%M")
-    return "Synced", "success", f"Last synced: {now_str}"
+    return "Synced", "success", f"Last synced: {now_str}", fresh_items
 
 
 def register_stash_callbacks(app: dash.Dash) -> None:
@@ -100,6 +121,7 @@ def register_stash_callbacks(app: dash.Dash) -> None:
         Output("stash-pending-badge", "children"),
         Output("stash-pending-badge", "color"),
         Output("stash-last-synced", "children"),
+        Output("stash-raw-store", "data", allow_duplicate=True),
         Input("stash-sync-btn", "n_clicks"),
         State("stash-raw-store", "data"),
         prevent_initial_call=True,
@@ -107,5 +129,6 @@ def register_stash_callbacks(app: dash.Dash) -> None:
     def handle_stash_sync(
         n_clicks: int | None,
         raw_data: list[dict[str, Any]] | None,
-    ) -> tuple[str, str, str]:
-        return handle_stash_sync_logic(n_clicks, raw_data)
+    ) -> tuple[str, str, str, list[dict[str, Any]]]:
+        client = getattr(app, "client", None)
+        return handle_stash_sync_logic(n_clicks, raw_data, client=client)

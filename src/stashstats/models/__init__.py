@@ -1,5 +1,13 @@
 from stashstats.models.common import Paginator, PersonalAttributes, Photo
 from stashstats.models.history import StashHistory, StashHistoryEntry
+from stashstats.models.project import (
+    Project,
+    ProjectDetailResponse,
+    ProjectListResponse,
+    ProjectListResult,
+    QueuedProject,
+    QueueListResponse,
+)
 from stashstats.models.reference import (
     ColorFamiliesResponse,
     ColorFamily,
@@ -37,12 +45,17 @@ __all__ = [
     "CurrentUserResponse",
     "FiberCategoriesResponse",
     "FiberCategory",
-
     "FiberType",
     "Pack",
     "Paginator",
     "PersonalAttributes",
     "Photo",
+    "Project",
+    "ProjectDetailResponse",
+    "ProjectListResponse",
+    "ProjectListResult",
+    "QueueListResponse",
+    "QueuedProject",
     "StashDetailResponse",
     "StashHistory",
     "StashHistoryEntry",

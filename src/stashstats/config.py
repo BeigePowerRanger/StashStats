@@ -1,4 +1,4 @@
-from pydantic import SecretStr
+from pydantic import AliasChoices, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,14 +8,19 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
-        env_prefix="RAVELRY_",
         extra="ignore",
     )
 
-    access_key: str
+    access_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("API_USERNAME", "RAVELRY_ACCESS_KEY", "ACCESS_KEY"),
+    )
     """Ravelry API Access Key (HTTP Basic Auth username)."""
 
-    personal_key: SecretStr
+    personal_key: SecretStr = Field(
+        default=SecretStr(""),
+        validation_alias=AliasChoices("API_KEY", "RAVELRY_PERSONAL_KEY", "PERSONAL_KEY"),
+    )
     """Ravelry Personal Key (HTTP Basic Auth password)."""
 
     base_url: str = "https://api.ravelry.com"

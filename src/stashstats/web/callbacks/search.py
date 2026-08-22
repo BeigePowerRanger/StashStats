@@ -30,10 +30,21 @@ def build_search_query(query: str | None, brand: str | None) -> str:
     return " ".join(parts)
 
 
+SORT_MAPPING = {
+    "best_match": "best",
+    "highest_rating": "rating",
+    "most_projects": "projects",
+    "best": "best",
+    "rating": "rating",
+    "projects": "projects",
+}
+
+
 def update_yarn_search_logic(
     client: RavelryClient | None,
     query: str | None,
     brand: str | None,
+    sort: str | None = "best_match",
     active_page: int | None = 1,
     page_size: int = 25,
 ) -> tuple[Any, int, int, str, list[dict[str, Any]], dict[str, Any]]:
@@ -43,6 +54,7 @@ def update_yarn_search_logic(
         client: Authenticated RavelryClient instance (or None if offline).
         query: Search keyword string.
         brand: Brand name filter string.
+        sort: Sort category selection.
         active_page: Target page number (1-indexed).
         page_size: Results per page count.
 
@@ -58,6 +70,7 @@ def update_yarn_search_logic(
     clean_query = query.strip() if query else ""
     clean_brand = brand.strip() if brand else ""
     search_str = build_search_query(clean_query, clean_brand)
+    api_sort = SORT_MAPPING.get(sort or "best_match", "best")
 
     # 1. Missing client -> prominent warning Alert indicating API credentials / client missing in .env
     if client is None:
@@ -85,6 +98,7 @@ def update_yarn_search_logic(
                 "total_results": 0,
                 "query": clean_query,
                 "brand": clean_brand,
+                "sort": sort,
             },
         )
 
@@ -103,6 +117,7 @@ def update_yarn_search_logic(
                 "total_results": 0,
                 "query": clean_query,
                 "brand": clean_brand,
+                "sort": sort,
             },
         )
 
@@ -113,6 +128,7 @@ def update_yarn_search_logic(
             query=search_str,
             page=page_num,
             page_size=page_size,
+            sort=api_sort,
         )
 
         yarns = response.yarns
@@ -132,6 +148,7 @@ def update_yarn_search_logic(
             "total_results": total_results,
             "query": clean_query,
             "brand": clean_brand,
+            "sort": sort,
         }
 
         return (
@@ -168,6 +185,7 @@ def update_yarn_search_logic(
                 "total_results": 0,
                 "query": clean_query,
                 "brand": clean_brand,
+                "sort": sort,
             },
         )
 
@@ -178,47 +196,35 @@ def handle_yarn_search_callback(
     n_clicks: int | None,
     query_submit: int | None,
     brand_submit: int | None,
+    sort_val: str | None,
     active_page: int | None,
     query_val: str | None,
     brand_val: str | None,
     paginator_store: dict[str, Any] | None,
     page_size: int = 25,
 ) -> tuple[Any, int, int, str, list[dict[str, Any]], dict[str, Any]]:
-    """Parse trigger sources, determine target query/page, and run search.
-
-    Args:
-        client: Authenticated RavelryClient instance.
-        triggered_id: ID of the Dash component that fired callback.
-        n_clicks: Search button click count.
-        query_submit: Enter keypress count on query input.
-        brand_submit: Enter keypress count on brand input.
-        active_page: Current or requested pagination page.
-        query_val: Search input text value.
-        brand_val: Brand input text value.
-        paginator_store: Previous search paginator metadata dictionary.
-        page_size: Result count per page.
-
-    Returns:
-        Formatted 6-tuple matching update_yarn_search_logic.
-    """
-    if not triggered_id and not any([n_clicks, query_submit, brand_submit, active_page]):
+    """Parse trigger sources, determine target query/page, and run search."""
+    if not triggered_id and not any([n_clicks, query_submit, brand_submit, sort_val, active_page]):
         raise dash.exceptions.PreventUpdate
 
     if triggered_id == "yarn-search-pagination":
-        # Pagination click -> preserve previous search query/brand from store
+        # Pagination click -> preserve previous search query/brand/sort from store
         query = (paginator_store or {}).get("query", query_val)
         brand = (paginator_store or {}).get("brand", brand_val)
+        sort = (paginator_store or {}).get("sort", sort_val)
         page = active_page or 1
     else:
-        # Search button or Enter submit -> new search starting at page 1
+        # Search button, Enter submit, or Sort change -> search starting at page 1
         query = query_val
         brand = brand_val
+        sort = sort_val
         page = 1
 
     return update_yarn_search_logic(
         client=client,
         query=query,
         brand=brand,
+        sort=sort,
         active_page=page,
         page_size=page_size,
     )
@@ -244,6 +250,7 @@ def register_search_callbacks(app: dash.Dash) -> None:
         Input("yarn-search-btn", "n_clicks"),
         Input("yarn-search-query-input", "n_submit"),
         Input("yarn-search-brand-input", "n_submit"),
+        Input("yarn-search-sort-input", "value"),
         Input("yarn-search-pagination", "active_page"),
         State("yarn-search-query-input", "value"),
         State("yarn-search-brand-input", "value"),
@@ -254,6 +261,7 @@ def register_search_callbacks(app: dash.Dash) -> None:
         n_clicks: int | None,
         query_submit: int | None,
         brand_submit: int | None,
+        sort_val: str | None,
         active_page: int | None,
         query_val: str | None,
         brand_val: str | None,
@@ -266,6 +274,7 @@ def register_search_callbacks(app: dash.Dash) -> None:
             n_clicks=n_clicks,
             query_submit=query_submit,
             brand_submit=brand_submit,
+            sort_val=sort_val,
             active_page=active_page,
             query_val=query_val,
             brand_val=brand_val,

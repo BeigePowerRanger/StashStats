@@ -1,25 +1,21 @@
-# Tech Stack: StashStats
+# Technology Stack: StashStats
 
-## Core Language & Runtime
-- **Python 3.12+**: The primary programming language.
+## Language
+- **Python 3**: Core language for web app backend and the Ravelry API client package.
 
-## Package Management & Build
-- **uv**: Extremely fast Python package installer and resolver.
-- **Hatchling**: The PEP 517 build backend (utilized by uv under the hood).
+## Frontend Framework
+- **Plotly Dash**: Interactive dashboard framework (`Dash`, `dcc`, `html`).
+- **Dash Bootstrap Components (DBC)**: Styling theme framework (using Darkly theme).
 
-## Core Libraries
-- **Pydantic**: Data validation and settings management.
-- **HTTPX**: Fully featured async HTTP client for interacting with the Ravelry API.
+## Database
+- **PostgreSQL**: Relational database for storing user accounts, local stash cache, original purchase values, and usage history. Replaces SQLite to support concurrency and scaling.
 
-## Code Quality & Tooling
-- **Black**: The uncompromising Python code formatter.
-- **Ruff**: Extremely fast Python linter.
+## Cache & Queue
+- **Redis**: In-memory data store for application caching, running as a service in Docker Compose.
 
-## Infrastructure & Deployment (Planned)
-- **Docker & Docker Compose**: Containerization and multi-container orchestration for running the application stack.
-- **Redis**: In-memory data store to be used for caching API responses and data.
+## API Integration
+- **Ravelry API**: Custom client package in `stashies/` wrapping Ravelry HTTP endpoints using standard HTTP requests/authentication.
 
-## Frontend
-- **Dash 2.x**: Reactive Python framework for building analytical web applications.
-- **Dash Bootstrap Components**: For responsive layout and pre-built UI components using the DARKLY theme.
-- **FastAPI**: Underlying ASGI server for handling routing and API endpoints.
+## Infrastructure & Environment
+- **Docker & Docker Compose**: Containerized multi-service stack (App, Redis, PostgreSQL).
+- **Environment variables**: Local configuration and credential storage using `.env` (via python-dotenv).

@@ -4,22 +4,51 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [x] **Track: Finish MVP API functionality and history tracking via App Data API**
-  *Link: [./tracks/mvp_api_20260815/](./tracks/mvp_api_20260815/)*
-  - [x] **Subtrack: Phase 1 - Reference and Yarn Models**
-    *Link: [./tracks/mvp_api_20260815/subtracks/phase1_yarn_reference/](./tracks/mvp_api_20260815/subtracks/phase1_yarn_reference/)*
-  - [x] **Subtrack: Phase 2 - Stash and History Models**
-    *Link: [./tracks/mvp_api_20260815/subtracks/phase2_stash_history/](./tracks/mvp_api_20260815/subtracks/phase2_stash_history/)*
-  - [x] **Subtrack: Phase 3 - App Data Client Integration**
-    *Link: [./tracks/mvp_api_20260815/subtracks/phase3_app_data_client/](./tracks/mvp_api_20260815/subtracks/phase3_app_data_client/)*
+- [x] **Track: Build comprehensive Ravelry API Python client in stashies**
+  *Link: [./tracks/ravelry_client_20260712/](./tracks/ravelry_client_20260712/)*
+
 
 ---
 
-- [x] **Track: Web App Frontend - Core Shell, Navigation, and Personal Stash View**
-  *Link: [./tracks/webapp_frontend_20260816/](./tracks/webapp_frontend_20260816/)*
+- [x] **Track: Project Documentation**
+  *Link: [./tracks/documentation_20260727/](./tracks/documentation_20260727/)*
 
 ---
 
-- [x] **Track: Yarn Search Integration (Ravelry API)**
-  *Link: [./tracks/yarn_search_20260816/](./tracks/yarn_search_20260816/)*
+- [x] **Track: Comprehensive Playwright E2E Browser Testing Suite**
+  *Link: [./tracks/browser_e2e_testing_20260727/](./tracks/browser_e2e_testing_20260727/)*
 
+---
+
+- [x] **Track: Tab & Component Loading Indicators**
+  *Link: [./tracks/tab_loading_indicators_20260727/](./tracks/tab_loading_indicators_20260727/)*
+
+---
+
+- [x] **Track: Additional Ravelry API Endpoints in Stashies Client**
+  *Link: [./tracks/ravelry_api_expansion_20260727/](./tracks/ravelry_api_expansion_20260727/)*
+
+---
+
+- [x] **Track: Fix Personal Stash and Stash Analytics Loading Failure**
+  *Link: [./tracks/fix_stash_loading_20260727/](./tracks/fix_stash_loading_20260727/)*
+
+---
+
+- [x] **Track: Docker Continuous Uptime & Remote Git Build Setup**
+  *Link: [./tracks/docker_continuous_uptime_20260727/](./tracks/docker_continuous_uptime_20260727/)*
+
+---
+
+- [x] **Track: Reproducible Packaging with pyproject.toml and uv**
+  *Link: [./tracks/pyproject_packaging_20260727/](./tracks/pyproject_packaging_20260727/)*
+
+---
+
+- [x] **Track: Bi-Directional Ravelry Batch Sync & Unsynced Change Tracking**
+  *Link: [./tracks/bidirectional_ravelry_sync_20260801/](./tracks/bidirectional_ravelry_sync_20260801/)*
+
+---
+
+- [x] **Track: Codebase Hardening (db rollback, datetime tz, retry, test assertions)**
+*Link: [./tracks/codebase_hardening_20260801/](./tracks/codebase_hardening_20260801/)*

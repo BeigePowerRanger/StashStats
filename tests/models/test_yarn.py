@@ -108,9 +108,13 @@ class TestColorway:
         with pytest.raises(ValidationError):
             Colorway.model_validate({"id": 103, "name": "Invalid Family", "color_family_id": -1})
 
-    def test_colorway_empty_name_fails(self):
-        with pytest.raises(ValidationError):
-            Colorway.model_validate({"id": 104, "name": ""})
+    def test_colorway_empty_name_normalizes(self):
+        cw = Colorway.model_validate({"id": 104, "name": "", "code": "405"})
+        assert cw.name == "#405"
+        assert cw.code == "405"
+
+        cw2 = Colorway.model_validate({"id": 105, "name": ""})
+        assert cw2.name == ""
 
 
 class TestYarnWeight:

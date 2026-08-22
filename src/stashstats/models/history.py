@@ -6,17 +6,38 @@ from pydantic import BaseModel, Field
 class StashHistoryEntry(BaseModel):
     """Snapshot of stash yarn quantities at a specific point in time."""
 
-    timestamp: str
+    id: str | None = None
+    """Unique entry identifier."""
+
+    date: str | None = None
+    """ISO date string (YYYY-MM-DD)."""
+
+    timestamp: str = "" 
     """Ravelry timestamp string for the change event."""
 
     skeins: float
-    """Number of skeins in stash at this point in time."""
+    """Number of skeins or delta skeins."""
 
-    total_grams: float
+    yards: float | None = None
+    """Deducted or delta yards."""
+
+    grams: float | None = None
+    """Deducted or delta grams."""
+
+    total_grams: float = 0.0
     """Total weight in grams at this point in time."""
 
-    total_yards: float
+    total_yards: float = 0.0
     """Total length in yards at this point in time."""
+
+    pack_id: int | None = None
+    """Associated pack record ID."""
+
+    delta_skeins: float | None = None
+    """Quantity delta recorded by this usage event (negative for deduction)."""
+
+    notes: str | None = None
+    """Optional project or usage event note."""
 
     @property
     def datetime(self) -> datetime | None:

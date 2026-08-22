@@ -4,7 +4,7 @@ from pydantic import BaseModel
 class ColorFamily(BaseModel):
     """Ravelry color family reference classification."""
 
-    id: int
+    id: int 
     """Unique color family ID."""
 
     name: str

@@ -1,6 +1,7 @@
 """Tests for Personal Stash view: grouping engine, sorting, filtering, components, layout, and callbacks."""
 
 from typing import Any
+from unittest.mock import MagicMock
 
 import dash
 import dash_bootstrap_components as dbc
@@ -571,9 +572,20 @@ def test_handle_stash_sync_callback_logic() -> None:
     with pytest.raises(dash.exceptions.PreventUpdate):
         handle_stash_sync_logic(None, [])
 
-    # Clicked
-    status, color, last_synced = handle_stash_sync_logic(1, [])
+    # Clicked with success
+    status, color, last_synced, fresh_items = handle_stash_sync_logic(1, [])
     assert status == "Synced"
     assert color == "success"
     assert "Last synced: Today" in last_synced
+    assert fresh_items == []
+
+    # Clicked with client error
+    mock_client = MagicMock()
+    mock_client.get_my_stash.side_effect = RuntimeError("API unreachable")
+    err_status, err_color, err_synced, err_items = handle_stash_sync_logic(1, [{"id": 1}], client=mock_client)
+    assert err_status == "Sync Failed"
+    assert err_color == "danger"
+    assert "Sync failed" in err_synced
+    assert err_items == [{"id": 1}]
+
 

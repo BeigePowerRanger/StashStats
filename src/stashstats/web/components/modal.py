@@ -125,14 +125,20 @@ def apply_usage_to_stash(
     cur_skeins = stash.get("skeins")
     if cur_skeins is None and "primary_pack" in stash and stash["primary_pack"]:
         cur_skeins = stash["primary_pack"].get("skeins", 0.0)
+    elif cur_skeins is None and stash.get("packs"):
+        cur_skeins = sum(p.get("skeins", 0.0) or 0.0 for p in stash["packs"])
 
     total_yards = stash.get("total_yards")
     if total_yards is None and "primary_pack" in stash and stash["primary_pack"]:
         total_yards = stash["primary_pack"].get("total_yards")
+    elif total_yards is None and stash.get("packs"):
+        total_yards = sum(p.get("total_yards", 0.0) or 0.0 for p in stash["packs"])
 
     total_grams = stash.get("total_grams")
     if total_grams is None and "primary_pack" in stash and stash["primary_pack"]:
         total_grams = stash["primary_pack"].get("total_grams")
+    elif total_grams is None and stash.get("packs"):
+        total_grams = sum(p.get("total_grams", 0.0) or 0.0 for p in stash["packs"])
 
     calc = calculate_proportional_deduction(
         current_skeins=cur_skeins or 0.0,
@@ -144,12 +150,17 @@ def apply_usage_to_stash(
     )
 
     today_iso = datetime.now(tz=UTC).date().isoformat()
+    now_ts = datetime.now(tz=UTC).strftime("%Y/%m/%d %H:%M:%S +0000")
     usage_entry = {
         "id": f"entry-{uuid.uuid4().hex[:8]}",
         "date": date_used or today_iso,
+        "timestamp": now_ts,
         "skeins": -abs(float(used_skeins)),
+        "delta_skeins": -abs(float(used_skeins)),
         "yards": -abs(calc["deducted_yards"]) if calc["deducted_yards"] is not None else None,
         "grams": -abs(calc["deducted_grams"]) if calc["deducted_grams"] is not None else None,
+        "total_yards": calc["remaining_yards"],
+        "total_grams": calc["remaining_grams"],
         "notes": notes or "",
     }
 
@@ -158,6 +169,21 @@ def apply_usage_to_stash(
         stash["total_yards"] = calc["remaining_yards"]
     if calc["remaining_grams"] is not None:
         stash["total_grams"] = calc["remaining_grams"]
+
+    if "primary_pack" in stash and isinstance(stash["primary_pack"], dict):
+        stash["primary_pack"]["skeins"] = calc["remaining_skeins"]
+        if calc["remaining_yards"] is not None:
+            stash["primary_pack"]["total_yards"] = calc["remaining_yards"]
+        if calc["remaining_grams"] is not None:
+            stash["primary_pack"]["total_grams"] = calc["remaining_grams"]
+
+    if "packs" in stash and isinstance(stash["packs"], list) and len(stash["packs"]) > 0:
+        if isinstance(stash["packs"][0], dict):
+            stash["packs"][0]["skeins"] = calc["remaining_skeins"]
+            if calc["remaining_yards"] is not None:
+                stash["packs"][0]["total_yards"] = calc["remaining_yards"]
+            if calc["remaining_grams"] is not None:
+                stash["packs"][0]["total_grams"] = calc["remaining_grams"]
 
     if calc["remaining_skeins"] <= 0:
         stash["stash_status"] = {"id": 2, "name": "Used up"}
@@ -187,7 +213,7 @@ def rollback_usage_from_stash(
         return stash, updated_history
 
     entry = updated_history.pop(usage_index)
-    skeins_to_restore = abs(float(entry.get("skeins", 0.0)))
+    skeins_to_restore = abs(float(entry.get("skeins", 0.0) or entry.get("delta_skeins", 0.0) or 0.0))
     yards_to_restore = abs(float(entry.get("yards", 0.0))) if entry.get("yards") is not None else None
     grams_to_restore = abs(float(entry.get("grams", 0.0))) if entry.get("grams") is not None else None
 
@@ -199,6 +225,21 @@ def rollback_usage_from_stash(
 
     if grams_to_restore is not None and stash.get("total_grams") is not None:
         stash["total_grams"] = round(float(stash["total_grams"]) + grams_to_restore, 2)
+
+    if "primary_pack" in stash and isinstance(stash["primary_pack"], dict):
+        stash["primary_pack"]["skeins"] = stash["skeins"]
+        if stash.get("total_yards") is not None:
+            stash["primary_pack"]["total_yards"] = stash["total_yards"]
+        if stash.get("total_grams") is not None:
+            stash["primary_pack"]["total_grams"] = stash["total_grams"]
+
+    if "packs" in stash and isinstance(stash["packs"], list) and len(stash["packs"]) > 0:
+        if isinstance(stash["packs"][0], dict):
+            stash["packs"][0]["skeins"] = stash["skeins"]
+            if stash.get("total_yards") is not None:
+                stash["packs"][0]["total_yards"] = stash["total_yards"]
+            if stash.get("total_grams") is not None:
+                stash["packs"][0]["total_grams"] = stash["total_grams"]
 
     # Restore active status if previously marked Used up
     current_status = stash.get("stash_status")
@@ -313,13 +354,14 @@ def create_usage_history_table(history: list[dict[str, Any]] | None = None) -> C
 
     rows: list[html.Tr] = []
     for idx, entry in enumerate(history):
-        skeins = entry.get("skeins", 0.0)
+        skeins = entry.get("skeins") if entry.get("skeins") is not None else entry.get("delta_skeins", 0.0)
         sk_str = f"{skeins:+.2f} sk" if isinstance(skeins, (int, float)) else str(skeins)
         yards = entry.get("yards")
         yd_str = f"{yards:+.0f} yds" if yards is not None else "—"
         grams = entry.get("grams")
         g_str = f"{grams:+.0f} g" if grams is not None else "—"
-        entry_date = entry.get("date") or "—"
+        raw_date = entry.get("date") or entry.get("timestamp") or "—"
+        entry_date = raw_date.split(" ")[0].replace("/", "-") if raw_date != "—" else "—"
 
         del_btn = dbc.Button(
             [html.I(className="bi bi-trash me-1"), "Delete"],
@@ -395,8 +437,23 @@ def create_stash_modal(
     dye_lot = item_dict.get("dye_lot") or ""
     location = item_dict.get("location") or ""
     skeins = item_dict.get("skeins")
+    if skeins is None and "primary_pack" in item_dict and item_dict["primary_pack"]:
+        skeins = item_dict["primary_pack"].get("skeins")
+    elif skeins is None and item_dict.get("packs"):
+        skeins = sum(p.get("skeins", 0.0) or 0.0 for p in item_dict["packs"])
+
     total_yards = item_dict.get("total_yards")
+    if total_yards is None and "primary_pack" in item_dict and item_dict["primary_pack"]:
+        total_yards = item_dict["primary_pack"].get("total_yards")
+    elif total_yards is None and item_dict.get("packs"):
+        total_yards = sum(p.get("total_yards", 0.0) or 0.0 for p in item_dict["packs"])
+
     total_grams = item_dict.get("total_grams")
+    if total_grams is None and "primary_pack" in item_dict and item_dict["primary_pack"]:
+        total_grams = item_dict["primary_pack"].get("total_grams")
+    elif total_grams is None and item_dict.get("packs"):
+        total_grams = sum(p.get("total_grams", 0.0) or 0.0 for p in item_dict["packs"])
+
     notes = item_dict.get("notes") or ""
     created_at = item_dict.get("created_at") or "Unknown"
 
@@ -431,6 +488,9 @@ def create_stash_modal(
         baseline_parts.append(f"{total_grams:,.0f} g")
     baseline_str = f"Originally stashed: {created_at} ({' / '.join(baseline_parts)})" if baseline_parts else f"Originally stashed: {created_at}"
 
+    # Colorway options
+    colorway_options = [{"label": colorway_name, "value": colorway_name}] if colorway_name else []
+
     # Tab 1: Edit Details
     tab_edit_details = dbc.Tab(
         label="Edit Details",
@@ -441,12 +501,14 @@ def create_stash_modal(
                     dbc.Col(
                         [
                             dbc.Label("Colorway", className="small text-light fw-bold"),
-                            dbc.Input(
+                            dcc.Dropdown(
                                 id="modal-input-colorway",
-                                type="text",
                                 value=colorway_name,
-                                placeholder="Colorway name...",
-                                className="bg-dark text-light border-secondary",
+                                options=colorway_options,
+                                placeholder="Select or enter colorway...",
+                                searchable=True,
+                                clearable=True,
+                                className="dash-bootstrap",
                             ),
                         ],
                         md=6,

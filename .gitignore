@@ -1,28 +1,60 @@
-# Python artifacts
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
 .Python
 build/
+develop-eggs/
 dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
 *.egg-info/
+.installed.cfg
+*.egg
 
-# Virtual environments
+.superpowers/
+# docs/  # Removed - documentation should be tracked
+# Virtual Environment
 .venv/
+venv/
+ENV/
+env/
 
-# Secrets
-.env
-.env.local
-
-# Linting / cache
-.ruff_cache/
-.mypy_cache/
-.pytest_cache/
-
-# IDE & Notes
-.vscode/
+# IDEs and Editors
 .idea/
-.DS_Store
-.obsidian/workspace*.json
+.vscode/
+.obsidian/
 
-# Local scripts
-build_wiki.py
+# Project Cache & Logs
+stash_cache.json
+dev_changes.log
+logs/
+*.log
+.env
+data/
+.gemini/
+StashStats.md
+.worktrees/
+dev.ipynb
+*.csv
+.pytest_cache/
+node_modules/
+.coverage
+htmlcov/
+
+# Teamwork agent scaffolding
+.agents/
+ORIGINAL_REQUEST.md
