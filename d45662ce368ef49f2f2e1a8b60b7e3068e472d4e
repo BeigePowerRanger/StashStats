@@ -1,0 +1,3 @@
+Task: Write Tests for Multi-User Storage
+Files: tests/test_storage.py, tests/test_client.py
+Why: Validate multi-user data storage paths in app/data/<user_id>/ and user-scoped App Data key-value storage
