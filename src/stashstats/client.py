@@ -4,6 +4,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 from stashstats.base import BaseAPIClient
+from stashstats.analytics import StashVelocityCalculator
 from stashstats.models import (
     ColorFamily,
     CurrentUserResponse,
@@ -13,6 +14,7 @@ from stashstats.models import (
     StashItem,
     StashListResponse,
     StashSearchResponse,
+    StashVelocityReport,
     YarnDetailResponse,
     YarnSearchResponse,
     YarnWeightReference,
@@ -618,4 +620,26 @@ class RavelryClient(BaseAPIClient):
         fiber_categories = data.get("fiber_categories", [])
         set_reference_data("fiber_categories", fiber_categories)
         return [FiberCategory.model_validate(f) for f in fiber_categories]
+
+    def get_stash_velocity_report(
+        self,
+        username: str | None = None,
+        user_id: str | int | None = None,
+        as_of: datetime | None = None,
+    ) -> StashVelocityReport:
+        """Fetch user stash, batch-load App Data quantity histories, and compute velocity report.
+
+        Args:
+            username: Optional username override (defaults to authenticated user).
+            user_id: Optional user ID for namespaced history storage.
+            as_of: Benchmark date for trailing velocity windows.
+
+        Returns:
+            Computed StashVelocityReport.
+        """
+        stash_resp = self.get_my_stash(username=username)
+        stash_items = stash_resp.stash
+        stash_ids = [item.id for item in stash_items]
+        histories = self.get_batch_stash_history(stash_ids, user_id=user_id)
+        return StashVelocityCalculator.generate_report(stash_items, histories, as_of=as_of)
 
