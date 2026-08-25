@@ -12,7 +12,7 @@
     - [x] Implement distribution functions for yarn weight, fiber content, color family, and brand aggregations
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2: Client & Storage Integration
+## Phase 2: Client & Storage Integration [checkpoint: 2f3c461]
 - [x] Task: Implement `get_stash_velocity_report` on `RavelryClient` [4747a35]
     - [x] Create tests in `tests/test_client_analytics.py`
     - [x] Implement client method to fetch stash, batch load quantity history, and generate velocity report
