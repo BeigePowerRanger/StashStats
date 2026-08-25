@@ -6,9 +6,9 @@
 - [x] Task: Phase 1 Checkpoint [7473187]
 
 ## Phase 2: Log Usage Modal UI & History Table Display (TDD)
-- [ ] Task: Unit tests for project/pattern inputs and usage history table display
-- [ ] Task: Add project inputs to 'Log Usage' tab and display project column in `create_usage_history_table` in `src/stashstats/web/components/modal.py`
-- [ ] Task: Phase 2 Checkpoint
+- [x] Task: Unit tests for project/pattern inputs and usage history table display [66269b1]
+- [x] Task: Add project inputs to 'Log Usage' tab and display project column in `create_usage_history_table` in `src/stashstats/web/components/modal.py` [66269b1]
+- [x] Task: Phase 2 Checkpoint [66269b1]
 
 ## Phase 3: Modal Callbacks & Full Verification (TDD)
 - [ ] Task: Unit tests for `handle_save_modal` callback saving project metadata
