@@ -78,6 +78,13 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Fix Live Updates for Projects Made and Monthly Flow**
   *Link: [./tracks/fix_analytics_live_updates_20260824/index.md](./tracks/fix_analytics_live_updates_20260824/index.md)*
 
+---
+
+- [x] **Track: Fix Add to Stash Reflection in Personal Stash**
+  *Link: [./tracks/fix_add_to_stash_reflection_20260824/index.md](./tracks/fix_add_to_stash_reflection_20260824/index.md)*
+
+
+
 
 
 
