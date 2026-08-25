@@ -349,6 +349,8 @@ def test_create_stash_modal_structure() -> None:
     assert find_component_by_id(modal, "modal-usage-baseline") is not None
     assert find_component_by_id(modal, "modal-input-skeins-used") is not None
     assert find_component_by_id(modal, "modal-input-date-used") is not None
+    assert find_component_by_id(modal, "modal-input-project-name") is not None
+    assert find_component_by_id(modal, "modal-input-pattern-name") is not None
     assert find_component_by_id(modal, "modal-usage-preview") is not None
     assert find_component_by_id(modal, "modal-usage-history-table") is not None
 
@@ -617,6 +619,25 @@ def test_create_stash_modal_with_linked_projects():
     assert isinstance(modal, dbc.Modal)
     tbl = find_component_by_id(modal, "modal-linked-projects-table")
     assert tbl is not None
+
+
+def test_create_usage_history_table_with_project():
+    history = [
+        {
+            "id": "entry-1",
+            "date": "2026-05-12",
+            "skeins": -1.5,
+            "yards": -315.0,
+            "grams": -150.0,
+            "project_name": "Winter Beanie",
+            "pattern_name": "Classic Ribbed Hat",
+        }
+    ]
+    table = create_usage_history_table(history)
+    assert isinstance(table, dbc.Table)
+    table_str = str(table.to_plotly_json())
+    assert "Winter Beanie" in table_str
+
 
 
 

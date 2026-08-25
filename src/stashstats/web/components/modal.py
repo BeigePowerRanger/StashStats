@@ -372,6 +372,22 @@ def create_usage_history_table(history: list[dict[str, Any]] | None = None) -> C
         raw_date = entry.get("date") or entry.get("timestamp") or "—"
         entry_date = raw_date.split(" ")[0].replace("/", "-") if raw_date != "—" else "—"
 
+        p_name = entry.get("project_name") or ""
+        pattern = entry.get("pattern_name") or ""
+        if p_name and pattern:
+            proj_display = html.Div(
+                [
+                    html.Span(p_name, className="text-light fw-medium"),
+                    html.Small(f" ({pattern})", className="text-muted ms-1"),
+                ]
+            )
+        elif p_name:
+            proj_display = html.Span(p_name, className="text-light fw-medium")
+        elif pattern:
+            proj_display = html.Span(pattern, className="text-muted fst-italic")
+        else:
+            proj_display = html.Span("—", className="text-muted")
+
         del_btn = dbc.Button(
             [html.I(className="bi bi-trash me-1"), "Delete"],
             id={"type": "modal-btn-delete-usage", "index": idx},
@@ -384,6 +400,7 @@ def create_usage_history_table(history: list[dict[str, Any]] | None = None) -> C
             html.Tr(
                 [
                     html.Td(entry_date, className="align-middle text-light"),
+                    html.Td(proj_display, className="align-middle"),
                     html.Td(sk_str, className="align-middle text-warning fw-semibold"),
                     html.Td(yd_str, className="align-middle text-muted"),
                     html.Td(g_str, className="align-middle text-muted"),
@@ -396,6 +413,7 @@ def create_usage_history_table(history: list[dict[str, Any]] | None = None) -> C
         html.Tr(
             [
                 html.Th("Date", className="text-light"),
+                html.Th("Project / Pattern", className="text-light"),
                 html.Th("Skeins", className="text-light"),
                 html.Th("Yards", className="text-light"),
                 html.Th("Weight", className="text-light"),
@@ -719,6 +737,36 @@ def create_stash_modal(
                                 id="modal-input-date-used",
                                 type="date",
                                 value=datetime.now(tz=UTC).date().isoformat(),
+                                className="bg-dark text-light border-secondary",
+                            ),
+                        ],
+                        md=6,
+                        className="mb-3",
+                    ),
+                ]
+            ),
+            dbc.Row(
+                [
+                    dbc.Col(
+                        [
+                            dbc.Label("Project Name", className="small text-light fw-bold"),
+                            dbc.Input(
+                                id="modal-input-project-name",
+                                type="text",
+                                placeholder="e.g. Winter Beanie, Striped Scarf...",
+                                className="bg-dark text-light border-secondary",
+                            ),
+                        ],
+                        md=6,
+                        className="mb-3",
+                    ),
+                    dbc.Col(
+                        [
+                            dbc.Label("Pattern Name", className="small text-light fw-bold"),
+                            dbc.Input(
+                                id="modal-input-pattern-name",
+                                type="text",
+                                placeholder="e.g. Classic Ribbed Hat...",
                                 className="bg-dark text-light border-secondary",
                             ),
                         ],
