@@ -58,3 +58,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Prod/Dev Scaffolding & Multi-User API Storage**
   *Link: [./tracks/prod_dev_scaffolding_20260822/](./tracks/prod_dev_scaffolding_20260822/)*
 
+---
+
+- [ ] **Track: Stash Consumption Velocity & Analytics Engine**
+  *Link: [./tracks/stash_analytics_20260824/index.md](./tracks/stash_analytics_20260824/index.md)*
+
