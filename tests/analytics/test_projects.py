@@ -169,3 +169,59 @@ class TestStashProjectUsageCalculator:
         summary = StashProjectUsageCalculator.aggregate_summary([])
         assert summary.project_count == 0
         assert summary.total_yards_consumed == 0.0
+
+    def test_correlate_from_histories(self):
+        stash = sample_stash_items()
+        histories = {
+            10: [
+                {
+                    "id": "entry-1",
+                    "date": "2026-08-20",
+                    "skeins": -1.5,
+                    "yards": -315.0,
+                    "grams": -150.0,
+                    "project_name": "Autumn Beanie",
+                    "project_id": 901,
+                    "pattern_name": "Ribbed Watch Cap",
+                }
+            ]
+        }
+        records = StashProjectUsageCalculator.correlate_projects_and_stash(
+            stash_items=stash,
+            projects=[],
+            histories=histories,
+        )
+        assert len(records) == 1
+        assert records[0].project_name == "Autumn Beanie"
+        assert records[0].project_id == 901
+        assert records[0].pattern_name == "Ribbed Watch Cap"
+        assert records[0].yards_used == 315.0
+        assert records[0].skeins_used == 1.5
+        assert records[0].stash_id == 10
+        assert records[0].yarn_name == "Malabrigo Rios - Blue"
+
+    def test_correlate_from_stash_item_packs(self):
+        item = StashItem(
+            id=30,
+            name="Tosh Merino Light",
+            permalink="tosh-merino-light",
+            skeins=2.0,
+            total_yards=840.0,
+            packs=[
+                Pack(
+                    id=555,
+                    project_id=888,
+                    colorway="Glazed Pecan",
+                    skeins=1.0,
+                    total_yards=420.0,
+                    total_grams=100.0,
+                )
+            ],
+        )
+        records = StashProjectUsageCalculator.correlate_projects_and_stash([item], [])
+        assert len(records) == 1
+        assert records[0].project_id == 888
+        assert records[0].yards_used == 420.0
+        assert records[0].stash_id == 30
+
+

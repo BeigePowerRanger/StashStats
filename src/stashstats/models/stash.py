@@ -25,6 +25,12 @@ class Pack(BaseModel):
     stash_id: int | None = None
     """Associated stash item ID."""
 
+    project_id: int | None = None
+    """Associated project ID if allocated to a project."""
+
+    project_name: str | None = None
+    """Associated project name if allocated to a project."""
+
     yarn_id: int | None = None
     """Associated catalog yarn ID."""
 

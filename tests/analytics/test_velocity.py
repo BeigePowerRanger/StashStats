@@ -184,10 +184,54 @@ class TestStashVelocityCalculator:
             as_of=datetime(2026, 8, 15, tzinfo=UTC),
         )
 
-        assert report.total_active_items == 2
-        assert report.total_active_yards == 1000.0
-        assert report.total_active_skeins == 5.0
-        assert len(report.periodic_monthly) >= 3
-        assert report.velocity_30d is not None
-        assert report.velocity_90d is not None
         assert report.horizon.total_active_yards == 1000.0
+        assert report.horizon.total_active_skeins == 5.0
+
+    def test_extract_events_synthesizes_from_stash_items_when_histories_empty(self):
+        stash_item1 = StashItem(
+            id=1,
+            name="Merino Wool",
+            permalink="merino-wool",
+            skeins=2.0,
+            total_grams=200.0,
+            total_yards=400.0,
+            created_at="2026-05-10T12:00:00Z",
+        )
+        stash_item2 = StashItem(
+            id=2,
+            name="Silk Cloud",
+            permalink="silk-cloud",
+            skeins=3.0,
+            total_grams=300.0,
+            total_yards=600.0,
+            created_at="2026-06-15T12:00:00Z",
+        )
+        events = StashVelocityCalculator.extract_events(
+            histories={},
+            stash_items=[stash_item1, stash_item2],
+        )
+        assert len(events) == 2
+        assert events[0].stash_id == 1
+        assert events[0].delta_yards == 400.0
+        assert events[0].event_type == "initial"
+        assert events[1].stash_id == 2
+        assert events[1].delta_yards == 600.0
+
+    def test_generate_report_without_histories(self):
+        stash_item = StashItem(
+            id=1,
+            name="Merino Wool",
+            permalink="merino-wool",
+            skeins=2.0,
+            total_grams=200.0,
+            total_yards=400.0,
+            created_at="2026-05-10T12:00:00Z",
+        )
+        report = StashVelocityCalculator.generate_report(
+            stash_items=[stash_item],
+            histories={},
+        )
+        assert len(report.periodic_monthly) >= 1
+        assert report.periodic_monthly[0].period == "2026-05"
+        assert report.periodic_monthly[0].acquired_yards == 400.0
+

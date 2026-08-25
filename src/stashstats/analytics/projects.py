@@ -14,13 +14,15 @@ class StashProjectUsageCalculator:
     def correlate_projects_and_stash(
         cls,
         stash_items: list[StashItem],
-        projects: list[Project],
+        projects: list[Project] | None = None,
+        histories: dict[int, Any] | list[Any] | None = None,
     ) -> list[ProjectUsageRecord]:
-        """Match project yarn allocations to stash items and extract usage records.
+        """Match project yarn allocations, packs, and usage ledger entries to stash items.
 
         Args:
             stash_items: List of user's StashItem records.
-            projects: List of user's Project records with packs.
+            projects: Optional list of user's Project records with packs.
+            histories: Optional mapping of stash_id to history ledger records or list of entries.
 
         Returns:
             List of ProjectUsageRecord correlation objects.
@@ -33,14 +35,15 @@ class StashProjectUsageCalculator:
                 stash_by_yarn.setdefault(yarn_id, []).append(item)
 
         results: list[ProjectUsageRecord] = []
+        seen_keys: set[tuple[int | None, int | None, str | None]] = set()
 
-        for proj in projects:
+        # 1. Correlate from external Project records
+        for proj in (projects or []):
             for pack in getattr(proj, "packs", []):
                 matched_stash: StashItem | None = None
                 if pack.stash_id and pack.stash_id in stash_by_id:
                     matched_stash = stash_by_id[pack.stash_id]
                 elif pack.yarn_id and pack.yarn_id in stash_by_yarn:
-                    # Match by colorway or pick first
                     candidates = stash_by_yarn[pack.yarn_id]
                     matched_stash = next(
                         (c for c in candidates if c.colorway_name == pack.colorway),
@@ -64,6 +67,9 @@ class StashProjectUsageCalculator:
                     if grams == 0.0 and pack.grams_per_skein and skeins:
                         grams = pack.grams_per_skein * skeins
 
+                    rec_key = (proj.id, stash_id, pack.colorway)
+                    seen_keys.add(rec_key)
+
                     results.append(
                         ProjectUsageRecord(
                             project_id=proj.id,
@@ -81,6 +87,94 @@ class StashProjectUsageCalculator:
                             grams_used=round(grams, 2),
                         )
                     )
+
+        # 2. Correlate from StashItem packs
+        for item in stash_items:
+            for pack in getattr(item, "packs", []):
+                if not pack:
+                    continue
+                proj_id = getattr(pack, "project_id", None)
+                if proj_id and (proj_id, item.id, pack.colorway) not in seen_keys:
+                    skeins = pack.skeins or 0.0
+                    yards = pack.total_yards or 0.0
+                    if yards == 0.0 and getattr(pack, "yards_per_skein", None) and skeins:
+                        yards = pack.yards_per_skein * skeins
+                    meters = pack.total_meters or (yards * 0.9144 if yards else 0.0)
+                    grams = pack.total_grams or 0.0
+                    if grams == 0.0 and getattr(pack, "grams_per_skein", None) and skeins:
+                        grams = pack.grams_per_skein * skeins
+
+                    seen_keys.add((proj_id, item.id, pack.colorway))
+                    results.append(
+                        ProjectUsageRecord(
+                            project_id=proj_id,
+                            project_name=f"Project #{proj_id}",
+                            pattern_name=None,
+                            status_name="In progress",
+                            craft_name=None,
+                            completed_date=None,
+                            stash_id=item.id,
+                            yarn_name=item.name or (item.yarn.name if item.yarn else "Stash Yarn"),
+                            colorway=pack.colorway or item.colorway_name,
+                            skeins_used=round(skeins, 2),
+                            yards_used=round(yards, 2),
+                            meters_used=round(meters, 2),
+                            grams_used=round(grams, 2),
+                        )
+                    )
+
+        # 3. Correlate from histories dictionary or list
+        if histories:
+            hist_items: list[tuple[int | None, list[Any]]] = []
+            if isinstance(histories, dict):
+                for sid, hlist in histories.items():
+                    if hasattr(hlist, "entries"):
+                        hist_items.append((sid, getattr(hlist, "entries", [])))
+                    elif isinstance(hlist, list):
+                        hist_items.append((sid, hlist))
+            elif isinstance(histories, list):
+                hist_items.append((None, histories))
+
+            for sid, entries in hist_items:
+                matched_stash = stash_by_id.get(sid) if sid else None
+                for entry in entries:
+                    p_name = entry.get("project_name") if isinstance(entry, dict) else getattr(entry, "project_name", None)
+                    p_id = entry.get("project_id") if isinstance(entry, dict) else getattr(entry, "project_id", None)
+                    pat_name = entry.get("pattern_name") if isinstance(entry, dict) else getattr(entry, "pattern_name", None)
+
+                    if p_name or p_id:
+                        skeins = abs(entry.get("skeins", 0.0) if isinstance(entry, dict) else (getattr(entry, "skeins", 0.0) or 0.0))
+                        yards = abs(entry.get("yards", 0.0) or 0.0 if isinstance(entry, dict) else (getattr(entry, "yards", 0.0) or 0.0))
+                        grams = abs(entry.get("grams", 0.0) or 0.0 if isinstance(entry, dict) else (getattr(entry, "grams", 0.0) or 0.0))
+                        date_str = entry.get("date") if isinstance(entry, dict) else getattr(entry, "date", None)
+                        if not date_str and hasattr(entry, "timestamp"):
+                            date_str = entry.timestamp
+
+                        proj_display_name = p_name or f"Project #{p_id}"
+                        effective_stash_id = sid or (matched_stash.id if matched_stash else None)
+                        yarn_display_name = (
+                            matched_stash.name
+                            if matched_stash
+                            else (matched_stash.yarn.name if matched_stash and matched_stash.yarn else "Stash Yarn")
+                        )
+
+                        results.append(
+                            ProjectUsageRecord(
+                                project_id=p_id or 0,
+                                project_name=proj_display_name,
+                                pattern_name=pat_name,
+                                status_name="Finished",
+                                craft_name="Knitting",
+                                completed_date=date_str,
+                                stash_id=effective_stash_id,
+                                yarn_name=yarn_display_name,
+                                colorway=matched_stash.colorway_name if matched_stash else None,
+                                skeins_used=round(skeins, 2),
+                                yards_used=round(yards, 2),
+                                meters_used=round(yards * 0.9144, 2) if yards else 0.0,
+                                grams_used=round(grams, 2),
+                            )
+                        )
 
         return results
 
