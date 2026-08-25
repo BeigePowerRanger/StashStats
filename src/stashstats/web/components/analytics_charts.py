@@ -15,18 +15,18 @@ CHART_THEME = {
 }
 
 PALETTE = [
-    "#8b5cf6",  # Violet Purple
-    "#3b82f6",  # Royal Blue
-    "#ec4899",  # Vivid Berry Pink
-    "#06b6d4",  # Sky Cyan
-    "#a855f7",  # Amethyst Purple
-    "#d946ef",  # Orchid Magenta
-    "#6366f1",  # Indigo Iris
-    "#0ea5e9",  # Deep Sky Blue
-    "#f43f5e",  # Rose Pink
-    "#c084fc",  # Soft Lilac
-    "#2563eb",  # Cobalt Blue
-    "#db2777",  # Deep Rose
+    "#8b5cf6",  # Royal Violet Purple
+    "#06b6d4",  # Bright Cyan / Ocean Teal
+    "#f43f5e",  # Vivid Crimson Rose Pink
+    "#3b82f6",  # Rich Sapphire / Cobalt Blue
+    "#d946ef",  # Electric Orchid Magenta
+    "#2dd4bf",  # Mint Seafoam Teal
+    "#a855f7",  # Bright Amethyst Purple
+    "#fb7185",  # Soft Flamingo Pink
+    "#1d4ed8",  # Deep Midnight Blue
+    "#c084fc",  # Light Pastel Lavender
+    "#be185d",  # Deep Ruby Wine Plum
+    "#38bdf8",  # Sky Azure Blue
 ]
 
 
