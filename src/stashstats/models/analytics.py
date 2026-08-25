@@ -143,3 +143,69 @@ class StashVelocityReport(BaseModel):
 
     horizon: StashHorizon
     """Stash lifespan estimation."""
+
+
+class ProjectUsageRecord(BaseModel):
+    """Correlation record linking a stash item or yarn allocation to a project."""
+
+    project_id: int
+    """Ravelry project ID."""
+
+    project_name: str
+    """User project name."""
+
+    pattern_name: str | None = None
+    """Associated pattern title."""
+
+    status_name: str | None = None
+    """Project status (Finished, In progress, etc.)."""
+
+    craft_name: str | None = None
+    """Craft type (Knitting, Crochet, etc.)."""
+
+    completed_date: str | None = None
+    """Completion date if finished."""
+
+    stash_id: int | None = None
+    """Linked stash item ID."""
+
+    yarn_name: str | None = None
+    """Name or brand of the yarn used."""
+
+    colorway: str | None = None
+    """Colorway of the yarn pack."""
+
+    skeins_used: float = 0.0
+    """Skeins allocated to project."""
+
+    yards_used: float = 0.0
+    """Yards allocated to project."""
+
+    meters_used: float = 0.0
+    """Meters allocated to project."""
+
+    grams_used: float = 0.0
+    """Grams allocated to project."""
+
+
+class ProjectConsumptionSummary(BaseModel):
+    """Aggregate summary of projects made from stash."""
+
+    project_usages: list[ProjectUsageRecord] = Field(default_factory=list)
+    """Individual project-yarn usage links."""
+
+    total_yards_consumed: float = 0.0
+    """Total stash yards consumed in projects."""
+
+    total_meters_consumed: float = 0.0
+    """Total stash meters consumed in projects."""
+
+    total_grams_consumed: float = 0.0
+    """Total stash grams consumed in projects."""
+
+    total_skeins_consumed: float = 0.0
+    """Total stash skeins consumed in projects."""
+
+    project_count: int = 0
+    """Unique count of projects made from stash."""
+
