@@ -60,6 +60,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Stash Consumption Velocity & Analytics Engine**
+- [~] **Track: Stash Consumption Velocity & Analytics Engine**
   *Link: [./tracks/stash_analytics_20260824/index.md](./tracks/stash_analytics_20260824/index.md)*
 
