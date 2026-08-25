@@ -95,13 +95,14 @@ def create_fiber_donut_chart(
 
     slice_colors = [PALETTE[i % len(PALETTE)] for i in range(len(labels))]
 
+    theme = {**CHART_THEME, "margin": {"l": 10, "r": 10, "t": 20, "b": 20}}
     fig = go.Figure(
         data=[
             go.Pie(
                 labels=labels,
                 values=values,
                 hole=0.55,
-                domain={"x": [0, 1], "y": [0.22, 1.0]},
+                domain={"x": [0, 0.62], "y": [0, 1]},
                 textinfo="percent",
                 marker={
                     "colors": slice_colors,
@@ -112,11 +113,10 @@ def create_fiber_donut_chart(
         ]
     )
 
-    theme = {**CHART_THEME, "margin": {"l": 25, "r": 25, "t": 25, "b": 35}}
     fig.update_layout(
         **theme,
         showlegend=True,
-        legend={"orientation": "h", "yanchor": "top", "y": 0.15, "xanchor": "center", "x": 0.5},
+        legend={"orientation": "v", "yanchor": "middle", "y": 0.5, "xanchor": "left", "x": 0.66},
     )
     return fig
 
@@ -568,14 +568,14 @@ def create_projects_pie_chart(
         return _create_empty_figure("No project yarn consumption recorded")
 
     slice_colors = [PALETTE[i % len(PALETTE)] for i in range(len(labels))]
-
+    theme = {**CHART_THEME, "margin": {"l": 10, "r": 10, "t": 20, "b": 20}}
     fig = go.Figure(
         data=[
             go.Pie(
                 labels=labels,
                 values=values,
                 hole=0.55,
-                domain={"x": [0, 1], "y": [0.22, 1.0]},
+                domain={"x": [0, 0.62], "y": [0, 1]},
                 textinfo="percent",
                 marker={
                     "colors": slice_colors,
@@ -586,11 +586,10 @@ def create_projects_pie_chart(
         ]
     )
 
-    theme = {**CHART_THEME, "margin": {"l": 25, "r": 25, "t": 25, "b": 35}}
     fig.update_layout(
         **theme,
         showlegend=True,
-        legend={"orientation": "h", "yanchor": "top", "y": 0.15, "xanchor": "center", "x": 0.5},
+        legend={"orientation": "v", "yanchor": "middle", "y": 0.5, "xanchor": "left", "x": 0.66},
     )
     return fig
 
