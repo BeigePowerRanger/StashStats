@@ -651,7 +651,21 @@ def create_stash_modal(
                                 className="bg-dark text-light border-secondary",
                             ),
                         ],
-                        md=6,
+                        md=4,
+                        className="mb-3",
+                    ),
+                    dbc.Col(
+                        [
+                            dbc.Label("Date Added", className="small text-light fw-bold"),
+                            dbc.Input(
+                                id="modal-input-date-added",
+                                type="text",
+                                value=str(created_at).split("T")[0].split(" ")[0].replace("/", "-") if created_at else "—",
+                                disabled=True,
+                                className="bg-dark text-muted border-secondary",
+                            ),
+                        ],
+                        md=3,
                         className="mb-3",
                     ),
                     dbc.Col(
@@ -667,7 +681,7 @@ def create_stash_modal(
                                 className="bg-dark text-light border-secondary",
                             ),
                         ],
-                        md=3,
+                        md=2,
                         className="mb-3",
                     ),
                     dbc.Col(
