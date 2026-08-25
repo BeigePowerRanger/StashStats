@@ -17,6 +17,6 @@
 - [x] Task: Phase 3 Checkpoint [e5a48a6]
 
 ## Phase 4: Stash Item Modal & Row Project Badges (TDD)
-- [ ] Task: Unit tests for linked project consumption display in stash modal/view
-- [ ] Task: Render linked project badges/history in `src/stashstats/web/components/modal.py`
-- [ ] Task: Phase 4 Checkpoint & Full Verification
+- [x] Task: Unit tests for linked project consumption display in stash modal/view [45b0ce5]
+- [x] Task: Render linked project badges/history in `src/stashstats/web/components/modal.py` [45b0ce5]
+- [x] Task: Phase 4 Checkpoint & Full Verification [45b0ce5]
