@@ -31,9 +31,9 @@
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 4: Dash Callbacks & End-to-End Verification
-- [ ] Task: Implement reactive callbacks for Stash Analytics in `src/stashstats/web/callbacks/analytics.py`
-    - [ ] Create tests in `tests/test_web_callbacks_analytics.py`
-    - [ ] Implement filter callbacks and metric/chart update handlers
+- [x] Task: Implement reactive callbacks for Stash Analytics in `src/stashstats/web/callbacks/analytics.py` [659252e]
+    - [x] Create tests in `tests/test_web_callbacks_analytics.py`
+    - [x] Implement filter callbacks and metric/chart update handlers
 - [ ] Task: Register callbacks in `src/stashstats/web/app.py` and verify full suite
     - [ ] Register analytics callbacks in Dash app factory
     - [ ] Run full automated test suite and Playwright/UI integration checks
