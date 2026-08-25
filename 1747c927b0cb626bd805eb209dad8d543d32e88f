@@ -1,0 +1,3 @@
+Phase 3 Verification Checkpoint
+Automated Tests: CI=true PYTHONPATH=. .venv/bin/pytest tests/ (241 passed)
+Phase Scope: Plotly Analytics Charts, KPI summary cards, filter bar, and Stash Analytics page layout integration.
