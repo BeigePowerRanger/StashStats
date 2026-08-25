@@ -192,6 +192,16 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
         raw_stash_data: list[dict[str, Any]] | None,
         unit: str | None,
     ):
+        if not raw_stash_data and getattr(app, "client", None) is not None:
+            try:
+                stash_resp = app.client.get_my_stash()
+                raw_stash_data = [
+                    it.model_dump() if hasattr(it, "model_dump") else it
+                    for it in stash_resp.stash
+                ]
+            except Exception:
+                pass
+
         return update_analytics_dashboard_logic(
             raw_stash_data=raw_stash_data,
             raw_projects_data=None,
