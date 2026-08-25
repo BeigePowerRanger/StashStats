@@ -139,24 +139,34 @@ class StashProjectUsageCalculator:
                 if not pack:
                     continue
                 proj_id = _safe_get(pack, "project_id")
-                proj_name = _safe_get(pack, "project_name") or (f"Project #{proj_id}" if proj_id else None)
+                proj_name = _safe_get(pack, "project_name")
+                if proj_id:
+                    try:
+                        if int(proj_id) == 0:
+                            proj_id = None
+                    except (ValueError, TypeError):
+                        pass
+                if proj_name and not str(proj_name).strip():
+                    proj_name = None
+
                 pack_colorway = _safe_get(pack, "colorway") or item_colorway
 
+                # Only correlate if explicitly linked to a project
                 if proj_id or proj_name:
-                    skeins = _safe_get(pack, "skeins") or _safe_get(item, "skeins") or 0.0
-                    yards = _safe_get(pack, "total_yards") or _safe_get(item, "total_yards") or 0.0
-                    grams = _safe_get(pack, "total_grams") or _safe_get(item, "total_grams") or 0.0
+                    skeins = _safe_get(pack, "skeins") or 0.0
+                    yards = _safe_get(pack, "total_yards") or 0.0
+                    grams = _safe_get(pack, "total_grams") or 0.0
                     yards_per_skein = _safe_get(pack, "yards_per_skein")
                     grams_per_skein = _safe_get(pack, "grams_per_skein")
                     if yards == 0.0 and yards_per_skein and skeins:
                         yards = float(yards_per_skein) * float(skeins)
-                    elif yards == 0.0 and skeins:
-                        yards = float(skeins) * 200.0
                     if grams == 0.0 and grams_per_skein and skeins:
                         grams = float(grams_per_skein) * float(skeins)
-                    elif grams == 0.0 and skeins:
-                        grams = float(skeins) * 100.0
                     meters = _safe_get(pack, "total_meters") or (yards * 0.9144 if yards else 0.0)
+
+                    # Only if yarn was actually used
+                    if float(skeins or 0.0) <= 0 and float(yards or 0.0) <= 0 and float(grams or 0.0) <= 0:
+                        continue
 
                     rec_key = (proj_id or proj_name, item_id, pack_colorway)
                     if rec_key not in seen_keys:
@@ -201,26 +211,59 @@ class StashProjectUsageCalculator:
                 )
 
                 for entry in entries:
-                    skeins = abs(float(_safe_get(entry, "skeins") or 0.0))
-                    delta_skeins = abs(float(_safe_get(entry, "delta_skeins") or 0.0))
-                    effective_skeins = skeins or delta_skeins
-
-                    # Skip non-consumption entries (0 skeins used and 0 yards/grams)
-                    raw_yds = abs(float(_safe_get(entry, "yards") or _safe_get(entry, "delta_yards") or 0.0))
-                    raw_g = abs(float(_safe_get(entry, "grams") or _safe_get(entry, "delta_grams") or 0.0))
-                    if effective_skeins <= 0 and raw_yds <= 0 and raw_g <= 0:
+                    event_type = _safe_get(entry, "event_type")
+                    # If this is an initial purchase/acquisition entry, SKIP IT!
+                    if event_type in ("initial", "acquired", "purchase", "in_stash"):
                         continue
 
-                    p_name = _safe_get(entry, "project_name")
-                    p_id = _safe_get(entry, "project_id")
-                    pat_name = _safe_get(entry, "pattern_name")
-                    notes = _safe_get(entry, "notes")
+                    raw_skeins = float(_safe_get(entry, "skeins") or 0.0)
+                    raw_delta_skeins = float(_safe_get(entry, "delta_skeins") or 0.0)
+                    raw_yds = float(_safe_get(entry, "yards") or _safe_get(entry, "delta_yards") or 0.0)
+                    raw_g = float(_safe_get(entry, "grams") or _safe_get(entry, "delta_grams") or 0.0)
 
-                    proj_display_name = p_name or (f"Project #{p_id}" if p_id else (notes.strip() if notes and notes.strip() else f"{yarn_display_name} Project"))
+                    p_name = (_safe_get(entry, "project_name") or "").strip() or None
+                    p_id = _safe_get(entry, "project_id")
+                    if p_id:
+                        try:
+                            if int(p_id) == 0:
+                                p_id = None
+                        except (ValueError, TypeError):
+                            pass
+                    pat_name = (_safe_get(entry, "pattern_name") or "").strip() or None
+                    notes = (_safe_get(entry, "notes") or "").strip() or None
+
+                    # Only consumption events count as used yarn
+                    is_consumption = (
+                        event_type in ("consumed", "usage", "used")
+                        or raw_delta_skeins < 0
+                        or raw_skeins < 0
+                        or raw_yds < 0
+                        or raw_g < 0
+                        or (p_name is not None or p_id is not None)
+                    )
+
+                    if not is_consumption:
+                        continue
+
+                    effective_skeins = (
+                        abs(raw_delta_skeins)
+                        if raw_delta_skeins < 0
+                        else (abs(raw_skeins) if raw_skeins < 0 else (abs(raw_skeins) if (p_name or p_id) else 0.0))
+                    )
+                    used_yards = abs(raw_yds) if raw_yds < 0 else (abs(raw_yds) if (p_name or p_id) else 0.0)
+                    used_grams = abs(raw_g) if raw_g < 0 else (abs(raw_g) if (p_name or p_id) else 0.0)
+
+                    if effective_skeins <= 0 and used_yards <= 0 and used_grams <= 0:
+                        continue
+
+                    proj_display_name = (
+                        p_name
+                        or (f"Project #{p_id}" if p_id else (pat_name if pat_name else (notes if notes else f"{yarn_display_name} Usage")))
+                    )
                     effective_stash_id = sid or (_safe_get(matched_stash, "id") if matched_stash else None)
 
-                    yards = raw_yds
-                    grams = raw_g
+                    yards = used_yards
+                    grams = used_grams
 
                     if yards == 0.0 and effective_skeins > 0:
                         if matched_stash and _safe_get(matched_stash, "total_yards") and _safe_get(matched_stash, "skeins"):

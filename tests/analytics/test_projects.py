@@ -241,31 +241,75 @@ class TestStashProjectUsageCalculator:
         assert records[0].skeins_used == 1.0
         assert records[0].yards_used == 210.0
 
-    def test_correlate_skips_zero_usage_projects(self):
-        stash = sample_stash_items()
-        zero_proj = Project(
-            id=999,
-            name="Unstarted Sweater",
-            status_name="In progress",
-            progress=0,
-            craft_name="Knitting",
+    def test_new_stash_yarn_addition_does_not_create_project_usage(self):
+        """Verify newly added stash items without logged usage never appear as projects."""
+        new_yarn = StashItem(
+            id=99,
+            name="New Hedgehog Fibres Skinny Singles",
+            permalink="new-hedgehog-fibres",
+            colorway_name="Boombox",
+            skeins=3.0,
+            total_yards=1200.0,
+            total_grams=300.0,
             packs=[
                 Pack(
-                    id=888,
-                    stash_id=10,
-                    yarn_id=101,
-                    skeins=0.0,
-                    total_yards=0.0,
-                    total_grams=0.0,
+                    id=777,
+                    colorway="Boombox",
+                    skeins=3.0,
+                    total_yards=1200.0,
+                    total_grams=300.0,
+                    project_id=None,
+                    project_name=None,
                 )
             ],
         )
         records = StashProjectUsageCalculator.correlate_projects_and_stash(
-            stash_items=stash,
-            projects=[zero_proj],
-            histories={},
+            stash_items=[new_yarn],
+            projects=[],
+            histories={
+                99: [
+                    {
+                        "event_type": "initial",
+                        "skeins": 3.0,
+                        "yards": 1200.0,
+                        "grams": 300.0,
+                        "date": "2026-08-25",
+                    }
+                ]
+            },
         )
         assert len(records) == 0
+
+    def test_initial_history_entries_ignored(self):
+        """Verify positive acquisition history entries are not treated as project usage."""
+        stash = sample_stash_items()
+        histories = {
+            10: [
+                {
+                    "event_type": "initial",
+                    "skeins": 2.0,
+                    "yards": 420.0,
+                    "grams": 200.0,
+                    "date": "2026-01-01",
+                }
+            ],
+            20: [
+                {
+                    "event_type": "acquired",
+                    "delta_skeins": 3.0,
+                    "delta_yards": 660.0,
+                    "delta_grams": 300.0,
+                    "date": "2026-01-01",
+                }
+            ],
+        }
+        records = StashProjectUsageCalculator.correlate_projects_and_stash(
+            stash_items=stash,
+            projects=[],
+            histories=histories,
+        )
+        assert len(records) == 0
+
 
 
 
