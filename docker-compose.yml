@@ -1,9 +1,9 @@
 services:
-  web:
+  web_dev:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: stashstats-web
+    container_name: stashstats-web-dev
     restart: unless-stopped
     command: python app.py
     ports:
@@ -24,12 +24,47 @@ services:
       cache:
         condition: service_healthy
 
+  stashstats-tailscale:
+    image: tailscale/tailscale:latest
+    container_name: stashstats-tailscale
+    hostname: stash-stats
+    environment:
+      - TS_AUTHKEY=${TS_AUTHKEY}
+      - TS_STATE_DIR=/var/lib/tailscale
+    volumes:
+      - tailscale-data:/var/lib/tailscale
+      - /dev/net/tun:/dev/net/tun
+    cap_add:
+      - net_admin
+      - sys_module
+    restart: unless-stopped
+
+  web_prod:
+    build: https://github.com/BeigePowerRanger/StashStats.git#main
+    container_name: stashstats-web-prod
+    restart: unless-stopped
+    command: python app.py
+    network_mode: service:stashstats-tailscale
+    env_file:
+      - .env
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8050
+      - APP_DEBUG=false
+      - REDIS_URL=redis://cache:6379/0
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    depends_on:
+      cache:
+        condition: service_healthy
+      stashstats-tailscale:
+        condition: service_started
+
   cache:
     image: redis:7-alpine
     container_name: stashstats-redis
     restart: unless-stopped
-    ports:
-      expose:
+    expose:
       - "6379"
     volumes:
       - redisdata:/data
@@ -42,3 +77,4 @@ services:
 
 volumes:
   redisdata:
+  tailscale-data:
