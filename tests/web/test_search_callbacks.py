@@ -546,3 +546,37 @@ def test_handle_add_to_stash_logic_offline_fallback() -> None:
     assert new_item["colorway_name"] == "Diana"
     assert new_item["stash_status"]["name"] == "In stash"
 
+
+def test_handle_yarn_search_callback_empty_query_search_btn() -> None:
+    """Verify clicking search button with empty query searches all popular yarns."""
+    mock_client = MagicMock()
+    mock_client.search_yarns.return_value = YarnSearchResponse(
+        paginator=Paginator(page=1, page_size=25, page_count=10, last_page=10, results=250),
+        yarns=make_mock_yarn_results(),
+    )
+
+    res = handle_yarn_search_callback(
+        client=mock_client,
+        triggered_id="yarn-search-btn",
+        n_clicks=1,
+        query_submit=None,
+        brand_submit=None,
+        sort_val=None,
+        active_page=1,
+        query_val="",
+        brand_val="",
+        paginator_store=None,
+    )
+
+    accordion, total_pages, page, info, results_store, _ = res
+    mock_client.search_yarns.assert_called_once_with(
+        query="",
+        page=1,
+        page_size=25,
+        sort="best",
+    )
+    assert page == 1
+    assert total_pages == 10
+    assert "Showing page 1 of 10" in info
+    assert len(results_store) == 2
+

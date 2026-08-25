@@ -51,6 +51,7 @@ def update_yarn_search_logic(
     sort: str | None = "best_match",
     active_page: int | None = 1,
     page_size: int = 25,
+    allow_empty_search: bool = False,
 ) -> tuple[Any, int, int, str, list[dict[str, Any]], dict[str, Any]]:
     """Execute yarn search against Ravelry API and format UI results.
 
@@ -61,6 +62,7 @@ def update_yarn_search_logic(
         sort: Sort category selection.
         active_page: Target page number (1-indexed).
         page_size: Results per page count.
+        allow_empty_search: Whether to execute search even when query string is empty.
 
     Returns:
         Tuple containing:
@@ -106,8 +108,8 @@ def update_yarn_search_logic(
             },
         )
 
-    # 2. Empty search input -> return empty search state with informative info text
-    if not search_str:
+    # 2. Empty search input -> return empty search state with informative info text if not explicitly searching
+    if not search_str and not allow_empty_search:
         accordion = create_yarn_search_accordion([])
         return (
             accordion,
@@ -224,6 +226,7 @@ def handle_yarn_search_callback(
         sort = sort_val
         page = 1
 
+    allow_empty = bool(triggered_id in ("yarn-search-btn", "yarn-search-query-input", "yarn-search-brand-input", "yarn-search-sort-input", "yarn-search-pagination"))
     return update_yarn_search_logic(
         client=client,
         query=query,
@@ -231,6 +234,7 @@ def handle_yarn_search_callback(
         sort=sort,
         active_page=page,
         page_size=page_size,
+        allow_empty_search=allow_empty,
     )
 
 
