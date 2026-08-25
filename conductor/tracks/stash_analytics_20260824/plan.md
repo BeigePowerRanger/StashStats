@@ -7,9 +7,9 @@
 - [x] Task: Implement `StashVelocityCalculator` in `src/stashstats/analytics/velocity.py` [fd800aa]
     - [x] Create tests in `tests/test_analytics_velocity.py`
     - [x] Implement event extraction, periodic rollups, rolling velocity windows, and lifespan horizon calculations
-- [ ] Task: Implement stash inventory distribution aggregators
-    - [ ] Create tests in `tests/test_analytics_distributions.py`
-    - [ ] Implement distribution functions for yarn weight, fiber content, color family, and brand aggregations
+- [x] Task: Implement stash inventory distribution aggregators [ba69afd]
+    - [x] Create tests in `tests/test_analytics_distributions.py`
+    - [x] Implement distribution functions for yarn weight, fiber content, color family, and brand aggregations
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Client & Storage Integration
