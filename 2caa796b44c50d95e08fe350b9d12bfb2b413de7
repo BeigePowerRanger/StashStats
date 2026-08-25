@@ -1,0 +1,3 @@
+Task: create_projects_pie_chart
+Files: src/stashstats/web/components/analytics_charts.py, tests/web/test_analytics_charts.py
+Why: Render pie chart of stash yarn consumption by project
