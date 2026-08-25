@@ -18,6 +18,8 @@ services:
       - PORT=8050
       - APP_DEBUG=true
       - REDIS_URL=redis://cache:6379/0
+      - API_USERNAME=${DEV_USERNAME}
+      - API_KEY=${DEV_API_KEY}
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
     depends_on:
@@ -52,6 +54,8 @@ services:
       - PORT=8050
       - APP_DEBUG=false
       - REDIS_URL=redis://cache:6379/0
+      - API_USERNAME=${PROD_USERNAME}
+      - API_KEY=${PROD_API_KEY}
       - PYTHONUNBUFFERED=1
       - PYTHONDONTWRITEBYTECODE=1
     depends_on:
