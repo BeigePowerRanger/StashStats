@@ -1,0 +1,3 @@
+Task: Implement stash inventory distribution aggregators
+Files: src/stashstats/analytics/distributions.py, src/stashstats/analytics/__init__.py, tests/analytics/test_distributions.py
+Why: Computes breakdown metrics by yarn weight, fiber category, color family, and yarn brand with count, yardage, weight, and percentages.
