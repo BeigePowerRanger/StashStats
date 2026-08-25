@@ -76,7 +76,6 @@ def create_analytics_layout(
     )
 
     filter_bar = create_analytics_filter_bar(
-        yarn_weights=resolved_weights,
         color_families=resolved_colors,
         active_unit=unit,
     )

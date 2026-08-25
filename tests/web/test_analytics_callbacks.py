@@ -73,7 +73,6 @@ class TestAnalyticsCallbacks:
         raw = sample_raw_stash()
         res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
-            selected_weights=None,
             selected_colors=None,
             search_query=None,
             unit="yards",
@@ -101,7 +100,6 @@ class TestAnalyticsCallbacks:
         raw = sample_raw_stash()
         res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
-            selected_weights=None,
             selected_colors=None,
             search_query=None,
             unit="meters",
@@ -123,7 +121,6 @@ class TestAnalyticsCallbacks:
         raw = sample_raw_stash()
         res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
-            selected_weights=None,
             selected_colors=None,
             search_query=None,
             unit="grams",
@@ -145,7 +142,6 @@ class TestAnalyticsCallbacks:
         raw = sample_raw_stash()
         res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
-            selected_weights=None,
             selected_colors=None,
             search_query=None,
             unit="skeins",
@@ -163,12 +159,11 @@ class TestAnalyticsCallbacks:
         weight_fig = res[2]
         assert "Skeins" in weight_fig.layout.yaxis.title.text
 
-    def test_filter_by_weight(self):
+    def test_filter_by_color(self):
         raw = sample_raw_stash()
         res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
-            selected_weights=["Worsted"],
-            selected_colors=None,
+            selected_colors=["Green"],
             search_query=None,
             unit="yards",
             min_grams=None,
@@ -180,20 +175,19 @@ class TestAnalyticsCallbacks:
             min_skeins=None,
             max_skeins=None,
             reset_clicks=None,
-            triggered_id="analytics-filter-weight",
+            triggered_id="analytics-filter-color",
         )
         weight_fig = res[2]
 
-        # Only 2 worsted items (total 850 yards)
+        # Only 1 green item (880 yards)
         assert isinstance(weight_fig, go.Figure)
-        assert list(weight_fig.data[0].x) == ["Worsted"]
-        assert list(weight_fig.data[0].y) == [850.0]
+        assert list(weight_fig.data[0].x) == ["Fingering"]
+        assert list(weight_fig.data[0].y) == [880.0]
 
     def test_filter_by_grams(self):
         raw = sample_raw_stash()
         res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
-            selected_weights=None,
             selected_colors=None,
             search_query=None,
             unit="yards",
@@ -216,7 +210,6 @@ class TestAnalyticsCallbacks:
         raw = sample_raw_stash()
         res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
-            selected_weights=None,
             selected_colors=None,
             search_query=None,
             unit="yards",
@@ -240,7 +233,6 @@ class TestAnalyticsCallbacks:
         raw = sample_raw_stash()
         res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
-            selected_weights=None,
             selected_colors=None,
             search_query=None,
             unit="yards",
@@ -263,7 +255,6 @@ class TestAnalyticsCallbacks:
         raw = sample_raw_stash()
         res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
-            selected_weights=None,
             selected_colors=None,
             search_query=None,
             unit="yards",
@@ -286,7 +277,6 @@ class TestAnalyticsCallbacks:
         raw = sample_raw_stash()
         res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
-            selected_weights=["Worsted"],
             selected_colors=["Blue"],
             search_query="Cascade",
             unit="meters",
@@ -310,7 +300,6 @@ class TestAnalyticsCallbacks:
             flow_fig,
             vel_fig,
             unit_val,
-            w_val,
             c_val,
             s_val,
             min_g,
@@ -324,7 +313,6 @@ class TestAnalyticsCallbacks:
         ) = res
 
         assert unit_val == "yards"
-        assert w_val is None
         assert c_val is None
         assert s_val is None
         assert min_g is None

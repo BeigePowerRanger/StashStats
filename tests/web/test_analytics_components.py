@@ -74,7 +74,6 @@ class TestAnalyticsComponents:
 
     def test_create_analytics_filter_bar(self):
         filter_bar = create_analytics_filter_bar(
-            yarn_weights=["Worsted", "Fingering", "DK"],
             color_families=["Blue", "Green", "Red"],
             active_unit="meters",
         )

@@ -25,7 +25,6 @@ logger = logging.getLogger("stashstats.web.analytics")
 
 def _filter_stash_item(
     item: StashItem,
-    selected_weights: list[str] | None = None,
     selected_colors: list[str] | None = None,
     search_query: str | None = None,
     min_grams: float | None = None,
@@ -38,24 +37,13 @@ def _filter_stash_item(
     max_skeins: float | None = None,
 ) -> bool:
     """Check if a StashItem satisfies current filter criteria."""
-    # 1. Weight filter
-    if selected_weights:
-        weight_name = (
-            item.yarn_weight_name
-            or (item.yarn.yarn_weight.name if item.yarn and item.yarn.yarn_weight else None)
-            or (item.personal_yarn_weight.name if item.personal_yarn_weight else None)
-            or "Uncategorized"
-        )
-        if weight_name not in selected_weights:
-            return False
-
-    # 2. Color filter
+    # 1. Color filter
     if selected_colors:
         color_name = item.color_family_name or "Uncategorized"
         if color_name not in selected_colors:
             return False
 
-    # 3. Search query filter
+    # 2. Search query filter
     if search_query and search_query.strip():
         q = search_query.strip().lower()
         searchable_text = " ".join(
@@ -74,7 +62,7 @@ def _filter_stash_item(
         if q not in searchable_text:
             return False
 
-    # 4. Quantity filters (Grams, Yards, Meters, Skeins)
+    # 3. Quantity filters (Grams, Yards, Meters, Skeins)
     grams = (
         item.total_grams
         if item.total_grams is not None
@@ -142,7 +130,6 @@ def _filter_stash_item(
 
 def update_analytics_dashboard_logic(
     raw_stash_data: list[dict[str, Any]] | None,
-    selected_weights: list[str] | None = None,
     selected_colors: list[str] | None = None,
     search_query: str | None = None,
     unit: str = "yards",
@@ -161,10 +148,9 @@ def update_analytics_dashboard_logic(
 
     Returns:
         tuple containing (kpi_cards, fiber_fig, weight_fig, timeline_fig, flow_fig, velocity_fig,
-        unit_val, weight_val, color_val, search_val, min_g, max_g, min_y, max_y, min_m, max_m, min_sk, max_sk).
+        unit_val, color_val, search_val, min_g, max_g, min_y, max_y, min_m, max_m, min_sk, max_sk).
     """
     if triggered_id == "analytics-filter-reset":
-        selected_weights = None
         selected_colors = None
         search_query = None
         unit = "yards"
@@ -193,7 +179,6 @@ def update_analytics_dashboard_logic(
         for item in stash_items
         if _filter_stash_item(
             item,
-            selected_weights=selected_weights,
             selected_colors=selected_colors,
             search_query=search_query,
             min_grams=min_grams,
@@ -278,7 +263,6 @@ def update_analytics_dashboard_logic(
         flow_fig,
         velocity_fig,
         unit,
-        selected_weights,
         selected_colors,
         search_query,
         min_grams,
@@ -303,7 +287,6 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
         Output("analytics-flow-chart", "figure"),
         Output("analytics-velocity-chart", "figure"),
         Output("analytics-unit-selector", "value"),
-        Output("analytics-filter-weight", "value"),
         Output("analytics-filter-color", "value"),
         Output("analytics-filter-search", "value"),
         Output("analytics-filter-min-grams", "value"),
@@ -316,7 +299,6 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
         Output("analytics-filter-max-skeins", "value"),
         Input("stash-raw-store", "data"),
         Input("analytics-unit-selector", "value"),
-        Input("analytics-filter-weight", "value"),
         Input("analytics-filter-color", "value"),
         Input("analytics-filter-search", "value"),
         Input("analytics-filter-min-grams", "value"),
@@ -333,7 +315,6 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
     def update_analytics_dashboard(
         raw_stash_data: list[dict[str, Any]] | None,
         unit: str | None,
-        selected_weights: list[str] | None,
         selected_colors: list[str] | None,
         search_query: str | None,
         min_grams: float | None,
@@ -351,7 +332,6 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
 
         return update_analytics_dashboard_logic(
             raw_stash_data=raw_stash_data,
-            selected_weights=selected_weights,
             selected_colors=selected_colors,
             search_query=search_query,
             unit=unit or "yards",

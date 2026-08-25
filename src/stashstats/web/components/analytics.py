@@ -149,21 +149,18 @@ def create_kpi_summary_cards(
 
 
 def create_analytics_filter_bar(
-    yarn_weights: list[str] | None = None,
     color_families: list[str] | None = None,
     active_unit: str = "yards",
 ) -> dbc.Card:
     """Create interactive filter controls and unit toggle for the analytics dashboard.
 
     Args:
-        yarn_weights: Optional list of yarn weight options.
         color_families: Optional list of color family options.
         active_unit: Initial selected metric unit ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
         dbc.Card containing interactive filter inputs.
     """
-    weight_options = [{"label": w, "value": w} for w in (yarn_weights or [])]
     color_options = [{"label": c, "value": c} for c in (color_families or [])]
 
     return dbc.Card(
@@ -193,25 +190,9 @@ def create_analytics_filter_bar(
                         ),
                     ]
                 ),
-                # Row 1: Weight, Color, Search, and Reset
+                # Row 1: Color, Search, and Reset
                 dbc.Row(
                     [
-                        dbc.Col(
-                            [
-                                dbc.Label("Filter by Yarn Weight", className="small text-muted mb-1"),
-                                dcc.Dropdown(
-                                    id="analytics-filter-weight",
-                                    options=weight_options,
-                                    multi=True,
-                                    placeholder="All yarn weights...",
-                                    className="dash-bootstrap",
-                                    style={"color": "#222"},
-                                ),
-                            ],
-                            xs=12,
-                            md=4,
-                            className="mb-2 mb-md-0",
-                        ),
                         dbc.Col(
                             [
                                 dbc.Label("Filter by Color Family", className="small text-muted mb-1"),
@@ -225,7 +206,7 @@ def create_analytics_filter_bar(
                                 ),
                             ],
                             xs=12,
-                            md=4,
+                            md=5,
                             className="mb-2 mb-md-0",
                         ),
                         dbc.Col(
@@ -239,7 +220,7 @@ def create_analytics_filter_bar(
                                 ),
                             ],
                             xs=12,
-                            md=3,
+                            md=5,
                             className="mb-2 mb-md-0",
                         ),
                         dbc.Col(
@@ -254,7 +235,7 @@ def create_analytics_filter_bar(
                                 ),
                             ],
                             xs=12,
-                            md=1,
+                            md=2,
                             className="d-flex align-items-end",
                         ),
                     ],
