@@ -77,6 +77,8 @@ def handle_history_rollback(
         usage_index=triggered_index,
         history=history,
     )
+    updated_stash["history"] = updated_history
+    updated_stash["usage_history"] = updated_history
 
     # Sync with Ravelry if client is present
     if client and updated_stash.get("id"):
@@ -154,6 +156,8 @@ def handle_save_modal(
             pattern_name=pattern_name,
         )
         history.insert(0, entry)
+        stash["history"] = history
+        stash["usage_history"] = history
 
         if client and stash.get("id"):
             try:
