@@ -1,12 +1,12 @@
 # Implementation Plan: Prod/Dev Scaffolding & Multi-User API Storage
 
-## Phase 1: Environment Variables Updates
-- [ ] Task: Update Environment Templates
-  - [ ] Remove `RAVELRY_USERNAME` and `DATABASE_URL` from `.env.example`.
-  - [ ] Add `DEV_USERNAME`, `DEV_API_KEY`, `PROD_USERNAME`, and `PROD_API_KEY` to `.env.example`.
-- [ ] Task: Update Application Configuration
-  - [ ] Ensure application config validation (e.g., Pydantic settings) is updated to require/support the new DEV/PROD environment variables.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 1: Environment Variables Updates [checkpoint: b5cd93a]
+- [x] Task: Update Environment Templates [e18665e]
+  - [x] Remove `RAVELRY_USERNAME` and `DATABASE_URL` from `.env.example`.
+  - [x] Add `DEV_USERNAME`, `DEV_API_KEY`, `PROD_USERNAME`, and `PROD_API_KEY` to `.env.example`.
+- [x] Task: Update Application Configuration [e18665e]
+  - [x] Ensure application config validation (e.g., Pydantic settings) is updated to require/support the new DEV/PROD environment variables.
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [b5cd93a]
 
 ## Phase 2: Docker Compose Stack Refactor
 - [ ] Task: Refactor Dev Service
