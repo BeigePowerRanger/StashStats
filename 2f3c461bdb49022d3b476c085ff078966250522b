@@ -1,0 +1,3 @@
+Phase 2 Verification Checkpoint
+Automated Tests: CI=true PYTHONPATH=. .venv/bin/pytest tests/ (228 passed)
+Phase Scope: RavelryClient.get_stash_velocity_report and analytics batch retrieval.
