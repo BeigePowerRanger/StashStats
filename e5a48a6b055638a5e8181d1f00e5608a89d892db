@@ -1,0 +1,3 @@
+Task: Embed projects chart into analytics layout and callbacks
+Files: src/stashstats/web/layouts/analytics.py, src/stashstats/web/callbacks/analytics.py
+Why: Render project stash consumption chart in analytics dashboard
