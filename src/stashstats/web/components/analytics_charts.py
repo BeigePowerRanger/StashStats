@@ -307,8 +307,6 @@ def create_stash_by_time_chart(
         )
         return fig
 
-    return _create_empty_figure("No stash timeline data available")
-
 
 def create_monthly_flow_chart(
     rollups: list[PeriodicRollup],
