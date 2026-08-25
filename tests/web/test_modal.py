@@ -194,6 +194,34 @@ def test_apply_usage_to_stash() -> None:
     assert ledger_entry["notes"] == "Beanie project"
 
 
+def test_apply_usage_to_stash_with_project_details() -> None:
+    """Verify apply_usage_to_stash records project_name, project_id, and pattern_name in ledger."""
+    stash = {
+        "id": 123,
+        "name": "Rios",
+        "skeins": 4.0,
+        "total_yards": 840.0,
+        "total_grams": 400.0,
+        "yards_per_skein": 210.0,
+        "grams_per_skein": 100.0,
+        "stash_status": {"id": 1, "name": "In stash"},
+    }
+
+    updated_stash, ledger_entry = apply_usage_to_stash(
+        stash_item=stash,
+        used_skeins=1.5,
+        date_used="2026-08-16",
+        notes="Knitted with stash yarn",
+        project_name="Winter Beanie",
+        project_id=501,
+        pattern_name="Classic Ribbed Hat",
+    )
+
+    assert ledger_entry["project_name"] == "Winter Beanie"
+    assert ledger_entry["project_id"] == 501
+    assert ledger_entry["pattern_name"] == "Classic Ribbed Hat"
+
+
 def test_apply_usage_to_stash_exhaustion_updates_status() -> None:
     """Verify applying usage that reduces inventory to 0 changes status to 'Used up'."""
     stash = {

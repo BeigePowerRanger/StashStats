@@ -108,6 +108,9 @@ def apply_usage_to_stash(
     used_skeins: float,
     date_used: str | None = None,
     notes: str | None = None,
+    project_name: str | None = None,
+    project_id: int | None = None,
+    pattern_name: str | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Deduct used quantities from a stash record and generate a new ledger record.
 
@@ -116,6 +119,9 @@ def apply_usage_to_stash(
         used_skeins: Decimal number of skeins consumed.
         date_used: YYYY-MM-DD usage timestamp.
         notes: User project/usage notes.
+        project_name: Optional name of the project created.
+        project_id: Optional ID of the linked project.
+        pattern_name: Optional name of the pattern used.
 
     Returns:
         Tuple of (updated_stash_item_dict, new_history_entry_dict).
@@ -162,6 +168,9 @@ def apply_usage_to_stash(
         "total_yards": calc["remaining_yards"],
         "total_grams": calc["remaining_grams"],
         "notes": notes or "",
+        "project_name": project_name,
+        "project_id": project_id,
+        "pattern_name": pattern_name,
     }
 
     stash["skeins"] = calc["remaining_skeins"]
