@@ -18,7 +18,7 @@
     - [x] Implement client method to fetch stash, batch load quantity history, and generate velocity report
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3: Dash Components, Charts & Analytics Layout
+## Phase 3: Dash Components, Charts & Analytics Layout [checkpoint: 1747c92]
 - [x] Task: Implement Plotly chart generators in `src/stashstats/web/components/analytics_charts.py` [601febf]
     - [x] Create tests in `tests/test_web_analytics_charts.py`
     - [x] Implement fiber donut chart, weight distribution bar chart, monthly flow chart, and velocity trend charts
