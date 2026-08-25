@@ -1,3 +1,10 @@
+from stashstats.models.analytics import (
+    PeriodicRollup,
+    RollingVelocity,
+    StashDeltaEvent,
+    StashHorizon,
+    StashVelocityReport,
+)
 from stashstats.models.common import Paginator, PersonalAttributes, Photo
 from stashstats.models.history import StashHistory, StashHistoryEntry
 from stashstats.models.project import (
@@ -48,6 +55,7 @@ __all__ = [
     "FiberType",
     "Pack",
     "Paginator",
+    "PeriodicRollup",
     "PersonalAttributes",
     "Photo",
     "Project",
@@ -56,13 +64,17 @@ __all__ = [
     "ProjectListResult",
     "QueueListResponse",
     "QueuedProject",
+    "RollingVelocity",
+    "StashDeltaEvent",
     "StashDetailResponse",
     "StashHistory",
     "StashHistoryEntry",
+    "StashHorizon",
     "StashItem",
     "StashListResponse",
     "StashSearchResponse",
     "StashStatus",
+    "StashVelocityReport",
     "StashYarn",
     "UserProfile",
     "Yarn",
