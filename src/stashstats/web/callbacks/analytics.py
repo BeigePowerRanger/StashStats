@@ -193,6 +193,8 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
         unit: str | None,
     ):
         raw_projects_data = None
+        histories_data: dict[int, Any] = {}
+
         if getattr(app, "client", None) is not None:
             if not raw_stash_data:
                 try:
@@ -212,9 +214,30 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
             except Exception:
                 pass
 
+        # Collect local histories from raw_stash_data
+        for it in (raw_stash_data or []):
+            if isinstance(it, dict):
+                sid = it.get("id")
+                if sid and it.get("history"):
+                    histories_data[sid] = it["history"]
+                elif sid and it.get("usage_history"):
+                    histories_data[sid] = it["usage_history"]
+
+        # Fetch persisted usage histories from Ravelry app_data for any remaining items
+        if getattr(app, "client", None) is not None and raw_stash_data:
+            for it in raw_stash_data:
+                sid = it.get("id") if isinstance(it, dict) else getattr(it, "id", None)
+                if sid and sid not in histories_data:
+                    try:
+                        hist_obj = app.client.get_stash_history(sid)
+                        if hist_obj and hist_obj.entries:
+                            histories_data[sid] = [e.model_dump() for e in hist_obj.entries]
+                    except Exception:
+                        pass
+
         return update_analytics_dashboard_logic(
             raw_stash_data=raw_stash_data,
             raw_projects_data=raw_projects_data,
-            histories_data=None,
+            histories_data=histories_data,
             unit=unit or "yards",
         )

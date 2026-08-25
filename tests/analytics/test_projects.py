@@ -218,10 +218,51 @@ class TestStashProjectUsageCalculator:
                 )
             ],
         )
-        records = StashProjectUsageCalculator.correlate_projects_and_stash([item], [])
+    def test_correlate_from_log_usage_with_custom_project_name(self):
+        stash = sample_stash_items()
+        histories = {
+            10: [
+                {
+                    "skeins": -1.0,
+                    "yards": -210.0,
+                    "grams": -100.0,
+                    "project_name": "Baby Goxzilla",
+                    "pattern_name": "Nightshift",
+                }
+            ]
+        }
+        records = StashProjectUsageCalculator.correlate_projects_and_stash(
+            stash_items=stash,
+            histories=histories,
+        )
         assert len(records) == 1
-        assert records[0].project_id == 888
-        assert records[0].yards_used == 420.0
-        assert records[0].stash_id == 30
+        assert records[0].project_name == "Baby Goxzilla"
+        assert records[0].pattern_name == "Nightshift"
+        assert records[0].skeins_used == 1.0
+        assert records[0].yards_used == 210.0
+
+    def test_correlate_from_log_usage_fallback_and_proportional_math(self):
+        stash = sample_stash_items()
+        # Item 10 has 2.0 skeins = 420.0 yards (210 yds/sk)
+        histories = {
+            10: [
+                {
+                    "skeins": -1.5,
+                    "yards": 0.0,  # Missing yardage in log
+                    "grams": 0.0,  # Missing weight in log
+                    "notes": "Striped Socks",
+                }
+            ]
+        }
+        records = StashProjectUsageCalculator.correlate_projects_and_stash(
+            stash_items=stash,
+            histories=histories,
+        )
+        assert len(records) == 1
+        assert records[0].project_name == "Striped Socks"
+        assert records[0].skeins_used == 1.5
+        assert records[0].yards_used == 315.0  # 1.5 * 210
+        assert records[0].grams_used == 150.0  # 1.5 * 100
+
 
 

@@ -179,43 +179,64 @@ class StashProjectUsageCalculator:
 
             for sid, entries in hist_items:
                 matched_stash = stash_by_id.get(sid) if sid else None
+                matched_yarn = _safe_get(matched_stash, "yarn") if matched_stash else None
+                yarn_display_name = (
+                    _safe_get(matched_stash, "name")
+                    if matched_stash
+                    else (_safe_get(matched_yarn, "name") if matched_yarn else "Stash Yarn")
+                )
+
                 for entry in entries:
+                    skeins = abs(float(_safe_get(entry, "skeins") or 0.0))
+                    delta_skeins = abs(float(_safe_get(entry, "delta_skeins") or 0.0))
+                    effective_skeins = skeins or delta_skeins
+
+                    # Skip non-consumption entries (0 skeins used)
+                    if effective_skeins <= 0:
+                        continue
+
                     p_name = _safe_get(entry, "project_name")
                     p_id = _safe_get(entry, "project_id")
                     pat_name = _safe_get(entry, "pattern_name")
+                    notes = _safe_get(entry, "notes")
 
-                    if p_name or p_id:
-                        skeins = abs(float(_safe_get(entry, "skeins") or 0.0))
-                        yards = abs(float(_safe_get(entry, "yards") or 0.0))
-                        grams = abs(float(_safe_get(entry, "grams") or 0.0))
-                        date_str = _safe_get(entry, "date") or _safe_get(entry, "timestamp")
+                    proj_display_name = p_name or (f"Project #{p_id}" if p_id else (notes.strip() if notes and notes.strip() else f"{yarn_display_name} Project"))
+                    effective_stash_id = sid or (_safe_get(matched_stash, "id") if matched_stash else None)
 
-                        proj_display_name = p_name or f"Project #{p_id}"
-                        effective_stash_id = sid or (_safe_get(matched_stash, "id") if matched_stash else None)
-                        matched_yarn = _safe_get(matched_stash, "yarn") if matched_stash else None
-                        yarn_display_name = (
-                            _safe_get(matched_stash, "name")
-                            if matched_stash
-                            else (_safe_get(matched_yarn, "name") if matched_yarn else "Stash Yarn")
+                    yards = abs(float(_safe_get(entry, "yards") or 0.0))
+                    grams = abs(float(_safe_get(entry, "grams") or 0.0))
+
+                    if yards == 0.0 and effective_skeins > 0 and matched_stash:
+                        stash_yards = _safe_get(matched_stash, "total_yards") or 0.0
+                        stash_skeins = _safe_get(matched_stash, "skeins") or 0.0
+                        if stash_yards and stash_skeins and stash_skeins > 0:
+                            yards = (stash_yards / stash_skeins) * effective_skeins
+
+                    if grams == 0.0 and effective_skeins > 0 and matched_stash:
+                        stash_grams = _safe_get(matched_stash, "total_grams") or 0.0
+                        stash_skeins = _safe_get(matched_stash, "skeins") or 0.0
+                        if stash_grams and stash_skeins and stash_skeins > 0:
+                            grams = (stash_grams / stash_skeins) * effective_skeins
+
+                    date_str = _safe_get(entry, "date") or _safe_get(entry, "timestamp")
+
+                    results.append(
+                        ProjectUsageRecord(
+                            project_id=p_id or 0,
+                            project_name=proj_display_name,
+                            pattern_name=pat_name,
+                            status_name="Finished",
+                            craft_name="Knitting",
+                            completed_date=date_str,
+                            stash_id=effective_stash_id,
+                            yarn_name=yarn_display_name,
+                            colorway=_safe_get(matched_stash, "colorway_name") if matched_stash else None,
+                            skeins_used=round(effective_skeins, 2),
+                            yards_used=round(yards, 2),
+                            meters_used=round(yards * 0.9144, 2) if yards else 0.0,
+                            grams_used=round(grams, 2),
                         )
-
-                        results.append(
-                            ProjectUsageRecord(
-                                project_id=p_id or 0,
-                                project_name=proj_display_name,
-                                pattern_name=pat_name,
-                                status_name="Finished",
-                                craft_name="Knitting",
-                                completed_date=date_str,
-                                stash_id=effective_stash_id,
-                                yarn_name=yarn_display_name,
-                                colorway=_safe_get(matched_stash, "colorway_name") if matched_stash else None,
-                                skeins_used=round(skeins, 2),
-                                yards_used=round(yards, 2),
-                                meters_used=round(yards * 0.9144, 2) if yards else 0.0,
-                                grams_used=round(grams, 2),
-                            )
-                        )
+                    )
 
         return results
 
