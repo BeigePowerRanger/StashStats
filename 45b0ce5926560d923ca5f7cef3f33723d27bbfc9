@@ -1,0 +1,3 @@
+Task: Render linked project badges and history in modal
+Files: src/stashstats/web/components/modal.py, tests/web/test_modal.py
+Why: Track what projects were made when stash yarn is consumed
