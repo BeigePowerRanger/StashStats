@@ -59,3 +59,7 @@ htmlcov/
 .agents/
 ORIGINAL_REQUEST.md
 Brainstorm.md
+
+# Syncthing conflict files
+*sync-conflict*
+.*sync-conflict*
