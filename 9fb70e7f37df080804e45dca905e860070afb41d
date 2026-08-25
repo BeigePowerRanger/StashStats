@@ -1,0 +1,3 @@
+Task: Wire project inputs in modal save callback
+Files: src/stashstats/web/callbacks/modal.py, tests/web/test_modal.py
+Why: Persist project name and pattern when logging stash usage
