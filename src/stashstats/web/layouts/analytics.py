@@ -96,6 +96,39 @@ def create_analytics_layout(
                     [
                         dbc.CardHeader(
                             html.H5(
+                                "Stash Inventory Over Time",
+                                className="m-0 text-light fs-6 fw-bold",
+                            ),
+                            className="bg-transparent border-secondary",
+                        ),
+                        dbc.CardBody(
+                            dcc.Loading(
+                                dcc.Graph(
+                                    id="analytics-timeline-chart",
+                                    figure=timeline_fig,
+                                    config={"displayModeBar": False, "responsive": True},
+                                ),
+                                type="circle",
+                                color="#00bc8c",
+                            )
+                        ),
+                    ],
+                    style=card_container_style,
+                    className="h-100 shadow-sm",
+                ),
+                xs=12,
+                className="mb-4",
+            ),
+        ]
+    )
+
+    charts_row_2 = dbc.Row(
+        [
+            dbc.Col(
+                dbc.Card(
+                    [
+                        dbc.CardHeader(
+                            html.H5(
                                 "Fiber Composition Breakdown",
                                 className="m-0 text-light fs-6 fw-bold",
                             ),
@@ -152,37 +185,8 @@ def create_analytics_layout(
         ]
     )
 
-    charts_row_2 = dbc.Row(
+    charts_row_3 = dbc.Row(
         [
-            dbc.Col(
-                dbc.Card(
-                    [
-                        dbc.CardHeader(
-                            html.H5(
-                                "Stash Inventory Over Time",
-                                className="m-0 text-light fs-6 fw-bold",
-                            ),
-                            className="bg-transparent border-secondary",
-                        ),
-                        dbc.CardBody(
-                            dcc.Loading(
-                                dcc.Graph(
-                                    id="analytics-timeline-chart",
-                                    figure=timeline_fig,
-                                    config={"displayModeBar": False, "responsive": True},
-                                ),
-                                type="circle",
-                                color="#00bc8c",
-                            )
-                        ),
-                    ],
-                    style=card_container_style,
-                    className="h-100 shadow-sm",
-                ),
-                xs=12,
-                lg=6,
-                className="mb-4",
-            ),
             dbc.Col(
                 dbc.Card(
                     [
@@ -212,11 +216,6 @@ def create_analytics_layout(
                 lg=6,
                 className="mb-4",
             ),
-        ]
-    )
-
-    charts_row_3 = dbc.Row(
-        [
             dbc.Col(
                 dbc.Card(
                     [
@@ -243,6 +242,7 @@ def create_analytics_layout(
                     className="h-100 shadow-sm",
                 ),
                 xs=12,
+                lg=6,
                 className="mb-4",
             ),
         ]
