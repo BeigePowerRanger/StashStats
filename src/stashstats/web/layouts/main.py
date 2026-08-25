@@ -6,6 +6,7 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 from stashstats.web.components.header import create_header
+from stashstats.web.layouts.analytics import create_analytics_layout
 from stashstats.web.layouts.search import create_yarn_search_layout
 from stashstats.web.layouts.stash import create_stash_layout
 
@@ -47,6 +48,7 @@ def create_navigation_tabs(
         last_synced=last_synced,
     )
     search_layout = create_yarn_search_layout()
+    analytics_layout = create_analytics_layout()
 
     return dcc.Tabs(
         id="main-tabs",
@@ -79,11 +81,7 @@ def create_navigation_tabs(
                 children=[
                     html.Div(style={"height": "15px"}),
                     dbc.Container(
-                        dbc.Alert(
-                            "Stash Analytics coming soon.",
-                            color="info",
-                            className="text-center my-4",
-                        ),
+                        analytics_layout,
                         id="analytics-tab-content",
                         fluid=True,
                         className="p-0",
