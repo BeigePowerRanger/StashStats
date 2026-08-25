@@ -23,6 +23,6 @@
 ## Phase 3: Multi-User Data Storage Refactor
 - [x] Task: Write Tests for Multi-User Storage [d45662c]
   - [x] Write tests ensuring that data reads/writes route to `app/data/<user_id>/` instead of a global path.
-- [~] Task: Refactor Storage Logic
-  - [ ] Update `app/data` read/write functions to accept and namespace via `user_id`.
+- [x] Task: Refactor Storage Logic [c3fab41]
+  - [x] Update `app/data` read/write functions to accept and namespace via `user_id`.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
