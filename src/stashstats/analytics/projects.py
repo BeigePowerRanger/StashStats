@@ -191,8 +191,10 @@ class StashProjectUsageCalculator:
                     delta_skeins = abs(float(_safe_get(entry, "delta_skeins") or 0.0))
                     effective_skeins = skeins or delta_skeins
 
-                    # Skip non-consumption entries (0 skeins used)
-                    if effective_skeins <= 0:
+                    # Skip non-consumption entries (0 skeins used and 0 yards/grams)
+                    raw_yds = abs(float(_safe_get(entry, "yards") or _safe_get(entry, "delta_yards") or 0.0))
+                    raw_g = abs(float(_safe_get(entry, "grams") or _safe_get(entry, "delta_grams") or 0.0))
+                    if effective_skeins <= 0 and raw_yds <= 0 and raw_g <= 0:
                         continue
 
                     p_name = _safe_get(entry, "project_name")
@@ -203,21 +205,26 @@ class StashProjectUsageCalculator:
                     proj_display_name = p_name or (f"Project #{p_id}" if p_id else (notes.strip() if notes and notes.strip() else f"{yarn_display_name} Project"))
                     effective_stash_id = sid or (_safe_get(matched_stash, "id") if matched_stash else None)
 
-                    yards = abs(float(_safe_get(entry, "yards") or 0.0))
-                    grams = abs(float(_safe_get(entry, "grams") or 0.0))
+                    yards = raw_yds
+                    grams = raw_g
 
-                    if yards == 0.0 and effective_skeins > 0 and matched_stash:
-                        stash_yards = _safe_get(matched_stash, "total_yards") or 0.0
-                        stash_skeins = _safe_get(matched_stash, "skeins") or 0.0
-                        if stash_yards and stash_skeins and stash_skeins > 0:
+                    if yards == 0.0 and effective_skeins > 0:
+                        if matched_stash and _safe_get(matched_stash, "total_yards") and _safe_get(matched_stash, "skeins"):
+                            stash_yards = float(_safe_get(matched_stash, "total_yards") or 0.0)
+                            stash_skeins = float(_safe_get(matched_stash, "skeins") or 1.0)
                             yards = (stash_yards / stash_skeins) * effective_skeins
+                        else:
+                            yards = effective_skeins * 200.0
 
-                    if grams == 0.0 and effective_skeins > 0 and matched_stash:
-                        stash_grams = _safe_get(matched_stash, "total_grams") or 0.0
-                        stash_skeins = _safe_get(matched_stash, "skeins") or 0.0
-                        if stash_grams and stash_skeins and stash_skeins > 0:
+                    if grams == 0.0 and effective_skeins > 0:
+                        if matched_stash and _safe_get(matched_stash, "total_grams") and _safe_get(matched_stash, "skeins"):
+                            stash_grams = float(_safe_get(matched_stash, "total_grams") or 0.0)
+                            stash_skeins = float(_safe_get(matched_stash, "skeins") or 1.0)
                             grams = (stash_grams / stash_skeins) * effective_skeins
+                        else:
+                            grams = effective_skeins * 100.0
 
+                    meters = yards * 0.9144 if yards else 0.0
                     date_str = _safe_get(entry, "date") or _safe_get(entry, "timestamp")
 
                     results.append(
@@ -233,7 +240,7 @@ class StashProjectUsageCalculator:
                             colorway=_safe_get(matched_stash, "colorway_name") if matched_stash else None,
                             skeins_used=round(effective_skeins, 2),
                             yards_used=round(yards, 2),
-                            meters_used=round(yards * 0.9144, 2) if yards else 0.0,
+                            meters_used=round(meters, 2),
                             grams_used=round(grams, 2),
                         )
                     )
