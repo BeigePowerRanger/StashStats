@@ -351,19 +351,35 @@ def create_monthly_flow_chart(
         acquired = [r.acquired_yards for r in rollups]
         consumed = [r.consumed_yards for r in rollups]
 
+    def format_period_label(p: str) -> str:
+        try:
+            if len(p) == 7 and "-" in p:
+                parts = p.split("-")
+                month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                m_idx = int(parts[1]) - 1
+                if 0 <= m_idx < 12:
+                    return f"{month_names[m_idx]} '{parts[0][2:]}"
+        except Exception:
+            pass
+        return str(p)
+
+    display_labels = [format_period_label(p) for p in periods]
+
     fig = go.Figure(
         data=[
             go.Bar(
                 name="Acquired",
-                x=periods,
+                x=display_labels,
                 y=acquired,
+                customdata=periods,
                 marker={"color": "#3b82f6", "line": {"color": "rgba(255, 255, 255, 0.2)", "width": 1}},
-                hovertemplate=f"<b>%{{x}}</b><br>Acquired: %{{y:,.1f}} {symbol}<extra></extra>",
+                hovertemplate=f"<b>%{{x}} (%{{customdata}})</b><br>Acquired: %{{y:,.1f}} {symbol}<extra></extra>",
             ),
             go.Bar(
                 name="Consumed",
-                x=periods,
+                x=display_labels,
                 y=consumed,
+                customdata=periods,
                 marker={"color": "#ec4899", "line": {"color": "rgba(255, 255, 255, 0.2)", "width": 1}},
                 hovertemplate=f"<b>%{{x}}</b><br>Consumed: %{{y:,.1f}} {symbol}<extra></extra>",
             ),
@@ -373,9 +389,22 @@ def create_monthly_flow_chart(
     fig.update_layout(
         **CHART_THEME,
         barmode="group",
-        xaxis={"title": "Period", "gridcolor": "#333"},
-        yaxis={"title": f"{label_unit} ({symbol})", "gridcolor": "#333"},
-        legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5},
+        bargap=0.25,
+        bargroupgap=0.1,
+        xaxis={
+            "title": "Month",
+            "type": "category",
+            "gridcolor": "#333",
+            "automargin": True,
+            "tickangle": -45 if len(periods) > 6 else 0,
+        },
+        yaxis={
+            "title": f"{label_unit} ({symbol})",
+            "gridcolor": "#333",
+            "rangemode": "tozero",
+            "automargin": True,
+        },
+        legend={"orientation": "h", "yanchor": "bottom", "y": -0.25, "xanchor": "center", "x": 0.5},
     )
     return fig
 

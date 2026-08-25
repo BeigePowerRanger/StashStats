@@ -68,7 +68,8 @@ class TestAnalyticsCharts:
         fig = create_monthly_flow_chart(rollups)
         assert isinstance(fig, go.Figure)
         assert len(fig.data) >= 2  # Acquired and Consumed bars
-        assert list(fig.data[0].x) == ["2026-06", "2026-07", "2026-08"]
+        assert list(fig.data[0].x) == ["Jun '26", "Jul '26", "Aug '26"]
+        assert list(fig.data[0].customdata) == ["2026-06", "2026-07", "2026-08"]
 
     def test_create_monthly_flow_chart_empty(self):
         fig = create_monthly_flow_chart([])
