@@ -14,18 +14,18 @@ CHART_THEME = {
 }
 
 PALETTE = [
-    "#a855f7",  # Vibrant Purple
-    "#3b82f6",  # Electric Blue
-    "#ec4899",  # Neon Pink
-    "#8b5cf6",  # Lavender Purple
-    "#0ea5e9",  # Sky Blue
-    "#d946ef",  # Fuchsia Pink
-    "#6366f1",  # Indigo Purple-Blue
-    "#38bdf8",  # Cyan Blue
-    "#f472b6",  # Rose Pink
-    "#c084fc",  # Soft Violet
-    "#2563eb",  # Royal Blue
-    "#db2777",  # Deep Pink
+    "#8e6bb3",  # Soft Amethyst Purple
+    "#5c92d1",  # Slate Blue
+    "#d8839e",  # Dusty Rose Pink
+    "#6d597a",  # Plum Slate
+    "#7097c2",  # Denim Blue
+    "#b56576",  # Mauve Berry
+    "#a78bfa",  # Soft Lavender
+    "#5b84b1",  # Periwinkle Blue
+    "#c9708b",  # Blush Rose
+    "#9d84b7",  # Muted Violet
+    "#4f86c6",  # Steel Blue
+    "#e5989b",  # Warm Blush
 ]
 
 
@@ -152,7 +152,7 @@ def create_weight_distribution_chart(
             go.Bar(
                 x=x_labels,
                 y=y_values,
-                marker={"color": "#8b5cf6", "line": {"color": "#a855f7", "width": 1.5}},
+                marker={"color": "#7c5295", "line": {"color": "#8e6bb3", "width": 1.5}},
                 customdata=item_counts,
                 hovertemplate=f"<b>%{{x}}</b><br>{label_unit}: %{{y:,.1f}} {symbol}<br>Items: %{{customdata}}<extra></extra>",
             )
@@ -210,9 +210,9 @@ def create_stash_by_time_chart(
                     y=cum_values,
                     mode="lines+markers",
                     fill="tozeroy",
-                    line={"color": "#38bdf8", "width": 3, "shape": "spline"},
-                    marker={"size": 6, "color": "#ec4899"},
-                    fillcolor="rgba(56, 189, 248, 0.15)",
+                    line={"color": "#5c92d1", "width": 3, "shape": "spline"},
+                    marker={"size": 6, "color": "#d8839e"},
+                    fillcolor="rgba(92, 146, 209, 0.12)",
                     hovertemplate=f"<b>%{{x}}</b><br>Net Stash: %{{y:,.1f}} {symbol}<extra></extra>",
                 )
             ]
@@ -292,9 +292,9 @@ def create_stash_by_time_chart(
                     y=cum_values,
                     mode="lines+markers",
                     fill="tozeroy",
-                    line={"color": "#38bdf8", "width": 3, "shape": "spline"},
-                    marker={"size": 6, "color": "#ec4899"},
-                    fillcolor="rgba(56, 189, 248, 0.15)",
+                    line={"color": "#5c92d1", "width": 3, "shape": "spline"},
+                    marker={"size": 6, "color": "#d8839e"},
+                    fillcolor="rgba(92, 146, 209, 0.12)",
                     hovertemplate=f"<b>%{{x}}</b><br>Cumulative Inflow: %{{y:,.1f}} {symbol}<extra></extra>",
                 )
             ]
@@ -347,14 +347,14 @@ def create_monthly_flow_chart(
                 name="Acquired",
                 x=periods,
                 y=acquired,
-                marker={"color": "#38bdf8"},
+                marker={"color": "#5c92d1"},
                 hovertemplate=f"<b>%{{x}}</b><br>Acquired: %{{y:,.1f}} {symbol}<extra></extra>",
             ),
             go.Bar(
                 name="Consumed",
                 x=periods,
                 y=consumed,
-                marker={"color": "#ec4899"},
+                marker={"color": "#d8839e"},
                 hovertemplate=f"<b>%{{x}}</b><br>Consumed: %{{y:,.1f}} {symbol}<extra></extra>",
             ),
         ]

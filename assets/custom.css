@@ -176,20 +176,20 @@ img,
 }
 
 /* ==========================================================================
-   Purple, Blue & Pink Color Theme (Zero Orange)
+   Purple, Blue & Pink Color Theme (Muted / Soft Palette)
    ========================================================================== */
 
 :root {
-    --stash-purple: #a855f7;
-    --stash-purple-dark: #7c3aed;
-    --stash-blue: #38bdf8;
-    --stash-blue-dark: #0284c7;
-    --stash-pink: #ec4899;
-    --stash-pink-dark: #db2777;
-    --stash-lavender: #c084fc;
+    --stash-purple: #8e6bb3;
+    --stash-purple-dark: #6d597a;
+    --stash-blue: #5c92d1;
+    --stash-blue-dark: #4f86c6;
+    --stash-pink: #d8839e;
+    --stash-pink-dark: #b56576;
+    --stash-lavender: #a78bfa;
 }
 
-/* Primary buttons -> Vibrant Purple */
+/* Primary buttons -> Soft Purple */
 .btn-primary {
     background-color: var(--stash-purple-dark) !important;
     border-color: var(--stash-purple) !important;
@@ -201,7 +201,7 @@ img,
 .btn-primary:active {
     background-color: var(--stash-purple) !important;
     border-color: var(--stash-lavender) !important;
-    box-shadow: 0 0 10px rgba(168, 85, 247, 0.4) !important;
+    box-shadow: 0 0 8px rgba(142, 107, 179, 0.35) !important;
 }
 
 .btn-outline-primary {
@@ -215,10 +215,10 @@ img,
     background-color: var(--stash-purple-dark) !important;
     color: #ffffff !important;
     border-color: var(--stash-lavender) !important;
-    box-shadow: 0 0 10px rgba(168, 85, 247, 0.3) !important;
+    box-shadow: 0 0 8px rgba(142, 107, 179, 0.25) !important;
 }
 
-/* Info buttons & badges -> Electric Sky Blue */
+/* Info buttons & badges -> Slate Blue */
 .btn-info {
     background-color: var(--stash-blue-dark) !important;
     border-color: var(--stash-blue) !important;
@@ -230,7 +230,7 @@ img,
     color: #ffffff !important;
 }
 
-/* Warning badges & alerts -> Magenta / Rose Pink (replace orange) */
+/* Warning badges & alerts -> Dusty Rose (replaces orange) */
 .badge.bg-warning,
 .badge-warning,
 .bg-warning {
@@ -250,19 +250,19 @@ img,
     color: var(--stash-lavender) !important;
 }
 
-/* Radio buttons & Checkboxes -> Pink / Purple accents */
+/* Radio buttons & Checkboxes -> Soft Purple/Pink accents */
 .form-check-input:checked {
     background-color: var(--stash-purple) !important;
     border-color: var(--stash-purple) !important;
-    box-shadow: 0 0 8px rgba(168, 85, 247, 0.5) !important;
+    box-shadow: 0 0 6px rgba(142, 107, 179, 0.35) !important;
 }
 
 .form-check-input:focus {
     border-color: var(--stash-pink) !important;
-    box-shadow: 0 0 0 0.25rem rgba(236, 72, 153, 0.25) !important;
+    box-shadow: 0 0 0 0.25rem rgba(216, 131, 158, 0.2) !important;
 }
 
-/* Navigation tabs active state -> Glowing Purple/Pink */
+/* Navigation tabs active state -> Soft Pink/Blue */
 .nav-tabs .nav-link.active,
 .tab--selected,
 .custom-tab--selected {
@@ -282,15 +282,15 @@ img,
 }
 
 /* ==========================================================================
-   Sleek Futuristic Unit Toggle Bar (Glassmorphism & Neon Glow)
+   Sleek Futuristic Unit Toggle Bar (Soft Glassmorphism)
    ========================================================================== */
 
 .unit-selector-card {
-    background: linear-gradient(135deg, rgba(26, 22, 37, 0.95), rgba(15, 23, 42, 0.9)) !important;
+    background: linear-gradient(135deg, rgba(28, 25, 38, 0.95), rgba(20, 24, 38, 0.9)) !important;
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(168, 85, 247, 0.28) !important;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45), 0 0 20px rgba(168, 85, 247, 0.15) !important;
+    border: 1px solid rgba(142, 107, 179, 0.25) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35) !important;
     border-radius: 14px !important;
     position: relative;
     overflow: hidden;
@@ -303,7 +303,7 @@ img,
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, #38bdf8, #a855f7, #ec4899);
+    background: linear-gradient(90deg, #5c92d1, #8e6bb3, #d8839e);
 }
 
 .unit-segmented-pill-box {
@@ -330,22 +330,22 @@ img,
 
 .btn-unit-toggle:hover {
     color: #ffffff !important;
-    background: rgba(168, 85, 247, 0.15) !important;
-    border-color: rgba(168, 85, 247, 0.3) !important;
+    background: rgba(142, 107, 179, 0.15) !important;
+    border-color: rgba(142, 107, 179, 0.3) !important;
     transform: translateY(-1px);
 }
 
 .btn-unit-toggle.active,
 .btn-check:checked + .btn-unit-toggle {
-    background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%) !important;
+    background: linear-gradient(135deg, #6d597a 0%, #8e6bb3 50%, #d8839e 100%) !important;
     color: #ffffff !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
-    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.45), 0 0 10px rgba(236, 72, 153, 0.3) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(142, 107, 179, 0.3) !important;
     transform: scale(1.02);
 }
 
 .unit-label-pill {
-    background: linear-gradient(135deg, #38bdf8, #a855f7);
+    background: linear-gradient(135deg, #5c92d1, #8e6bb3);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     font-size: 0.85rem;
