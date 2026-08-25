@@ -11,6 +11,6 @@
 - [x] Task: Phase 2 Checkpoint [66269b1]
 
 ## Phase 3: Modal Callbacks & Full Verification (TDD)
-- [ ] Task: Unit tests for `handle_save_modal` callback saving project metadata
-- [ ] Task: Wire project inputs into `src/stashstats/web/callbacks/modal.py`
-- [ ] Task: Phase 3 Checkpoint & Full Verification
+- [x] Task: Unit tests for `handle_save_modal` callback saving project metadata [9fb70e7]
+- [x] Task: Wire project inputs into `src/stashstats/web/callbacks/modal.py` [9fb70e7]
+- [x] Task: Phase 3 Checkpoint & Full Verification [9fb70e7]
