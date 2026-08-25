@@ -188,6 +188,52 @@ class RavelryClient(BaseAPIClient):
             stash_status_id=stash_status_id,
         )
 
+    def get_all_my_stash(
+        self,
+        *,
+        username: str | None = None,
+        sort: str = "created_",
+        query: str | None = None,
+        yarn_id: int | None = None,
+        stash_status_id: int | None = None,
+    ) -> list[StashItem]:
+        """Fetch all pages of stash items for the authenticated or specified user.
+
+        Args:
+            username: Optional username override.
+            sort: Sort order.
+            query: Optional search filter.
+            yarn_id: Optional yarn ID filter.
+            stash_status_id: Optional status filter.
+
+        Returns:
+            Complete list of all StashItem records across all pages.
+        """
+        all_items: list[StashItem] = []
+        page = 1
+        page_size = 100
+
+        while True:
+            resp = self.get_my_stash(
+                username=username,
+                page=page,
+                page_size=page_size,
+                sort=sort,
+                query=query,
+                yarn_id=yarn_id,
+                stash_status_id=stash_status_id,
+            )
+            if not resp.stash:
+                break
+            all_items.extend(resp.stash)
+
+            last_page = resp.paginator.last_page or resp.paginator.page_count
+            if page >= last_page:
+                break
+            page += 1
+
+        return all_items
+
     def get_stash_item(self, stash_id: int, username: str | None = None) -> StashItem:
         """Fetch details for a single stash entry.
 
@@ -653,7 +699,7 @@ class RavelryClient(BaseAPIClient):
         user_id: str | int | None = None,
         as_of: datetime | None = None,
     ) -> StashVelocityReport:
-        """Fetch user stash, batch-load App Data quantity histories, and compute velocity report.
+        """Fetch complete user stash across all pages, batch-load quantity histories, and compute velocity report.
 
         Args:
             username: Optional username override (defaults to authenticated user).
@@ -663,8 +709,7 @@ class RavelryClient(BaseAPIClient):
         Returns:
             Computed StashVelocityReport.
         """
-        stash_resp = self.get_my_stash(username=username)
-        stash_items = stash_resp.stash
+        stash_items = self.get_all_my_stash(username=username)
         stash_ids = [item.id for item in stash_items]
         histories = self.get_batch_stash_history(stash_ids, user_id=user_id)
         return StashVelocityCalculator.generate_report(stash_items, histories, as_of=as_of)

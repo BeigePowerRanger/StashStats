@@ -89,7 +89,15 @@ class TestClientAnalytics:
         ) as mock_get_histories:
             report = client.get_stash_velocity_report(as_of=datetime(2026, 8, 15, tzinfo=UTC))
 
-            mock_get_stash.assert_called_once_with(username=None)
+            mock_get_stash.assert_called_once_with(
+                username=None,
+                page=1,
+                page_size=100,
+                sort="created_",
+                query=None,
+                yarn_id=None,
+                stash_status_id=None,
+            )
             mock_get_histories.assert_called_once_with([10, 20], user_id=None)
 
             assert isinstance(report, StashVelocityReport)

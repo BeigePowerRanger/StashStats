@@ -66,8 +66,11 @@ def create_app(
     resolved_items = items
     if resolved_items is None and client is not None:
         try:
-            stash_resp = client.get_my_stash()
-            resolved_items = stash_resp.stash
+            if hasattr(client, "get_all_my_stash"):
+                resolved_items = client.get_all_my_stash()
+            else:
+                stash_resp = client.get_my_stash()
+                resolved_items = stash_resp.stash
         except Exception:
             resolved_items = []
 

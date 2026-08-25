@@ -581,6 +581,7 @@ def test_handle_stash_sync_callback_logic() -> None:
 
     # Clicked with client error
     mock_client = MagicMock()
+    mock_client.get_all_my_stash.side_effect = RuntimeError("API unreachable")
     mock_client.get_my_stash.side_effect = RuntimeError("API unreachable")
     err_status, err_color, err_synced, err_items = handle_stash_sync_logic(1, [{"id": 1}], client=mock_client)
     assert err_status == "Sync Failed"
