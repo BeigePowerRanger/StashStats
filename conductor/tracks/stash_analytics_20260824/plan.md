@@ -30,7 +30,7 @@
     - [x] Build `src/stashstats/web/layouts/analytics.py` and embed in `src/stashstats/web/layouts/main.py`
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 4: Dash Callbacks & End-to-End Verification
+## Phase 4: Dash Callbacks & End-to-End Verification [checkpoint: 29fc655]
 - [x] Task: Implement reactive callbacks for Stash Analytics in `src/stashstats/web/callbacks/analytics.py` [659252e]
     - [x] Create tests in `tests/test_web_callbacks_analytics.py`
     - [x] Implement filter callbacks and metric/chart update handlers
