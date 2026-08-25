@@ -4,7 +4,7 @@ from typing import Any
 import plotly.graph_objects as go
 
 from stashstats.analytics.distributions import CategoryDistribution
-from stashstats.models.analytics import PeriodicRollup, RollingVelocity
+from stashstats.models.analytics import PeriodicRollup, ProjectUsageRecord, RollingVelocity
 
 CHART_THEME = {
     "paper_bgcolor": "rgba(0,0,0,0)",
@@ -433,3 +433,62 @@ def create_velocity_pace_chart(
         yaxis={"title": f"Estimated {label_unit} / Month", "gridcolor": "#333"},
     )
     return fig
+
+
+def create_projects_pie_chart(
+    usages: list[ProjectUsageRecord],
+    unit: str = "yards",
+) -> go.Figure:
+    """Generate a donut pie chart of stash yarn consumption by project.
+
+    Args:
+        usages: List of ProjectUsageRecord correlation objects.
+        unit: Quantity dimension ('yards', 'meters', 'grams', 'skeins').
+
+    Returns:
+        Configured Plotly Figure.
+    """
+    label_unit, symbol = _get_unit_meta(unit)
+
+    if not usages:
+        return _create_empty_figure("No projects linked to stash yarn")
+
+    project_totals: dict[str, float] = {}
+    for u in usages:
+        p_name = u.project_name or f"Project #{u.project_id}"
+        if symbol == "m":
+            val = u.meters_used
+        elif symbol == "g":
+            val = u.grams_used
+        elif symbol == "sk":
+            val = u.skeins_used
+        else:
+            val = u.yards_used
+        project_totals[p_name] = project_totals.get(p_name, 0.0) + val
+
+    labels = list(project_totals.keys())
+    values = [project_totals[l] for l in labels]
+
+    if not values or all(v == 0 for v in values):
+        return _create_empty_figure("No project yarn consumption recorded")
+
+    fig = go.Figure(
+        data=[
+            go.Pie(
+                labels=labels,
+                values=values,
+                hole=0.55,
+                textinfo="label+percent",
+                marker={"colors": PALETTE[: len(labels)]},
+                hovertemplate=f"<b>%{{label}}</b><br>{label_unit}: %{{value:,.1f}} {symbol}<br>Share: %{{percent}}<extra></extra>",
+            )
+        ]
+    )
+
+    fig.update_layout(
+        **CHART_THEME,
+        showlegend=True,
+        legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5},
+    )
+    return fig
+

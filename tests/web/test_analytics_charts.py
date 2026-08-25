@@ -2,11 +2,11 @@ import plotly.graph_objects as go
 import pytest
 
 from stashstats.analytics.distributions import CategoryDistribution
-from stashstats.models.analytics import PeriodicRollup, RollingVelocity
-from stashstats.models.stash import StashItem
+from stashstats.models.analytics import PeriodicRollup, ProjectUsageRecord, RollingVelocity
 from stashstats.web.components.analytics_charts import (
     create_fiber_donut_chart,
     create_monthly_flow_chart,
+    create_projects_pie_chart,
     create_stash_by_time_chart,
     create_velocity_pace_chart,
     create_weight_distribution_chart,
@@ -48,6 +48,17 @@ class TestAnalyticsCharts:
         assert isinstance(fig, go.Figure)
         assert len(fig.layout.annotations) >= 1
 
+    def test_create_stash_by_time_chart(self):
+        rollups = [
+            PeriodicRollup(period="2026-01", net_yards=300.0),
+            PeriodicRollup(period="2026-02", net_yards=200.0),
+        ]
+        fig = create_stash_by_time_chart(rollups=rollups)
+        assert isinstance(fig, go.Figure)
+        assert len(fig.data) == 1
+        assert list(fig.data[0].x) == ["2026-01", "2026-02"]
+        assert list(fig.data[0].y) == [300.0, 500.0]
+
     def test_create_monthly_flow_chart(self):
         rollups = [
             PeriodicRollup(period="2026-06", acquired_yards=500.0, consumed_yards=200.0, net_yards=300.0),
@@ -75,31 +86,45 @@ class TestAnalyticsCharts:
         assert list(fig.data[0].x) == ["30 Days", "90 Days", "365 Days"]
         assert list(fig.data[0].y) == [304.38, 243.5, 182.6]
 
-    def test_create_stash_by_time_chart_with_rollups(self):
-        rollups = [
-            PeriodicRollup(period="2026-01", acquired_yards=1000.0, consumed_yards=200.0, net_yards=800.0),
-            PeriodicRollup(period="2026-02", acquired_yards=500.0, consumed_yards=300.0, net_yards=200.0),
-            PeriodicRollup(period="2026-03", acquired_yards=200.0, consumed_yards=400.0, net_yards=-200.0),
+    def test_create_projects_pie_chart(self):
+        records = [
+            ProjectUsageRecord(
+                project_id=1,
+                project_name="Beanie Hat",
+                pattern_name="Classic Ribbed Hat",
+                yards_used=300.0,
+                meters_used=274.0,
+                grams_used=100.0,
+                skeins_used=1.0,
+            ),
+            ProjectUsageRecord(
+                project_id=2,
+                project_name="Winter Scarf",
+                pattern_name="Garter Scarf",
+                yards_used=600.0,
+                meters_used=548.0,
+                grams_used=200.0,
+                skeins_used=2.0,
+            ),
         ]
-        fig = create_stash_by_time_chart(rollups=rollups)
-        assert isinstance(fig, go.Figure)
-        assert len(fig.data) == 1
-        assert fig.data[0].type == "scatter"
-        assert list(fig.data[0].x) == ["2026-01", "2026-02", "2026-03"]
-        assert list(fig.data[0].y) == [800.0, 1000.0, 800.0]
 
-    def test_create_stash_by_time_chart_with_items(self):
-        items = [
-            StashItem(id=1, name="Yarn A", permalink="yarn-a", created_at="2026-01-15T12:00:00Z", total_yards=400.0),
-            StashItem(id=2, name="Yarn B", permalink="yarn-b", created_at="2026-02-10T12:00:00Z", total_yards=600.0),
-        ]
-        fig = create_stash_by_time_chart(items=items)
-        assert isinstance(fig, go.Figure)
-        assert len(fig.data) == 1
-        assert fig.data[0].type == "scatter"
-        assert len(fig.data[0].x) >= 2
+        fig_yards = create_projects_pie_chart(records, unit="yards")
+        assert isinstance(fig_yards, go.Figure)
+        assert len(fig_yards.data) == 1
+        assert fig_yards.data[0].type == "pie"
+        assert list(fig_yards.data[0].labels) == ["Beanie Hat", "Winter Scarf"]
+        assert list(fig_yards.data[0].values) == [300.0, 600.0]
 
-    def test_create_stash_by_time_chart_empty(self):
-        fig = create_stash_by_time_chart()
+        fig_grams = create_projects_pie_chart(records, unit="grams")
+        assert list(fig_grams.data[0].values) == [100.0, 200.0]
+
+        fig_meters = create_projects_pie_chart(records, unit="meters")
+        assert list(fig_meters.data[0].values) == [274.0, 548.0]
+
+        fig_skeins = create_projects_pie_chart(records, unit="skeins")
+        assert list(fig_skeins.data[0].values) == [1.0, 2.0]
+
+    def test_create_projects_pie_chart_empty(self):
+        fig = create_projects_pie_chart([])
         assert isinstance(fig, go.Figure)
         assert len(fig.layout.annotations) >= 1
