@@ -1,0 +1,3 @@
+Task: Refactor Storage Logic
+Files: src/stashstats/storage.py, src/stashstats/client.py
+Why: Provide multi-user file storage helpers under data/<user_id>/ and user-scoped App Data storage keys
