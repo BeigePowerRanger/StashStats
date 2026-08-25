@@ -46,7 +46,23 @@ def update_analytics_dashboard_logic(
             try:
                 stash_items.append(StashItem.model_validate(d))
             except Exception:
-                pass
+                try:
+                    stash_items.append(
+                        StashItem(
+                            id=d.get("id") or 0,
+                            name=d.get("name"),
+                            permalink=d.get("permalink") or "",
+                            colorway_name=d.get("colorway_name"),
+                            skeins=d.get("skeins"),
+                            total_yards=d.get("total_yards"),
+                            total_grams=d.get("total_grams"),
+                            total_meters=d.get("total_meters"),
+                            created_at=d.get("created_at"),
+                            yarn_weight_name=d.get("yarn_weight_name"),
+                        )
+                    )
+                except Exception:
+                    pass
 
     raw_projs = raw_projects_data or []
     project_items: list[Project] = []
