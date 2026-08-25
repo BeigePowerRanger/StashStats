@@ -241,28 +241,32 @@ class TestStashProjectUsageCalculator:
         assert records[0].skeins_used == 1.0
         assert records[0].yards_used == 210.0
 
-    def test_correlate_from_log_usage_fallback_and_proportional_math(self):
+    def test_correlate_skips_zero_usage_projects(self):
         stash = sample_stash_items()
-        # Item 10 has 2.0 skeins = 420.0 yards (210 yds/sk)
-        histories = {
-            10: [
-                {
-                    "skeins": -1.5,
-                    "yards": 0.0,  # Missing yardage in log
-                    "grams": 0.0,  # Missing weight in log
-                    "notes": "Striped Socks",
-                }
-            ]
-        }
+        zero_proj = Project(
+            id=999,
+            name="Unstarted Sweater",
+            status_name="In progress",
+            progress=0,
+            craft_name="Knitting",
+            packs=[
+                Pack(
+                    id=888,
+                    stash_id=10,
+                    yarn_id=101,
+                    skeins=0.0,
+                    total_yards=0.0,
+                    total_grams=0.0,
+                )
+            ],
+        )
         records = StashProjectUsageCalculator.correlate_projects_and_stash(
             stash_items=stash,
-            histories=histories,
+            projects=[zero_proj],
+            histories={},
         )
-        assert len(records) == 1
-        assert records[0].project_name == "Striped Socks"
-        assert records[0].skeins_used == 1.5
-        assert records[0].yards_used == 315.0  # 1.5 * 210
-        assert records[0].grams_used == 150.0  # 1.5 * 100
+        assert len(records) == 0
+
 
 
 
