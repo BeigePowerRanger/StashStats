@@ -1,0 +1,3 @@
+Task: Wire histories and timezone-aware delta events for live analytics updates
+Files: src/stashstats/web/callbacks/analytics.py, src/stashstats/models/analytics.py, tests/web/test_analytics_callbacks.py
+Why: Fix live updates for Projects Made and Monthly Flow charts
