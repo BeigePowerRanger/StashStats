@@ -5,7 +5,7 @@ from typing import Any
 
 import dash
 import dash_bootstrap_components as dbc
-from dash import MATCH, Input, Output, State, ctx, html
+from dash import ALL, MATCH, Input, Output, State, ctx, html
 
 from datetime import UTC, datetime
 
@@ -440,45 +440,63 @@ def register_search_callbacks(app: dash.Dash) -> None:
         )
 
     @app.callback(
-        Output({"type": "stash-status-msg", "index": MATCH}, "children"),
+        Output({"type": "stash-status-msg", "index": ALL}, "children"),
         Output("stash-raw-store", "data", allow_duplicate=True),
-        Input({"type": "stash-submit-btn", "index": MATCH}, "n_clicks"),
-        State({"type": "stash-skeins", "index": MATCH}, "value"),
-        State({"type": "stash-colorway", "index": MATCH}, "value"),
-        State({"type": "stash-dyelot", "index": MATCH}, "value"),
-        State({"type": "stash-location", "index": MATCH}, "value"),
-        State({"type": "stash-notes", "index": MATCH}, "value"),
-        State({"type": "stash-date-added", "index": MATCH}, "date"),
-        State({"type": "stash-submit-btn", "index": MATCH}, "id"),
+        Input({"type": "stash-submit-btn", "index": ALL}, "n_clicks"),
+        State({"type": "stash-skeins", "index": ALL}, "value"),
+        State({"type": "stash-colorway", "index": ALL}, "value"),
+        State({"type": "stash-dyelot", "index": ALL}, "value"),
+        State({"type": "stash-location", "index": ALL}, "value"),
+        State({"type": "stash-notes", "index": ALL}, "value"),
+        State({"type": "stash-date-added", "index": ALL}, "date"),
+        State({"type": "stash-submit-btn", "index": ALL}, "id"),
         State("yarn-search-results-store", "data"),
         State("stash-raw-store", "data"),
         prevent_initial_call=True,
     )
     def handle_add_to_stash(
-        n_clicks: int | None,
-        skeins: float | None,
-        colorway: str | None,
-        dyelot: str | None,
-        location: str | None,
-        notes: str | None,
-        date_added: str | None,
-        btn_id: dict[str, Any],
+        n_clicks_list: list[int | None],
+        skeins_list: list[float | None],
+        colorway_list: list[str | None],
+        dyelot_list: list[str | None],
+        location_list: list[str | None],
+        notes_list: list[str | None],
+        date_added_list: list[str | None],
+        btn_ids: list[dict[str, Any]],
         search_results: list[dict[str, Any]] | None,
         raw_stash_items: list[dict[str, Any]] | None,
-    ) -> tuple[str, list[dict[str, Any]]]:
-        if not n_clicks:
+    ) -> tuple[list[Any], list[dict[str, Any]]]:
+        if not n_clicks_list or not any(n_clicks_list):
             raise dash.exceptions.PreventUpdate
+
+        triggered_id = ctx.triggered_id
+        if not isinstance(triggered_id, dict):
+            raise dash.exceptions.PreventUpdate
+
+        clicked_yarn_id = triggered_id.get("index")
+        target_idx = None
+        for i, bid in enumerate(btn_ids):
+            if isinstance(bid, dict) and bid.get("index") == clicked_yarn_id:
+                target_idx = i
+                break
+
+        if target_idx is None or not n_clicks_list[target_idx]:
+            raise dash.exceptions.PreventUpdate
+
         client = getattr(app, "client", None)
-        yarn_id = int(btn_id.get("index")) if isinstance(btn_id, dict) else int(btn_id)
-        return handle_add_to_stash_logic(
+        status_msg, updated_stash = handle_add_to_stash_logic(
             client=client,
-            yarn_id=yarn_id,
-            skeins=skeins,
-            colorway=colorway,
-            dyelot=dyelot,
-            location=location,
-            notes=notes,
-            date_added=date_added,
+            yarn_id=int(clicked_yarn_id),
+            skeins=skeins_list[target_idx],
+            colorway=colorway_list[target_idx],
+            dyelot=dyelot_list[target_idx],
+            location=location_list[target_idx],
+            notes=notes_list[target_idx],
+            date_added=date_added_list[target_idx],
             search_results=search_results,
             raw_stash_items=raw_stash_items,
         )
+
+        messages = [dash.no_update] * len(btn_ids)
+        messages[target_idx] = status_msg
+        return messages, updated_stash
