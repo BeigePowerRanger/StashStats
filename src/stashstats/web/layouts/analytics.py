@@ -16,7 +16,6 @@ from stashstats.web.components.analytics_charts import (
     create_monthly_flow_chart,
     create_projects_pie_chart,
     create_stash_by_time_chart,
-    create_velocity_pace_chart,
     create_weight_distribution_chart,
 )
 
@@ -86,12 +85,6 @@ def create_analytics_layout(
     )
     flow_fig = create_monthly_flow_chart(
         report.periodic_monthly if report else [],
-        unit=unit,
-    )
-    velocity_fig = create_velocity_pace_chart(
-        velocity_30d=report.velocity_30d if report else None,
-        velocity_90d=report.velocity_90d if report else None,
-        velocity_365d=report.velocity_365d if report else None,
         unit=unit,
     )
 
@@ -260,45 +253,12 @@ def create_analytics_layout(
         ]
     )
 
-    charts_row_4 = dbc.Row(
-        [
-            dbc.Col(
-                dbc.Card(
-                    [
-                        dbc.CardHeader(
-                            html.H5(
-                                "Consumption Velocity Horizons",
-                                className="m-0 text-light fs-6 fw-bold",
-                            ),
-                            className="bg-transparent border-secondary",
-                        ),
-                        dbc.CardBody(
-                            dcc.Loading(
-                                dcc.Graph(
-                                    id="analytics-velocity-chart",
-                                    figure=velocity_fig,
-                                    config={"displayModeBar": False, "responsive": True},
-                                ),
-                                type="circle",
-                                color="#00bc8c",
-                            )
-                        ),
-                    ],
-                    style=card_container_style,
-                    className="h-100 shadow-sm",
-                ),
-                xs=12,
-                className="mb-4",
-            ),
-        ]
-    )
-
     return dbc.Container(
         [
             html.Div(
                 [
-                    html.H4("Stash Analytics & Consumption Velocity", className="text-light fw-bold mb-1"),
-                    html.P("Real-time inventory breakdowns, timeline trends, project utilization, net flow history, and projected depletion horizons.", className="text-muted small mb-3"),
+                    html.H4("Stash Analytics", className="text-light fw-bold mb-1"),
+                    html.P("Real-time inventory breakdowns, timeline trends, project utilization, and net flow history.", className="text-muted small mb-3"),
                 ],
                 className="mb-3",
             ),
@@ -307,7 +267,6 @@ def create_analytics_layout(
             charts_row_1,
             charts_row_2,
             charts_row_3,
-            charts_row_4,
         ],
         id="analytics-container",
         fluid=True,

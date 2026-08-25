@@ -84,14 +84,13 @@ class TestAnalyticsCallbacks:
             raw_projects_data=raw_projects,
             unit="yards",
         )
-        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, vel_fig, proj_fig = res
+        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, proj_fig = res
 
         assert isinstance(kpi, dbc.Row)
         assert isinstance(fiber_fig, go.Figure)
         assert isinstance(weight_fig, go.Figure)
         assert isinstance(timeline_fig, go.Figure)
         assert isinstance(flow_fig, go.Figure)
-        assert isinstance(vel_fig, go.Figure)
         assert isinstance(proj_fig, go.Figure)
         assert list(proj_fig.data[0].labels) == ["Winter Beanie"]
 
@@ -150,7 +149,7 @@ class TestAnalyticsCallbacks:
             unit="yards",
         )
         flow_fig = res[4]
-        proj_fig = res[6]
+        proj_fig = res[5]
 
         assert isinstance(flow_fig, go.Figure)
         assert isinstance(proj_fig, go.Figure)

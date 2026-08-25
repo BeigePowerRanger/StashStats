@@ -19,7 +19,6 @@ from stashstats.web.components.analytics_charts import (
     create_monthly_flow_chart,
     create_projects_pie_chart,
     create_stash_by_time_chart,
-    create_velocity_pace_chart,
     create_weight_distribution_chart,
 )
 
@@ -35,7 +34,7 @@ def update_analytics_dashboard_logic(
     """Pure calculation logic for updating the analytics dashboard components and charts.
 
     Returns:
-        tuple containing (kpi_cards, fiber_fig, weight_fig, timeline_fig, flow_fig, velocity_fig, projects_fig).
+        tuple containing (kpi_cards, fiber_fig, weight_fig, timeline_fig, flow_fig, projects_fig).
     """
     raw_items = raw_stash_data or []
     stash_items: list[StashItem] = []
@@ -155,12 +154,6 @@ def update_analytics_dashboard_logic(
     )
     projects_fig = create_projects_pie_chart(project_usages, unit=unit)
     flow_fig = create_monthly_flow_chart(report.periodic_monthly, unit=unit)
-    velocity_fig = create_velocity_pace_chart(
-        velocity_30d=report.velocity_30d,
-        velocity_90d=report.velocity_90d,
-        velocity_365d=report.velocity_365d,
-        unit=unit,
-    )
 
     return (
         kpi_cards,
@@ -168,7 +161,6 @@ def update_analytics_dashboard_logic(
         weight_fig,
         timeline_fig,
         flow_fig,
-        velocity_fig,
         projects_fig,
     )
 
@@ -182,7 +174,6 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
         Output("analytics-weight-chart", "figure"),
         Output("analytics-timeline-chart", "figure"),
         Output("analytics-flow-chart", "figure"),
-        Output("analytics-velocity-chart", "figure"),
         Output("analytics-projects-chart", "figure"),
         Input("stash-raw-store", "data"),
         Input("analytics-unit-selector", "value"),
