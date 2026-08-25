@@ -12,9 +12,9 @@
 - [x] Task: Phase 2 Checkpoint [2caa796]
 
 ## Phase 3: Analytics Layout & Callback Integration (TDD)
-- [ ] Task: Unit tests for analytics layout & callbacks containing projects chart
-- [ ] Task: Embed 'Projects Made from Stash' chart into `src/stashstats/web/layouts/analytics.py` and reactive callbacks
-- [ ] Task: Phase 3 Checkpoint
+- [x] Task: Unit tests for analytics layout & callbacks containing projects chart [e5a48a6]
+- [x] Task: Embed 'Projects Made from Stash' chart into `src/stashstats/web/layouts/analytics.py` and reactive callbacks [e5a48a6]
+- [x] Task: Phase 3 Checkpoint [e5a48a6]
 
 ## Phase 4: Stash Item Modal & Row Project Badges (TDD)
 - [ ] Task: Unit tests for linked project consumption display in stash modal/view
