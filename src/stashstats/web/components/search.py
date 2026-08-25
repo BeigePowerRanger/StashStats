@@ -109,6 +109,14 @@ def create_yarn_search_form(
         className="w-100 w-sm-auto fw-semibold",
     )
 
+    manual_yarn_btn = dbc.Button(
+        [html.I(className="bi bi-plus-circle me-1"), "Add Yarn Manually"],
+        id="btn-open-manual-yarn-search",
+        color="success",
+        outline=True,
+        className="w-100 w-sm-auto fw-semibold",
+    )
+
     return dbc.Row(
         [
             dbc.Col(category_input, xs=12, sm="auto"),
@@ -116,6 +124,7 @@ def create_yarn_search_form(
             dbc.Col(brand_input, xs=12, sm="auto"),
             dbc.Col(sort_input, xs=12, sm="auto"),
             dbc.Col(search_btn, xs=12, sm="auto"),
+            dbc.Col(manual_yarn_btn, xs=12, sm="auto"),
             dbc.Col(html.Hr(style={"margin": "15px 0"}), xs=12),
         ],
         className="mb-3 g-2 align-items-center",

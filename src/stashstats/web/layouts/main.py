@@ -10,6 +10,7 @@ from stashstats.analytics.projects import StashProjectUsageCalculator
 from stashstats.analytics.velocity import StashVelocityCalculator
 from stashstats.models.stash import StashItem
 from stashstats.web.components.header import create_header
+from stashstats.web.components.manual_yarn_modal import create_manual_yarn_modal
 from stashstats.web.layouts.analytics import create_analytics_layout
 from stashstats.web.layouts.search import create_yarn_search_layout
 from stashstats.web.layouts.stash import create_stash_layout
@@ -226,5 +227,6 @@ def create_main_layout(
             *global_stores,
             header,
             body_container,
+            create_manual_yarn_modal(),
         ],
     )

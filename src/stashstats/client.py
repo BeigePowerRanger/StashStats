@@ -208,27 +208,35 @@ class RavelryClient(BaseAPIClient):
 
     def create_stash_item(
         self,
-        yarn_id: int,
+        yarn_id: int | None = None,
         *,
+        yarn_name: str | None = None,
+        yarn_company_name: str | None = None,
         colorway_name: str | None = None,
         dye_lot: str | None = None,
         skeins: float | None = None,
         total_grams: float | None = None,
         total_yards: float | None = None,
         location: str | None = None,
+        notes: str | None = None,
+        purchased_date: str | None = None,
         stash_status_id: int = 1,
         username: str | None = None,
     ) -> StashItem:
         """Add a yarn into the user's stash.
 
         Args:
-            yarn_id: Ravelry catalog yarn ID to link.
+            yarn_id: Optional Ravelry catalog yarn ID to link.
+            yarn_name: Optional custom or manual yarn line name.
+            yarn_company_name: Optional manufacturer or indie dyer name.
             colorway_name: Optional colorway name.
             dye_lot: Optional dye lot string.
             skeins: Number of skeins allocated.
             total_grams: Total weight in grams.
             total_yards: Total length in yards.
             location: Storage location description.
+            notes: Personal stash notes.
+            purchased_date: Purchase or addition date string.
             stash_status_id: 1 for active/in stash, 2 for used up, etc.
             username: Optional username override.
 
@@ -251,22 +259,40 @@ class RavelryClient(BaseAPIClient):
             pack_data["total_grams"] = total_grams
         if total_yards is not None:
             pack_data["total_yards"] = total_yards
+        if yarn_name is not None:
+            pack_data["yarn_name"] = yarn_name
 
         payload: dict[str, Any] = {
-            "yarn_id": yarn_id,
             "stash_status_id": stash_status_id,
         }
+        if yarn_id is not None:
+            payload["yarn_id"] = yarn_id
+        if yarn_name is not None:
+            payload["name"] = yarn_name
+        if yarn_company_name is not None:
+            payload["yarn_company_name"] = yarn_company_name
         if colorway_name is not None:
             payload["colorway_name"] = colorway_name
         if dye_lot is not None:
             payload["dye_lot"] = dye_lot
         if location is not None:
             payload["location"] = location
+        if notes is not None:
+            payload["notes"] = notes
         if pack_data:
             payload["pack"] = pack_data
 
         data = self.post(f"/people/{target_username}/stash/create.json", json=payload)
-        item = StashItem.model_validate(data["stash"])
+        stash_dict = dict(data.get("stash", {}))
+
+        # Preserve custom name/brand on returned model if API returned untitled
+        if yarn_name and stash_dict.get("name") in ("untitled", "", None):
+            full_title = f"{yarn_company_name or ''} {yarn_name}".strip()
+            stash_dict["name"] = full_title
+        if colorway_name and not stash_dict.get("colorway_name"):
+            stash_dict["colorway_name"] = colorway_name
+
+        item = StashItem.model_validate(stash_dict)
         self.record_stash_snapshot(item)
         return item
 

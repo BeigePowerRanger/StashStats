@@ -82,6 +82,18 @@ def create_stash_layout(
         id="stash-last-synced",
     )
 
+    add_manual_btn = dbc.Button(
+        [
+            html.I(className="bi bi-plus-circle me-1"),
+            "Add Yarn Manually",
+        ],
+        id="btn-open-manual-yarn-stash",
+        color="success",
+        outline=True,
+        size="sm",
+        className="ms-auto fw-semibold",
+    )
+
     sync_row = dbc.Row(
         [
             dbc.Col(
@@ -90,6 +102,7 @@ def create_stash_layout(
                         sync_btn,
                         pending_badge,
                         last_synced_elem,
+                        add_manual_btn,
                     ],
                     className="d-flex align-items-center mb-3",
                 ),

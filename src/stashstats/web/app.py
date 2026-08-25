@@ -8,6 +8,7 @@ import dash_bootstrap_components as dbc
 
 from stashstats.client import RavelryClient
 from stashstats.web.callbacks.analytics import register_analytics_callbacks
+from stashstats.web.callbacks.manual_yarn import register_manual_yarn_callbacks
 from stashstats.web.callbacks.modal import register_modal_callbacks
 from stashstats.web.callbacks.search import register_search_callbacks
 from stashstats.web.callbacks.stash import register_stash_callbacks
@@ -76,6 +77,7 @@ def create_app(
     # Register reactive callbacks
     register_stash_callbacks(app)
     register_modal_callbacks(app)
+    register_manual_yarn_callbacks(app)
     register_search_callbacks(app)
     register_analytics_callbacks(app)
 
