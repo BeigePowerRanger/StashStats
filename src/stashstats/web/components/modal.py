@@ -405,6 +405,84 @@ def create_usage_history_table(history: list[dict[str, Any]] | None = None) -> C
     )
 
 
+def create_linked_projects_table(
+    linked_projects: list[Any] | None = None,
+) -> Component:
+    """Create table component showing projects that consumed this stash yarn.
+
+    Args:
+        linked_projects: List of ProjectUsageRecord or dicts.
+
+    Returns:
+        dbc.Table or placeholder Div.
+    """
+    if not linked_projects:
+        return html.Div(
+            "No projects linked to this stash yarn.",
+            id="modal-linked-projects-empty",
+            className="text-muted fst-italic py-2 text-center border border-secondary rounded",
+        )
+
+    rows: list[html.Tr] = []
+    for p in linked_projects:
+        p_name = p.project_name if hasattr(p, "project_name") else p.get("project_name", "Untitled")
+        pattern = p.pattern_name if hasattr(p, "pattern_name") else p.get("pattern_name", "")
+        status = p.status_name if hasattr(p, "status_name") else p.get("status_name", "In progress")
+        comp_date = p.completed_date if hasattr(p, "completed_date") else p.get("completed_date", "—")
+        if not comp_date:
+            comp_date = "—"
+
+        skeins_used = p.skeins_used if hasattr(p, "skeins_used") else p.get("skeins_used", 0.0)
+        yards_used = p.yards_used if hasattr(p, "yards_used") else p.get("yards_used", 0.0)
+
+        badge_color = "success" if (status or "").lower() == "finished" else "info"
+        pattern_node = html.Small(f" ({pattern})", className="text-muted") if pattern else None
+
+        rows.append(
+            html.Tr(
+                [
+                    html.Td(
+                        [
+                            html.Span(p_name, className="text-light fw-medium"),
+                            pattern_node,
+                        ],
+                        className="align-middle",
+                    ),
+                    html.Td(
+                        dbc.Badge(status or "In progress", color=badge_color, className="px-2 py-1"),
+                        className="align-middle",
+                    ),
+                    html.Td(comp_date, className="align-middle text-muted"),
+                    html.Td(
+                        f"{skeins_used:.1f} sk ({yards_used:,.0f} yds)" if yards_used else f"{skeins_used:.1f} sk",
+                        className="align-middle text-warning text-end fw-semibold",
+                    ),
+                ]
+            )
+        )
+
+    table_header = html.Thead(
+        html.Tr(
+            [
+                html.Th("Project / Pattern", className="text-light"),
+                html.Th("Status", className="text-light"),
+                html.Th("Completed", className="text-light"),
+                html.Th("Used", className="text-light text-end"),
+            ]
+        )
+    )
+
+    return dbc.Table(
+        [table_header, html.Tbody(rows)],
+        id="modal-linked-projects-table",
+        bordered=False,
+        hover=True,
+        responsive=True,
+        striped=True,
+        className="table-dark small mb-0",
+    )
+
+
 # ---------------------------------------------------------------------------
 # 3. Main Modal Dialog Layout
 # ---------------------------------------------------------------------------
@@ -413,6 +491,7 @@ def create_usage_history_table(history: list[dict[str, Any]] | None = None) -> C
 def create_stash_modal(
     stash_item: dict[str, Any] | StashItem | None = None,
     history: list[dict[str, Any]] | None = None,
+    linked_projects: list[Any] | None = None,
     is_open: bool = False,
     modal_id: str = "stash-modal",
 ) -> dbc.Modal:
@@ -421,6 +500,7 @@ def create_stash_modal(
     Args:
         stash_item: Optional StashItem or dict to pre-populate.
         history: Optional list of usage history events.
+        linked_projects: Optional list of linked ProjectUsageRecord or dicts.
         is_open: Initial open state of the modal.
         modal_id: Component ID for the modal.
 
@@ -429,6 +509,7 @@ def create_stash_modal(
     """
     item_dict = stash_item.model_dump() if isinstance(stash_item, StashItem) else (stash_item or {})
     hist_list = history or []
+    projects_list = linked_projects or []
 
     # Extract field values with sensible fallbacks
     brand_name = item_dict.get("brand_name") or item_dict.get("yarn_company_name") or ""
@@ -657,6 +738,17 @@ def create_stash_modal(
                     ),
                 ],
             ),
+            html.Div(
+                id="modal-linked-projects-container",
+                className="mt-4",
+                children=[
+                    html.H6("Projects Made with this Yarn", className="text-light fw-bold mb-2"),
+                    html.Div(
+                        id="modal-linked-projects-content",
+                        children=create_linked_projects_table(projects_list),
+                    ),
+                ],
+            ),
         ],
         className="p-3",
     )
@@ -680,6 +772,10 @@ def create_stash_modal(
             tabs,
             dcc.Store(id="modal-store-stash-item", data=item_dict),
             dcc.Store(id="modal-store-history", data=hist_list),
+            dcc.Store(
+                id="modal-store-linked-projects",
+                data=[p.model_dump() if hasattr(p, "model_dump") else p for p in projects_list],
+            ),
             dcc.Store(id="modal-feedback-store", data=None),
         ],
         id="modal-body",

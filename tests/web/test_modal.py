@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import dash
 import dash_bootstrap_components as dbc
 import pytest
+from dash import html
 from dash.development.base_component import Component
 
 from stashstats.web.app import create_app
@@ -538,6 +539,57 @@ def test_handle_save_modal_tab_log_usage_zero_skeins_prevents_update() -> None:
             stash_data={"id": 123, "skeins": 5.0},
             history_data=[],
         )
+
+
+def test_create_linked_projects_table_empty():
+    from stashstats.web.components.modal import create_linked_projects_table
+    res = create_linked_projects_table([])
+    assert isinstance(res, (html.Div, Component))
+
+
+def test_create_linked_projects_table_with_records():
+    from stashstats.models.analytics import ProjectUsageRecord
+    from stashstats.web.components.modal import create_linked_projects_table
+
+    records = [
+        ProjectUsageRecord(
+            project_id=101,
+            project_name="Winter Hat",
+            pattern_name="Classic Ribbed Hat",
+            status_name="Finished",
+            completed_date="2026-02-14",
+            skeins_used=1.5,
+            yards_used=315.0,
+            grams_used=150.0,
+        )
+    ]
+    table = create_linked_projects_table(records)
+    assert isinstance(table, dbc.Table)
+
+
+def test_create_stash_modal_with_linked_projects():
+    from stashstats.models.analytics import ProjectUsageRecord
+    records = [
+        ProjectUsageRecord(
+            project_id=101,
+            project_name="Winter Hat",
+            pattern_name="Classic Ribbed Hat",
+            status_name="Finished",
+            completed_date="2026-02-14",
+            skeins_used=1.5,
+            yards_used=315.0,
+            grams_used=150.0,
+        )
+    ]
+    modal = create_stash_modal(
+        stash_item={"id": 123, "skeins": 5.0},
+        linked_projects=records,
+        is_open=True,
+    )
+    assert isinstance(modal, dbc.Modal)
+    tbl = find_component_by_id(modal, "modal-linked-projects-table")
+    assert tbl is not None
+
 
 
 
