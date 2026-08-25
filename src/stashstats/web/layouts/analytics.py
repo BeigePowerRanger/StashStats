@@ -1,4 +1,4 @@
-"""Stash Analytics dashboard layout with metric cards, interactive filters, and Plotly charts."""
+"""Stash Analytics dashboard layout with metric cards, unit metric toggle, and Plotly charts."""
 
 from typing import Any
 
@@ -8,8 +8,8 @@ from dash import dcc, html
 from stashstats.analytics.distributions import StashDistributionSummary
 from stashstats.models.analytics import StashVelocityReport
 from stashstats.web.components.analytics import (
-    create_analytics_filter_bar,
     create_kpi_summary_cards,
+    create_unit_selector_bar,
 )
 from stashstats.web.components.analytics_charts import (
     create_fiber_donut_chart,
@@ -23,17 +23,14 @@ from stashstats.web.components.analytics_charts import (
 def create_analytics_layout(
     report: StashVelocityReport | None = None,
     distribution: StashDistributionSummary | None = None,
-    yarn_weights: list[str] | None = None,
-    color_families: list[str] | None = None,
     unit: str = "yards",
+    **kwargs: Any,
 ) -> dbc.Container:
     """Create the full Stash Analytics dashboard tab layout.
 
     Args:
         report: Optional pre-computed StashVelocityReport.
         distribution: Optional pre-computed StashDistributionSummary.
-        yarn_weights: Optional list of yarn weight filter choices.
-        color_families: Optional list of color family filter choices.
         unit: Initial selected metric unit ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
@@ -66,19 +63,7 @@ def create_analytics_layout(
         unit=unit,
     )
 
-    resolved_weights = (
-        yarn_weights
-        or ([w.name for w in distribution.weights] if distribution else [])
-    )
-    resolved_colors = (
-        color_families
-        or ([c.name for c in distribution.color_families] if distribution else [])
-    )
-
-    filter_bar = create_analytics_filter_bar(
-        color_families=resolved_colors,
-        active_unit=unit,
-    )
+    unit_bar = create_unit_selector_bar(active_unit=unit)
 
     fiber_fig = create_fiber_donut_chart(
         distribution.fibers if distribution else [],
@@ -278,7 +263,7 @@ def create_analytics_layout(
                 className="mb-3",
             ),
             html.Div(kpi_cards, id="analytics-kpi-container"),
-            filter_bar,
+            unit_bar,
             charts_row_1,
             charts_row_2,
             charts_row_3,

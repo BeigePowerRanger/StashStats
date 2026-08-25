@@ -3,8 +3,8 @@ from dash import html
 import pytest
 
 from stashstats.web.components.analytics import (
-    create_analytics_filter_bar,
     create_kpi_summary_cards,
+    create_unit_selector_bar,
 )
 
 
@@ -72,9 +72,8 @@ class TestAnalyticsComponents:
         )
         assert isinstance(row, dbc.Row)
 
-    def test_create_analytics_filter_bar(self):
-        filter_bar = create_analytics_filter_bar(
-            color_families=["Blue", "Green", "Red"],
+    def test_create_unit_selector_bar(self):
+        unit_bar = create_unit_selector_bar(
             active_unit="meters",
         )
-        assert isinstance(filter_bar, (dbc.Card, dbc.Container, html.Div))
+        assert isinstance(unit_bar, (dbc.Card, dbc.Container, html.Div))

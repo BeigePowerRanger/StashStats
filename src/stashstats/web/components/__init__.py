@@ -1,8 +1,8 @@
 """UI components for the StashStats Dash web interface."""
 
 from stashstats.web.components.analytics import (
-    create_analytics_filter_bar,
     create_kpi_summary_cards,
+    create_unit_selector_bar,
 )
 from stashstats.web.components.analytics_charts import (
     create_fiber_donut_chart,
@@ -32,7 +32,6 @@ from stashstats.web.components.stash import (
 
 __all__ = [
     "ParentYarnGroup",
-    "create_analytics_filter_bar",
     "create_fiber_donut_chart",
     "create_grouped_stash_accordion",
     "create_header",
@@ -41,6 +40,7 @@ __all__ = [
     "create_parent_yarn_accordion_item",
     "create_stash_by_time_chart",
     "create_stash_item_row",
+    "create_unit_selector_bar",
     "create_velocity_pace_chart",
     "create_weight_distribution_chart",
     "create_yarn_search_accordion",

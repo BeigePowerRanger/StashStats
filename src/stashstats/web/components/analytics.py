@@ -1,4 +1,4 @@
-"""UI KPI cards and interactive filter components for Stash Analytics dashboard."""
+"""UI KPI cards and unit toggle components for Stash Analytics dashboard."""
 
 import dash_bootstrap_components as dbc
 from dash import dcc, html
@@ -148,30 +148,23 @@ def create_kpi_summary_cards(
     )
 
 
-def create_analytics_filter_bar(
-    color_families: list[str] | None = None,
-    active_unit: str = "yards",
-) -> dbc.Card:
-    """Create interactive filter controls and unit toggle for the analytics dashboard.
+def create_unit_selector_bar(active_unit: str = "yards") -> dbc.Card:
+    """Create unit toggle toolbar for the analytics dashboard.
 
     Args:
-        color_families: Optional list of color family options.
         active_unit: Initial selected metric unit ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
-        dbc.Card containing interactive filter inputs.
+        dbc.Card containing unit radio selector.
     """
-    color_options = [{"label": c, "value": c} for c in (color_families or [])]
-
     return dbc.Card(
         dbc.CardBody(
             [
-                # Top Toolbar: Unit Metric Toggle
                 dbc.Row(
                     [
                         dbc.Col(
                             [
-                                html.Span("View Metric Unit: ", className="fw-bold text-light me-2 small"),
+                                html.Span("View Metric Unit: ", className="fw-bold text-light me-3"),
                                 dbc.RadioItems(
                                     id="analytics-unit-selector",
                                     options=[
@@ -182,191 +175,16 @@ def create_analytics_filter_bar(
                                     ],
                                     value=active_unit,
                                     inline=True,
-                                    className="d-inline-flex flex-wrap gap-2 small",
+                                    className="d-inline-flex flex-wrap gap-3",
                                 ),
                             ],
                             xs=12,
-                            className="d-flex align-items-center mb-3 pb-2 border-bottom border-secondary",
+                            className="d-flex align-items-center flex-wrap",
                         ),
                     ]
-                ),
-                # Row 1: Color, Search, and Reset
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            [
-                                dbc.Label("Filter by Color Family", className="small text-muted mb-1"),
-                                dcc.Dropdown(
-                                    id="analytics-filter-color",
-                                    options=color_options,
-                                    multi=True,
-                                    placeholder="All color families...",
-                                    className="dash-bootstrap",
-                                    style={"color": "#222"},
-                                ),
-                            ],
-                            xs=12,
-                            md=5,
-                            className="mb-2 mb-md-0",
-                        ),
-                        dbc.Col(
-                            [
-                                dbc.Label("Search / Filter Stash", className="small text-muted mb-1"),
-                                dbc.Input(
-                                    id="analytics-filter-search",
-                                    placeholder="Filter by yarn or brand name...",
-                                    type="text",
-                                    className="bg-dark text-light border-secondary",
-                                ),
-                            ],
-                            xs=12,
-                            md=5,
-                            className="mb-2 mb-md-0",
-                        ),
-                        dbc.Col(
-                            [
-                                dbc.Label("Reset", className="small text-muted mb-1 invisible d-none d-md-block"),
-                                dbc.Button(
-                                    "Reset",
-                                    id="analytics-filter-reset",
-                                    color="secondary",
-                                    outline=True,
-                                    className="w-100",
-                                ),
-                            ],
-                            xs=12,
-                            md=2,
-                            className="d-flex align-items-end",
-                        ),
-                    ],
-                    align="center",
-                    className="mb-3",
-                ),
-                # Row 2: Quantity Filters (Grams, Yards, Meters, Skeins)
-                dbc.Row(
-                    [
-                        dbc.Col(
-                            [
-                                dbc.Label("Grams (Min / Max)", className="small text-muted mb-1"),
-                                dbc.InputGroup(
-                                    [
-                                        dbc.Input(
-                                            id="analytics-filter-min-grams",
-                                            type="number",
-                                            placeholder="Min g",
-                                            min=0,
-                                            className="bg-dark text-light border-secondary",
-                                        ),
-                                        dbc.InputGroupText("-", className="bg-dark text-muted border-secondary"),
-                                        dbc.Input(
-                                            id="analytics-filter-max-grams",
-                                            type="number",
-                                            placeholder="Max g",
-                                            min=0,
-                                            className="bg-dark text-light border-secondary",
-                                        ),
-                                    ],
-                                    size="sm",
-                                ),
-                            ],
-                            xs=12,
-                            sm=6,
-                            md=3,
-                            className="mb-2 mb-md-0",
-                        ),
-                        dbc.Col(
-                            [
-                                dbc.Label("Yards (Min / Max)", className="small text-muted mb-1"),
-                                dbc.InputGroup(
-                                    [
-                                        dbc.Input(
-                                            id="analytics-filter-min-yards",
-                                            type="number",
-                                            placeholder="Min yd",
-                                            min=0,
-                                            className="bg-dark text-light border-secondary",
-                                        ),
-                                        dbc.InputGroupText("-", className="bg-dark text-muted border-secondary"),
-                                        dbc.Input(
-                                            id="analytics-filter-max-yards",
-                                            type="number",
-                                            placeholder="Max yd",
-                                            min=0,
-                                            className="bg-dark text-light border-secondary",
-                                        ),
-                                    ],
-                                    size="sm",
-                                ),
-                            ],
-                            xs=12,
-                            sm=6,
-                            md=3,
-                            className="mb-2 mb-md-0",
-                        ),
-                        dbc.Col(
-                            [
-                                dbc.Label("Meters (Min / Max)", className="small text-muted mb-1"),
-                                dbc.InputGroup(
-                                    [
-                                        dbc.Input(
-                                            id="analytics-filter-min-meters",
-                                            type="number",
-                                            placeholder="Min m",
-                                            min=0,
-                                            className="bg-dark text-light border-secondary",
-                                        ),
-                                        dbc.InputGroupText("-", className="bg-dark text-muted border-secondary"),
-                                        dbc.Input(
-                                            id="analytics-filter-max-meters",
-                                            type="number",
-                                            placeholder="Max m",
-                                            min=0,
-                                            className="bg-dark text-light border-secondary",
-                                        ),
-                                    ],
-                                    size="sm",
-                                ),
-                            ],
-                            xs=12,
-                            sm=6,
-                            md=3,
-                            className="mb-2 mb-md-0",
-                        ),
-                        dbc.Col(
-                            [
-                                dbc.Label("Skeins (Min / Max)", className="small text-muted mb-1"),
-                                dbc.InputGroup(
-                                    [
-                                        dbc.Input(
-                                            id="analytics-filter-min-skeins",
-                                            type="number",
-                                            placeholder="Min sk",
-                                            step=0.1,
-                                            min=0,
-                                            className="bg-dark text-light border-secondary",
-                                        ),
-                                        dbc.InputGroupText("-", className="bg-dark text-muted border-secondary"),
-                                        dbc.Input(
-                                            id="analytics-filter-max-skeins",
-                                            type="number",
-                                            placeholder="Max sk",
-                                            step=0.1,
-                                            min=0,
-                                            className="bg-dark text-light border-secondary",
-                                        ),
-                                    ],
-                                    size="sm",
-                                ),
-                            ],
-                            xs=12,
-                            sm=6,
-                            md=3,
-                            className="mb-2 mb-md-0",
-                        ),
-                    ],
-                    align="center",
-                ),
-            ]
+                )
+            ],
+            className="py-2 px-3",
         ),
         style={
             "backgroundColor": "#2b3035",
