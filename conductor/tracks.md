@@ -68,3 +68,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Track Projects Made from Stash Yarn & Analytics Breakdown**
   *Link: [./tracks/project_yarn_tracking_20260824/index.md](./tracks/project_yarn_tracking_20260824/index.md)*
 
+---
+
+- [ ] **Track: Log Project Details on Stash Usage Logging**
+  *Link: [./tracks/log_project_usage_20260824/index.md](./tracks/log_project_usage_20260824/index.md)*
+
+
