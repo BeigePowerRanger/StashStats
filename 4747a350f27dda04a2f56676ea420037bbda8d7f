@@ -1,0 +1,3 @@
+Task: Implement get_stash_velocity_report on RavelryClient
+Files: src/stashstats/client.py, tests/test_client_analytics.py
+Why: Provides high-level method to fetch active stash, batch load quantity history from App Data, and calculate the composite StashVelocityReport.
