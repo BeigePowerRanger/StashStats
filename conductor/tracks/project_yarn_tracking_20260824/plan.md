@@ -7,9 +7,9 @@
 - [x] Task: Phase 1 Checkpoint [45bfd54]
 
 ## Phase 2: 'Projects Made from Stash' Pie Chart (TDD)
-- [ ] Task: Unit tests for `create_projects_pie_chart` across unit dimensions (yards, meters, grams, skeins)
-- [ ] Task: Implement `create_projects_pie_chart` in `src/stashstats/web/components/analytics_charts.py`
-- [ ] Task: Phase 2 Checkpoint
+- [x] Task: Unit tests for `create_projects_pie_chart` across unit dimensions (yards, meters, grams, skeins) [2caa796]
+- [x] Task: Implement `create_projects_pie_chart` in `src/stashstats/web/components/analytics_charts.py` [2caa796]
+- [x] Task: Phase 2 Checkpoint [2caa796]
 
 ## Phase 3: Analytics Layout & Callback Integration (TDD)
 - [ ] Task: Unit tests for analytics layout & callbacks containing projects chart
