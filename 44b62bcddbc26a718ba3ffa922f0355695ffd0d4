@@ -1,0 +1,3 @@
+Task: Project usage correlation and baseline event synthesis
+Files: src/stashstats/models/stash.py, src/stashstats/analytics/projects.py, src/stashstats/analytics/velocity.py
+Why: Enable live data updates for Projects Made and Monthly Flow charts
