@@ -339,14 +339,20 @@ def register_modal_callbacks(app: dash.Dash) -> None:
 
         baseline_text = f"Baseline inventory: {skeins_val:g} skeins"
 
-        history: list[dict[str, Any]] = []
-        client = getattr(app, "client", None)
-        if client:
-            try:
-                hist_obj = client.get_stash_history(stash_id)
-                history = [e.model_dump() for e in hist_obj.entries]
-            except Exception:
-                pass
+        history: list[dict[str, Any]] = list(
+            target_item.get("history")
+            or target_item.get("usage_history")
+            or []
+        )
+        if not history:
+            client = getattr(app, "client", None)
+            if client:
+                try:
+                    hist_obj = client.get_stash_history(stash_id)
+                    if hist_obj and hist_obj.entries:
+                        history = [e.model_dump() for e in hist_obj.entries]
+                except Exception:
+                    pass
 
         preview = create_usage_preview(
             current_skeins=skeins_val,

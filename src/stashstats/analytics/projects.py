@@ -36,16 +36,26 @@ class StashProjectUsageCalculator:
         Returns:
             List of ProjectUsageRecord correlation objects.
         """
-        stash_by_id: dict[int, Any] = {}
-        stash_by_yarn: dict[int, list[Any]] = {}
+        stash_by_id: dict[Any, Any] = {}
+        stash_by_yarn: dict[Any, list[Any]] = {}
         for item in stash_items:
             s_id = _safe_get(item, "id")
-            if s_id:
+            if s_id is not None:
                 stash_by_id[s_id] = item
+                stash_by_id[str(s_id)] = item
+                try:
+                    stash_by_id[int(s_id)] = item
+                except (ValueError, TypeError):
+                    pass
             yarn_info = _safe_get(item, "yarn")
             yarn_id = _safe_get(item, "yarn_id") or (_safe_get(yarn_info, "id") if yarn_info else None)
-            if yarn_id:
+            if yarn_id is not None:
                 stash_by_yarn.setdefault(yarn_id, []).append(item)
+                stash_by_yarn.setdefault(str(yarn_id), []).append(item)
+                try:
+                    stash_by_yarn.setdefault(int(yarn_id), []).append(item)
+                except (ValueError, TypeError):
+                    pass
 
         results: list[ProjectUsageRecord] = []
         seen_keys: set[tuple[Any, Any, Any]] = set()
@@ -133,18 +143,22 @@ class StashProjectUsageCalculator:
                 pack_colorway = _safe_get(pack, "colorway") or item_colorway
 
                 if proj_id or proj_name:
-                    skeins = _safe_get(pack, "skeins") or 0.0
-                    yards = _safe_get(pack, "total_yards") or 0.0
+                    skeins = _safe_get(pack, "skeins") or _safe_get(item, "skeins") or 0.0
+                    yards = _safe_get(pack, "total_yards") or _safe_get(item, "total_yards") or 0.0
+                    grams = _safe_get(pack, "total_grams") or _safe_get(item, "total_grams") or 0.0
                     yards_per_skein = _safe_get(pack, "yards_per_skein")
+                    grams_per_skein = _safe_get(pack, "grams_per_skein")
                     if yards == 0.0 and yards_per_skein and skeins:
                         yards = float(yards_per_skein) * float(skeins)
-                    meters = _safe_get(pack, "total_meters") or (yards * 0.9144 if yards else 0.0)
-                    grams = _safe_get(pack, "total_grams") or 0.0
-                    grams_per_skein = _safe_get(pack, "grams_per_skein")
+                    elif yards == 0.0 and skeins:
+                        yards = float(skeins) * 200.0
                     if grams == 0.0 and grams_per_skein and skeins:
                         grams = float(grams_per_skein) * float(skeins)
+                    elif grams == 0.0 and skeins:
+                        grams = float(skeins) * 100.0
+                    meters = _safe_get(pack, "total_meters") or (yards * 0.9144 if yards else 0.0)
 
-                    rec_key = (proj_id, item_id, pack_colorway)
+                    rec_key = (proj_id or proj_name, item_id, pack_colorway)
                     if rec_key not in seen_keys:
                         seen_keys.add(rec_key)
                         results.append(
