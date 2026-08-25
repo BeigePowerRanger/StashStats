@@ -1,0 +1,3 @@
+Task: Implement Stash Analytics layout and wire into navigation tabs
+Files: src/stashstats/web/layouts/analytics.py, src/stashstats/web/layouts/__init__.py, src/stashstats/web/layouts/main.py, tests/web/test_analytics_layout.py
+Why: Provides the complete Stash Analytics page layout with cards, filter bar, and 4 loading-wrapped Plotly chart containers embedded inside the main navigation tabs.
