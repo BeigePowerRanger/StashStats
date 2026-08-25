@@ -1,0 +1,3 @@
+Task: Project metadata in history entry and apply_usage_to_stash
+Files: src/stashstats/models/history.py, src/stashstats/web/components/modal.py
+Why: Track what project was made when usage is logged
