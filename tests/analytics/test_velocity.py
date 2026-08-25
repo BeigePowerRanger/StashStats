@@ -217,21 +217,72 @@ class TestStashVelocityCalculator:
         assert events[1].stash_id == 2
         assert events[1].delta_yards == 600.0
 
-    def test_generate_report_without_histories(self):
+    def test_extract_events_transactional_usage_history(self):
         stash_item = StashItem(
-            id=1,
-            name="Merino Wool",
-            permalink="merino-wool",
+            id=10,
+            name="Cascade 220",
+            permalink="cascade-220",
             skeins=2.0,
+            total_yards=440.0,
             total_grams=200.0,
-            total_yards=400.0,
-            created_at="2026-05-10T12:00:00Z",
+            created_at="2026-06-01T10:00:00Z",
         )
+        usage_history = [
+            {
+                "id": "entry-1",
+                "date": "2026-08-10",
+                "skeins": -1.0,
+                "delta_skeins": -1.0,
+                "yards": -220.0,
+                "grams": -100.0,
+                "project_name": "Autumn Scarf",
+            }
+        ]
+        events = StashVelocityCalculator.extract_events(
+            histories={10: usage_history},
+            stash_items=[stash_item],
+        )
+        assert len(events) == 2
+        # Should have consumption event and initial acquisition event
+        consumed = next(e for e in events if e.event_type == "consumed")
+        assert consumed.delta_skeins == -1.0
+        assert consumed.delta_yards == -220.0
+
+        acquired = next(e for e in events if e.event_type == "initial")
+        assert acquired.delta_skeins == 3.0  # 2.0 active + 1.0 consumed
+        assert acquired.delta_yards == 660.0
+
+    def test_generate_report_with_logged_usage(self):
+        stash_item = StashItem(
+            id=10,
+            name="Cascade 220",
+            permalink="cascade-220",
+            skeins=2.0,
+            total_yards=440.0,
+            total_grams=200.0,
+            created_at="2026-06-01T10:00:00Z",
+        )
+        usage_history = [
+            {
+                "id": "entry-1",
+                "date": "2026-08-10",
+                "skeins": -1.0,
+                "delta_skeins": -1.0,
+                "yards": -220.0,
+                "grams": -100.0,
+                "project_name": "Autumn Scarf",
+            }
+        ]
+        as_of = datetime(2026, 8, 15, tzinfo=UTC)
         report = StashVelocityCalculator.generate_report(
             stash_items=[stash_item],
-            histories={},
+            histories={10: usage_history},
+            as_of=as_of,
         )
-        assert len(report.periodic_monthly) >= 1
-        assert report.periodic_monthly[0].period == "2026-05"
-        assert report.periodic_monthly[0].acquired_yards == 400.0
+        assert report.velocity_30d.yards_consumed == 220.0
+        assert report.velocity_30d.skeins_consumed == 1.0
+        assert report.horizon.monthly_burn_rate_yards > 0
+        assert report.horizon.months_remaining is not None
+        assert report.horizon.months_remaining > 0
+
 

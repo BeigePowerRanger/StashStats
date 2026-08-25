@@ -37,94 +37,185 @@ class StashVelocityCalculator:
         all_events: list[StashDeltaEvent] = []
         covered_stash_ids: set[int] = set()
 
+        stash_by_id: dict[int, StashItem] = {}
+        if stash_items:
+            for item in stash_items:
+                if item.id:
+                    stash_by_id[item.id] = item
+
         # 1. Process explicit history records
         if histories:
             for stash_id, history in histories.items():
-                entries = getattr(history, "entries", None) if hasattr(history, "entries") else (history if isinstance(history, list) else [])
+                entries = (
+                    getattr(history, "entries", None)
+                    if hasattr(history, "entries")
+                    else (history if isinstance(history, list) else [])
+                )
                 if not entries:
                     continue
 
-                covered_stash_ids.add(stash_id)
-
-                # Sort entries chronologically
-                sorted_entries = sorted(
-                    entries,
-                    key=lambda e: (e.datetime if hasattr(e, "datetime") else None)
-                    or (datetime.fromisoformat(e["date"]).replace(tzinfo=UTC) if isinstance(e, dict) and e.get("date") else None)
-                    or datetime.min.replace(tzinfo=UTC),
-                )
-
-                # First entry is initial baseline acquisition
-                initial_entry = sorted_entries[0]
-                initial_skeins = initial_entry.skeins if hasattr(initial_entry, "skeins") else initial_entry.get("skeins", 0.0)
-                initial_grams = (
-                    (initial_entry.total_grams or initial_entry.grams or 0.0)
-                    if hasattr(initial_entry, "total_grams")
-                    else (initial_entry.get("total_grams") or initial_entry.get("grams") or 0.0)
-                )
-                initial_yards = (
-                    (initial_entry.total_yards or initial_entry.yards or 0.0)
-                    if hasattr(initial_entry, "total_yards")
-                    else (initial_entry.get("total_yards") or initial_entry.get("yards") or 0.0)
-                )
-                initial_ts = (
-                    initial_entry.timestamp
-                    if hasattr(initial_entry, "timestamp")
-                    else (initial_entry.get("timestamp") or initial_entry.get("date"))
-                )
-
-                all_events.append(
-                    StashDeltaEvent(
-                        stash_id=stash_id,
-                        timestamp=initial_ts,
-                        delta_skeins=initial_skeins or 0.0,
-                        delta_grams=initial_grams or 0.0,
-                        delta_yards=initial_yards or 0.0,
-                        event_type="initial",
+                matched_item = stash_by_id.get(stash_id)
+                has_delta_entries = any(
+                    isinstance(e, dict)
+                    and (
+                        e.get("delta_skeins") is not None
+                        or (e.get("skeins") is not None and float(e.get("skeins", 0)) < 0)
+                        or (e.get("yards") is not None and float(e.get("yards", 0)) < 0)
+                        or e.get("event_type") == "consumed"
+                        or e.get("project_name")
                     )
+                    for e in entries
                 )
 
-                # Subsequent transitions are deltas
-                for i in range(1, len(sorted_entries)):
-                    prev = sorted_entries[i - 1]
-                    curr = sorted_entries[i]
+                if has_delta_entries:
+                    covered_stash_ids.add(stash_id)
+                    total_consumed_yds = 0.0
+                    total_consumed_sk = 0.0
+                    total_consumed_g = 0.0
 
-                    prev_grams = (prev.total_grams or prev.grams or 0.0) if hasattr(prev, "total_grams") else (prev.get("total_grams") or prev.get("grams") or 0.0)
-                    curr_grams = (curr.total_grams or curr.grams or 0.0) if hasattr(curr, "total_grams") else (curr.get("total_grams") or curr.get("grams") or 0.0)
-                    prev_yards = (prev.total_yards or prev.yards or 0.0) if hasattr(prev, "total_yards") else (prev.get("total_yards") or prev.get("yards") or 0.0)
-                    curr_yards = (curr.total_yards or curr.yards or 0.0) if hasattr(curr, "total_yards") else (curr.get("total_yards") or curr.get("yards") or 0.0)
-                    prev_skeins = prev.skeins if hasattr(prev, "skeins") else prev.get("skeins", 0.0)
-                    curr_skeins = curr.skeins if hasattr(curr, "skeins") else curr.get("skeins", 0.0)
-                    curr_ts = curr.timestamp if hasattr(curr, "timestamp") else (curr.get("timestamp") or curr.get("date"))
+                    for entry in entries:
+                        if not isinstance(entry, dict):
+                            continue
+                        ts = (
+                            entry.get("timestamp")
+                            or entry.get("date")
+                            or entry.get("created_at")
+                            or datetime.now(tz=UTC).strftime("%Y/%m/%d %H:%M:%S +0000")
+                        )
+                        sk = float(entry.get("delta_skeins") or entry.get("skeins") or 0.0)
+                        yds = float(entry.get("delta_yards") or entry.get("yards") or 0.0)
+                        g = float(entry.get("delta_grams") or entry.get("grams") or 0.0)
 
-                    delta_skeins = curr_skeins - prev_skeins
-                    delta_grams = curr_grams - prev_grams
-                    delta_yards = curr_yards - prev_yards
+                        delta_sk = -abs(sk) if sk != 0 else 0.0
+                        delta_yd = -abs(yds) if yds != 0 else 0.0
+                        delta_g = -abs(g) if g != 0 else 0.0
 
-                    event_type = (
-                        "consumed"
-                        if delta_yards < 0 or delta_skeins < 0
-                        else ("acquired" if delta_yards > 0 or delta_skeins > 0 else "neutral")
+                        if delta_yd == 0.0 and delta_sk < 0 and matched_item:
+                            m_yds = matched_item.total_yards or 0.0
+                            m_sk = matched_item.skeins or 0.0
+                            if m_yds and m_sk:
+                                delta_yd = -abs((m_yds / m_sk) * abs(delta_sk))
+                        if delta_g == 0.0 and delta_sk < 0 and matched_item:
+                            m_g = matched_item.total_grams or 0.0
+                            m_sk = matched_item.skeins or 0.0
+                            if m_g and m_sk:
+                                delta_g = -abs((m_g / m_sk) * abs(delta_sk))
+
+                        total_consumed_yds += abs(delta_yd)
+                        total_consumed_sk += abs(delta_sk)
+                        total_consumed_g += abs(delta_g)
+
+                        all_events.append(
+                            StashDeltaEvent(
+                                stash_id=stash_id,
+                                timestamp=str(ts),
+                                delta_skeins=delta_sk,
+                                delta_yards=delta_yd,
+                                delta_grams=delta_g,
+                                event_type="consumed",
+                            )
+                        )
+
+                    # Synthesize initial acquisition for this item
+                    if matched_item:
+                        acq_ts = (
+                            matched_item.created_at
+                            or matched_item.purchased
+                            or (datetime.now(tz=UTC) - timedelta(days=60)).strftime("%Y/%m/%d %H:%M:%S +0000")
+                        )
+                        orig_yds = (matched_item.total_yards or 0.0) + total_consumed_yds
+                        orig_sk = (matched_item.skeins or 0.0) + total_consumed_sk
+                        orig_g = (matched_item.total_grams or 0.0) + total_consumed_g
+
+                        all_events.append(
+                            StashDeltaEvent(
+                                stash_id=stash_id,
+                                timestamp=str(acq_ts),
+                                delta_skeins=orig_sk,
+                                delta_yards=orig_yds,
+                                delta_grams=orig_g,
+                                event_type="initial",
+                            )
+                        )
+
+                else:
+                    covered_stash_ids.add(stash_id)
+                    sorted_entries = sorted(
+                        entries,
+                        key=lambda e: (e.datetime if hasattr(e, "datetime") else None)
+                        or (datetime.fromisoformat(e["date"]).replace(tzinfo=UTC) if isinstance(e, dict) and e.get("date") else None)
+                        or datetime.min.replace(tzinfo=UTC),
+                    )
+
+                    initial_entry = sorted_entries[0]
+                    initial_skeins = initial_entry.skeins if hasattr(initial_entry, "skeins") else initial_entry.get("skeins", 0.0)
+                    initial_grams = (
+                        (initial_entry.total_grams or initial_entry.grams or 0.0)
+                        if hasattr(initial_entry, "total_grams")
+                        else (initial_entry.get("total_grams") or initial_entry.get("grams") or 0.0)
+                    )
+                    initial_yards = (
+                        (initial_entry.total_yards or initial_entry.yards or 0.0)
+                        if hasattr(initial_entry, "total_yards")
+                        else (initial_entry.get("total_yards") or initial_entry.get("yards") or 0.0)
+                    )
+                    initial_ts = (
+                        initial_entry.timestamp
+                        if hasattr(initial_entry, "timestamp")
+                        else (initial_entry.get("timestamp") or initial_entry.get("date"))
                     )
 
                     all_events.append(
                         StashDeltaEvent(
                             stash_id=stash_id,
-                            timestamp=curr_ts,
-                            delta_skeins=delta_skeins,
-                            delta_grams=delta_grams,
-                            delta_yards=delta_yards,
-                            event_type=event_type,
+                            timestamp=initial_ts,
+                            delta_skeins=initial_skeins or 0.0,
+                            delta_grams=initial_grams or 0.0,
+                            delta_yards=initial_yards or 0.0,
+                            event_type="initial",
                         )
                     )
 
-        # 2. Synthesize baseline acquisition & consumption events for stash items not in histories
+                    for i in range(1, len(sorted_entries)):
+                        prev = sorted_entries[i - 1]
+                        curr = sorted_entries[i]
+
+                        prev_grams = (prev.total_grams or prev.grams or 0.0) if hasattr(prev, "total_grams") else (prev.get("total_grams") or prev.get("grams") or 0.0)
+                        curr_grams = (curr.total_grams or curr.grams or 0.0) if hasattr(curr, "total_grams") else (curr.get("total_grams") or curr.get("grams") or 0.0)
+                        prev_yards = (prev.total_yards or prev.yards or 0.0) if hasattr(prev, "total_yards") else (prev.get("total_yards") or prev.get("yards") or 0.0)
+                        curr_yards = (curr.total_yards or curr.yards or 0.0) if hasattr(curr, "total_yards") else (curr.get("total_yards") or curr.get("yards") or 0.0)
+                        prev_skeins = prev.skeins if hasattr(prev, "skeins") else prev.get("skeins", 0.0)
+                        curr_skeins = curr.skeins if hasattr(curr, "skeins") else curr.get("skeins", 0.0)
+                        curr_ts = curr.timestamp if hasattr(curr, "timestamp") else (curr.get("timestamp") or curr.get("date"))
+
+                        delta_skeins = curr_skeins - prev_skeins
+                        delta_grams = curr_grams - prev_grams
+                        delta_yards = curr_yards - prev_yards
+
+                        event_type = (
+                            "consumed"
+                            if delta_yards < 0 or delta_skeins < 0
+                            else ("acquired" if delta_yards > 0 or delta_skeins > 0 else "neutral")
+                        )
+
+                        all_events.append(
+                            StashDeltaEvent(
+                                stash_id=stash_id,
+                                timestamp=curr_ts,
+                                delta_skeins=delta_skeins,
+                                delta_grams=delta_grams,
+                                delta_yards=delta_yards,
+                                event_type=event_type,
+                            )
+                        )
+
+        # 2. Synthesize baseline acquisition for stash items not in histories
         if stash_items:
             for item in stash_items:
                 if item.id and item.id in covered_stash_ids:
                     continue
 
-                ts = item.created_at or datetime.now(tz=UTC).strftime("%Y/%m/%d %H:%M:%S +0000")
+                ts = item.created_at or item.purchased or datetime.now(tz=UTC).strftime("%Y/%m/%d %H:%M:%S +0000")
                 initial_skeins = item.skeins or 0.0
                 initial_yards = item.total_yards or 0.0
                 initial_grams = item.total_grams or 0.0
@@ -132,7 +223,7 @@ class StashVelocityCalculator:
                 all_events.append(
                     StashDeltaEvent(
                         stash_id=item.id or 0,
-                        timestamp=ts,
+                        timestamp=str(ts),
                         delta_skeins=initial_skeins,
                         delta_grams=initial_grams,
                         delta_yards=initial_yards,
@@ -220,11 +311,19 @@ class StashVelocityCalculator:
         window_events = [
             e
             for e in events
-            if e.datetime is not None and cutoff <= e.datetime <= as_of
+            if e.datetime is not None and cutoff <= e.datetime <= (as_of + timedelta(days=1))
         ]
 
-        yards_consumed = sum(abs(e.delta_yards) for e in window_events if e.delta_yards < 0)
-        skeins_consumed = sum(abs(e.delta_skeins) for e in window_events if e.delta_skeins < 0)
+        yards_consumed = sum(
+            abs(e.delta_yards)
+            for e in window_events
+            if e.delta_yards < 0 or (e.delta_skeins < 0 and e.event_type == "consumed")
+        )
+        skeins_consumed = sum(
+            abs(e.delta_skeins)
+            for e in window_events
+            if e.delta_skeins < 0 or e.event_type == "consumed"
+        )
 
         effective_days = max(1, window_days)
         yards_per_day = round(yards_consumed / effective_days, 2)
