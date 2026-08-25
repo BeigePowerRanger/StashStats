@@ -6,7 +6,7 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 from stashstats.analytics.distributions import StashDistributionSummary
-from stashstats.models.analytics import StashVelocityReport
+from stashstats.models.analytics import ProjectUsageRecord, StashVelocityReport
 from stashstats.web.components.analytics import (
     create_kpi_summary_cards,
     create_unit_selector_bar,
@@ -14,6 +14,7 @@ from stashstats.web.components.analytics import (
 from stashstats.web.components.analytics_charts import (
     create_fiber_donut_chart,
     create_monthly_flow_chart,
+    create_projects_pie_chart,
     create_stash_by_time_chart,
     create_velocity_pace_chart,
     create_weight_distribution_chart,
@@ -23,6 +24,7 @@ from stashstats.web.components.analytics_charts import (
 def create_analytics_layout(
     report: StashVelocityReport | None = None,
     distribution: StashDistributionSummary | None = None,
+    project_usages: list[ProjectUsageRecord] | None = None,
     unit: str = "yards",
     **kwargs: Any,
 ) -> dbc.Container:
@@ -31,6 +33,7 @@ def create_analytics_layout(
     Args:
         report: Optional pre-computed StashVelocityReport.
         distribution: Optional pre-computed StashDistributionSummary.
+        project_usages: Optional pre-computed list of ProjectUsageRecord.
         unit: Initial selected metric unit ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
@@ -75,6 +78,10 @@ def create_analytics_layout(
     )
     timeline_fig = create_stash_by_time_chart(
         rollups=report.periodic_monthly if report else None,
+        unit=unit,
+    )
+    projects_fig = create_projects_pie_chart(
+        project_usages or [],
         unit=unit,
     )
     flow_fig = create_monthly_flow_chart(
@@ -197,6 +204,35 @@ def create_analytics_layout(
                     [
                         dbc.CardHeader(
                             html.H5(
+                                "Projects Made from Stash",
+                                className="m-0 text-light fs-6 fw-bold",
+                            ),
+                            className="bg-transparent border-secondary",
+                        ),
+                        dbc.CardBody(
+                            dcc.Loading(
+                                dcc.Graph(
+                                    id="analytics-projects-chart",
+                                    figure=projects_fig,
+                                    config={"displayModeBar": False, "responsive": True},
+                                ),
+                                type="circle",
+                                color="#00bc8c",
+                            )
+                        ),
+                    ],
+                    style=card_container_style,
+                    className="h-100 shadow-sm",
+                ),
+                xs=12,
+                lg=6,
+                className="mb-4",
+            ),
+            dbc.Col(
+                dbc.Card(
+                    [
+                        dbc.CardHeader(
+                            html.H5(
                                 "Monthly Stash Flow (Acquisitions vs Consumption)",
                                 className="m-0 text-light fs-6 fw-bold",
                             ),
@@ -221,6 +257,11 @@ def create_analytics_layout(
                 lg=6,
                 className="mb-4",
             ),
+        ]
+    )
+
+    charts_row_4 = dbc.Row(
+        [
             dbc.Col(
                 dbc.Card(
                     [
@@ -247,7 +288,6 @@ def create_analytics_layout(
                     className="h-100 shadow-sm",
                 ),
                 xs=12,
-                lg=6,
                 className="mb-4",
             ),
         ]
@@ -258,7 +298,7 @@ def create_analytics_layout(
             html.Div(
                 [
                     html.H4("Stash Analytics & Consumption Velocity", className="text-light fw-bold mb-1"),
-                    html.P("Real-time inventory breakdowns, timeline trends, net flow history, and projected depletion horizons.", className="text-muted small mb-3"),
+                    html.P("Real-time inventory breakdowns, timeline trends, project utilization, net flow history, and projected depletion horizons.", className="text-muted small mb-3"),
                 ],
                 className="mb-3",
             ),
@@ -267,6 +307,7 @@ def create_analytics_layout(
             charts_row_1,
             charts_row_2,
             charts_row_3,
+            charts_row_4,
         ],
         id="analytics-container",
         fluid=True,

@@ -5,16 +5,19 @@ from typing import Any
 
 import dash
 import plotly.graph_objects as go
-from dash import Input, Output, callback_context
+from dash import Input, Output, State, callback_context
 
 from stashstats.analytics.distributions import StashDistributionCalculator
+from stashstats.analytics.projects import StashProjectUsageCalculator
 from stashstats.analytics.velocity import StashVelocityCalculator
 from stashstats.models.analytics import StashHorizon, StashVelocityReport
+from stashstats.models.project import Project
 from stashstats.models.stash import StashItem
 from stashstats.web.components.analytics import create_kpi_summary_cards
 from stashstats.web.components.analytics_charts import (
     create_fiber_donut_chart,
     create_monthly_flow_chart,
+    create_projects_pie_chart,
     create_stash_by_time_chart,
     create_velocity_pace_chart,
     create_weight_distribution_chart,
@@ -25,12 +28,13 @@ logger = logging.getLogger("stashstats.web.analytics")
 
 def update_analytics_dashboard_logic(
     raw_stash_data: list[dict[str, Any]] | None,
+    raw_projects_data: list[dict[str, Any]] | None = None,
     unit: str = "yards",
 ) -> tuple[Any, ...]:
     """Pure calculation logic for updating the analytics dashboard components and charts.
 
     Returns:
-        tuple containing (kpi_cards, fiber_fig, weight_fig, timeline_fig, flow_fig, velocity_fig).
+        tuple containing (kpi_cards, fiber_fig, weight_fig, timeline_fig, flow_fig, velocity_fig, projects_fig).
     """
     raw_items = raw_stash_data or []
     stash_items: list[StashItem] = []
@@ -43,8 +47,24 @@ def update_analytics_dashboard_logic(
             except Exception:
                 pass
 
+    raw_projs = raw_projects_data or []
+    project_items: list[Project] = []
+    for p in raw_projs:
+        if isinstance(p, Project):
+            project_items.append(p)
+        elif isinstance(p, dict):
+            try:
+                project_items.append(Project.model_validate(p))
+            except Exception:
+                pass
+
     # Calculate distributions
     distributions = StashDistributionCalculator.aggregate_all(stash_items)
+
+    # Correlate projects and stash usage
+    project_usages = StashProjectUsageCalculator.correlate_projects_and_stash(
+        stash_items, project_items
+    )
 
     # Compute baseline metrics
     total_yards = sum(
@@ -98,6 +118,7 @@ def update_analytics_dashboard_logic(
         rollups=report.periodic_monthly if report else None,
         unit=unit,
     )
+    projects_fig = create_projects_pie_chart(project_usages, unit=unit)
     flow_fig = create_monthly_flow_chart(report.periodic_monthly, unit=unit)
     velocity_fig = create_velocity_pace_chart(
         velocity_30d=report.velocity_30d,
@@ -113,6 +134,7 @@ def update_analytics_dashboard_logic(
         timeline_fig,
         flow_fig,
         velocity_fig,
+        projects_fig,
     )
 
 
@@ -126,6 +148,7 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
         Output("analytics-timeline-chart", "figure"),
         Output("analytics-flow-chart", "figure"),
         Output("analytics-velocity-chart", "figure"),
+        Output("analytics-projects-chart", "figure"),
         Input("stash-raw-store", "data"),
         Input("analytics-unit-selector", "value"),
         prevent_initial_call=False,
@@ -136,5 +159,6 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
     ):
         return update_analytics_dashboard_logic(
             raw_stash_data=raw_stash_data,
+            raw_projects_data=None,
             unit=unit or "yards",
         )
