@@ -25,6 +25,7 @@ def create_analytics_layout(
     distribution: StashDistributionSummary | None = None,
     yarn_weights: list[str] | None = None,
     color_families: list[str] | None = None,
+    unit: str = "yards",
 ) -> dbc.Container:
     """Create the full Stash Analytics dashboard tab layout.
 
@@ -33,11 +34,18 @@ def create_analytics_layout(
         distribution: Optional pre-computed StashDistributionSummary.
         yarn_weights: Optional list of yarn weight filter choices.
         color_families: Optional list of color family filter choices.
+        unit: Initial selected metric unit ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
         Configured dbc.Container with complete analytics dashboard UI.
     """
     total_yards = report.total_active_yards if report else 0.0
+    total_meters = total_yards * 0.9144
+    total_grams = (
+        sum(w.total_grams for w in distribution.weights)
+        if distribution and distribution.weights
+        else total_yards * 0.45
+    )
     total_skeins = report.total_active_skeins if report else 0.0
     total_items = report.total_active_items if report else 0
     monthly_burn_rate = (
@@ -49,10 +57,13 @@ def create_analytics_layout(
 
     kpi_cards = create_kpi_summary_cards(
         total_yards=total_yards,
+        total_meters=total_meters,
+        total_grams=total_grams,
         total_skeins=total_skeins,
         total_items=total_items,
         monthly_burn_rate=monthly_burn_rate,
         months_remaining=months_remaining,
+        unit=unit,
     )
 
     resolved_weights = (
@@ -67,20 +78,30 @@ def create_analytics_layout(
     filter_bar = create_analytics_filter_bar(
         yarn_weights=resolved_weights,
         color_families=resolved_colors,
+        active_unit=unit,
     )
 
-    fiber_fig = create_fiber_donut_chart(distribution.fibers if distribution else [])
+    fiber_fig = create_fiber_donut_chart(
+        distribution.fibers if distribution else [],
+        unit=unit,
+    )
     weight_fig = create_weight_distribution_chart(
-        distribution.weights if distribution else []
+        distribution.weights if distribution else [],
+        unit=unit,
     )
     timeline_fig = create_stash_by_time_chart(
-        rollups=report.periodic_monthly if report else None
+        rollups=report.periodic_monthly if report else None,
+        unit=unit,
     )
-    flow_fig = create_monthly_flow_chart(report.periodic_monthly if report else [])
+    flow_fig = create_monthly_flow_chart(
+        report.periodic_monthly if report else [],
+        unit=unit,
+    )
     velocity_fig = create_velocity_pace_chart(
         velocity_30d=report.velocity_30d if report else None,
         velocity_90d=report.velocity_90d if report else None,
         velocity_365d=report.velocity_365d if report else None,
+        unit=unit,
     )
 
     card_container_style = {

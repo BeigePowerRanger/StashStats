@@ -6,19 +6,25 @@ from dash import dcc, html
 
 def create_kpi_summary_cards(
     total_yards: float = 0.0,
+    total_meters: float = 0.0,
+    total_grams: float = 0.0,
     total_skeins: float = 0.0,
     total_items: int = 0,
     monthly_burn_rate: float = 0.0,
     months_remaining: float | None = None,
+    unit: str = "yards",
 ) -> dbc.Row:
-    """Create a row of summary metric KPI cards.
+    """Create a row of summary metric KPI cards tailored to selected unit dimension.
 
     Args:
         total_yards: Current active stash yardage.
+        total_meters: Current active stash meterage.
+        total_grams: Current active stash weight in grams.
         total_skeins: Current active skein count.
         total_items: Total count of active stash items.
         monthly_burn_rate: Estimated monthly consumption rate in yards.
         months_remaining: Projected lifespan in months.
+        unit: Selected unit ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
         dbc.Row containing structured KPI cards.
@@ -40,15 +46,38 @@ def create_kpi_summary_cards(
         "borderRadius": "8px",
     }
 
+    u = (unit or "yards").lower()
+    if u in ("meters", "meter", "m"):
+        main_val_text = f"{total_meters:,.0f} m"
+        main_subtext = f"{total_yards:,.0f} yds / {total_skeins:,.1f} sk"
+        rate_val_text = f"{(monthly_burn_rate * 0.9144):,.1f} m/mo"
+        rate_subtext = f"~{((monthly_burn_rate * 0.9144) / 30.4375):,.1f} m / day"
+    elif u in ("grams", "gram", "g"):
+        main_val_text = f"{total_grams:,.0f} g"
+        main_subtext = f"{total_skeins:,.1f} sk / {total_yards:,.0f} yds"
+        rate_val_text = f"{(monthly_burn_rate * 0.45):,.1f} g/mo"
+        rate_subtext = f"~{((monthly_burn_rate * 0.45) / 30.4375):,.1f} g / day"
+    elif u in ("skeins", "skein", "sk"):
+        main_val_text = f"{total_skeins:,.1f} sk"
+        main_subtext = f"{total_items} items / {total_yards:,.0f} yds"
+        skein_burn = (monthly_burn_rate / 200.0) if monthly_burn_rate else 0.0
+        rate_val_text = f"{skein_burn:,.1f} sk/mo"
+        rate_subtext = f"~{(skein_burn / 30.4375):,.2f} sk / day"
+    else:
+        main_val_text = f"{total_yards:,.0f} yds"
+        main_subtext = f"{total_skeins:,.1f} skeins in {total_items} items"
+        rate_val_text = f"{monthly_burn_rate:,.1f} yds/mo"
+        rate_subtext = f"~{(monthly_burn_rate / 30.4375):,.1f} yds / day"
+
     return dbc.Row(
         [
             dbc.Col(
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.H6("Active Stash Yardage", className="card-subtitle text-muted mb-1"),
-                            html.H3(f"{total_yards:,.0f} yds", className="card-title text-success mb-1"),
-                            html.Small(f"{total_skeins:,.1f} skeins in {total_items} items", className="text-secondary"),
+                            html.H6(f"Active Stash ({u.capitalize()})", className="card-subtitle text-muted mb-1"),
+                            html.H3(main_val_text, className="card-title text-success mb-1"),
+                            html.Small(main_subtext, className="text-secondary"),
                         ]
                     ),
                     style=card_style,
@@ -64,8 +93,8 @@ def create_kpi_summary_cards(
                     dbc.CardBody(
                         [
                             html.H6("Knitting Velocity", className="card-subtitle text-muted mb-1"),
-                            html.H3(f"{monthly_burn_rate:,.1f} yds/mo", className="card-title text-info mb-1"),
-                            html.Small(f"~{(monthly_burn_rate / 30.4375):,.1f} yds / day", className="text-secondary"),
+                            html.H3(rate_val_text, className="card-title text-info mb-1"),
+                            html.Small(rate_subtext, className="text-secondary"),
                         ]
                     ),
                     style=card_style,
@@ -102,7 +131,7 @@ def create_kpi_summary_cards(
                                 f"{total_items} items",
                                 className="card-title text-primary mb-1",
                             ),
-                            html.Small("Tracked in local cache", className="text-secondary"),
+                            html.Small("Tracked in active stash", className="text-secondary"),
                         ]
                     ),
                     style=card_style,
@@ -122,12 +151,14 @@ def create_kpi_summary_cards(
 def create_analytics_filter_bar(
     yarn_weights: list[str] | None = None,
     color_families: list[str] | None = None,
+    active_unit: str = "yards",
 ) -> dbc.Card:
-    """Create interactive filter controls for the analytics dashboard.
+    """Create interactive filter controls and unit toggle for the analytics dashboard.
 
     Args:
         yarn_weights: Optional list of yarn weight options.
         color_families: Optional list of color family options.
+        active_unit: Initial selected metric unit ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
         dbc.Card containing interactive filter inputs.
@@ -138,6 +169,30 @@ def create_analytics_filter_bar(
     return dbc.Card(
         dbc.CardBody(
             [
+                # Top Toolbar: Unit Metric Toggle
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            [
+                                html.Span("View Metric Unit: ", className="fw-bold text-light me-2 small"),
+                                dbc.RadioItems(
+                                    id="analytics-unit-selector",
+                                    options=[
+                                        {"label": "Yards (yd)", "value": "yards"},
+                                        {"label": "Meters (m)", "value": "meters"},
+                                        {"label": "Grams (g)", "value": "grams"},
+                                        {"label": "Skeins (sk)", "value": "skeins"},
+                                    ],
+                                    value=active_unit,
+                                    inline=True,
+                                    className="d-inline-flex flex-wrap gap-2 small",
+                                ),
+                            ],
+                            xs=12,
+                            className="d-flex align-items-center mb-3 pb-2 border-bottom border-secondary",
+                        ),
+                    ]
+                ),
                 # Row 1: Weight, Color, Search, and Reset
                 dbc.Row(
                     [

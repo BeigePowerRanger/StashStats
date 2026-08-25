@@ -18,6 +18,9 @@ class CategoryDistribution(BaseModel):
     total_yards: float = 0.0
     """Total length in yards."""
 
+    total_meters: float = 0.0
+    """Total length in meters."""
+
     total_grams: float = 0.0
     """Total weight in grams."""
 
@@ -61,6 +64,7 @@ class StashDistributionCalculator:
 
         grouped_count: dict[str, int] = defaultdict(int)
         grouped_yards: dict[str, float] = defaultdict(float)
+        grouped_meters: dict[str, float] = defaultdict(float)
         grouped_grams: dict[str, float] = defaultdict(float)
         grouped_skeins: dict[str, float] = defaultdict(float)
 
@@ -73,6 +77,10 @@ class StashDistributionCalculator:
                 (getattr(item, "yards_remaining", None) if getattr(item, "yards_remaining", None) is not None else item.total_yards)
                 or 0.0
             )
+            meters = (
+                (getattr(item, "meters_remaining", None) if getattr(item, "meters_remaining", None) is not None else item.total_meters)
+                or (yards * 0.9144 if yards else 0.0)
+            )
             grams = (
                 (getattr(item, "grams_remaining", None) if getattr(item, "grams_remaining", None) is not None else item.total_grams)
                 or 0.0
@@ -84,6 +92,7 @@ class StashDistributionCalculator:
 
             grouped_count[key] += 1
             grouped_yards[key] += yards
+            grouped_meters[key] += meters
             grouped_grams[key] += grams
             grouped_skeins[key] += skeins
             total_all_yards += yards
@@ -100,6 +109,7 @@ class StashDistributionCalculator:
                     name=name,
                     count=count,
                     total_yards=round(yards, 2),
+                    total_meters=round(grouped_meters[name], 2),
                     total_grams=round(grouped_grams[name], 2),
                     total_skeins=round(grouped_skeins[name], 2),
                     percentage_yards=pct_yards,

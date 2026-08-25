@@ -145,6 +145,7 @@ def update_analytics_dashboard_logic(
     selected_weights: list[str] | None = None,
     selected_colors: list[str] | None = None,
     search_query: str | None = None,
+    unit: str = "yards",
     min_grams: float | None = None,
     max_grams: float | None = None,
     min_yards: float | None = None,
@@ -160,12 +161,13 @@ def update_analytics_dashboard_logic(
 
     Returns:
         tuple containing (kpi_cards, fiber_fig, weight_fig, timeline_fig, flow_fig, velocity_fig,
-        weight_val, color_val, search_val, min_g, max_g, min_y, max_y, min_m, max_m, min_sk, max_sk).
+        unit_val, weight_val, color_val, search_val, min_g, max_g, min_y, max_y, min_m, max_m, min_sk, max_sk).
     """
     if triggered_id == "analytics-filter-reset":
         selected_weights = None
         selected_colors = None
         search_query = None
+        unit = "yards"
         min_grams = None
         max_grams = None
         min_yards = None
@@ -214,6 +216,16 @@ def update_analytics_dashboard_logic(
         or 0.0
         for item in filtered_items
     )
+    total_meters = sum(
+        (getattr(item, "meters_remaining", None) if getattr(item, "meters_remaining", None) is not None else item.total_meters)
+        or ((getattr(item, "total_yards", 0.0) or 0.0) * 0.9144)
+        for item in filtered_items
+    )
+    total_grams = sum(
+        (getattr(item, "grams_remaining", None) if getattr(item, "grams_remaining", None) is not None else item.total_grams)
+        or 0.0
+        for item in filtered_items
+    )
     total_skeins = sum(
         (getattr(item, "skeins_remaining", None) if getattr(item, "skeins_remaining", None) is not None else item.skeins)
         or 0.0
@@ -234,23 +246,28 @@ def update_analytics_dashboard_logic(
 
     kpi_cards = create_kpi_summary_cards(
         total_yards=total_yards,
+        total_meters=total_meters,
+        total_grams=total_grams,
         total_skeins=total_skeins,
         total_items=total_items,
         monthly_burn_rate=monthly_burn_rate,
         months_remaining=months_remaining,
+        unit=unit,
     )
 
-    fiber_fig = create_fiber_donut_chart(distributions.fibers)
-    weight_fig = create_weight_distribution_chart(distributions.weights)
+    fiber_fig = create_fiber_donut_chart(distributions.fibers, unit=unit)
+    weight_fig = create_weight_distribution_chart(distributions.weights, unit=unit)
     timeline_fig = create_stash_by_time_chart(
         items=filtered_items,
         rollups=report.periodic_monthly if report else None,
+        unit=unit,
     )
-    flow_fig = create_monthly_flow_chart(report.periodic_monthly)
+    flow_fig = create_monthly_flow_chart(report.periodic_monthly, unit=unit)
     velocity_fig = create_velocity_pace_chart(
         velocity_30d=report.velocity_30d,
         velocity_90d=report.velocity_90d,
         velocity_365d=report.velocity_365d,
+        unit=unit,
     )
 
     return (
@@ -260,6 +277,7 @@ def update_analytics_dashboard_logic(
         timeline_fig,
         flow_fig,
         velocity_fig,
+        unit,
         selected_weights,
         selected_colors,
         search_query,
@@ -284,6 +302,7 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
         Output("analytics-timeline-chart", "figure"),
         Output("analytics-flow-chart", "figure"),
         Output("analytics-velocity-chart", "figure"),
+        Output("analytics-unit-selector", "value"),
         Output("analytics-filter-weight", "value"),
         Output("analytics-filter-color", "value"),
         Output("analytics-filter-search", "value"),
@@ -296,6 +315,7 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
         Output("analytics-filter-min-skeins", "value"),
         Output("analytics-filter-max-skeins", "value"),
         Input("stash-raw-store", "data"),
+        Input("analytics-unit-selector", "value"),
         Input("analytics-filter-weight", "value"),
         Input("analytics-filter-color", "value"),
         Input("analytics-filter-search", "value"),
@@ -312,6 +332,7 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
     )
     def update_analytics_dashboard(
         raw_stash_data: list[dict[str, Any]] | None,
+        unit: str | None,
         selected_weights: list[str] | None,
         selected_colors: list[str] | None,
         search_query: str | None,
@@ -333,6 +354,7 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
             selected_weights=selected_weights,
             selected_colors=selected_colors,
             search_query=search_query,
+            unit=unit or "yards",
             min_grams=min_grams,
             max_grams=max_grams,
             min_yards=min_yards,

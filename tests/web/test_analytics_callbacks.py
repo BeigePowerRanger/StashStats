@@ -76,6 +76,7 @@ class TestAnalyticsCallbacks:
             selected_weights=None,
             selected_colors=None,
             search_query=None,
+            unit="yards",
             min_grams=None,
             max_grams=None,
             min_yards=None,
@@ -96,6 +97,72 @@ class TestAnalyticsCallbacks:
         assert isinstance(flow_fig, go.Figure)
         assert isinstance(vel_fig, go.Figure)
 
+    def test_update_analytics_unit_meters(self):
+        raw = sample_raw_stash()
+        res = update_analytics_dashboard_logic(
+            raw_stash_data=raw,
+            selected_weights=None,
+            selected_colors=None,
+            search_query=None,
+            unit="meters",
+            min_grams=None,
+            max_grams=None,
+            min_yards=None,
+            max_yards=None,
+            min_meters=None,
+            max_meters=None,
+            min_skeins=None,
+            max_skeins=None,
+            reset_clicks=None,
+            triggered_id="analytics-unit-selector",
+        )
+        weight_fig = res[2]
+        assert "Meters" in weight_fig.layout.yaxis.title.text
+
+    def test_update_analytics_unit_grams(self):
+        raw = sample_raw_stash()
+        res = update_analytics_dashboard_logic(
+            raw_stash_data=raw,
+            selected_weights=None,
+            selected_colors=None,
+            search_query=None,
+            unit="grams",
+            min_grams=None,
+            max_grams=None,
+            min_yards=None,
+            max_yards=None,
+            min_meters=None,
+            max_meters=None,
+            min_skeins=None,
+            max_skeins=None,
+            reset_clicks=None,
+            triggered_id="analytics-unit-selector",
+        )
+        weight_fig = res[2]
+        assert "Grams" in weight_fig.layout.yaxis.title.text
+
+    def test_update_analytics_unit_skeins(self):
+        raw = sample_raw_stash()
+        res = update_analytics_dashboard_logic(
+            raw_stash_data=raw,
+            selected_weights=None,
+            selected_colors=None,
+            search_query=None,
+            unit="skeins",
+            min_grams=None,
+            max_grams=None,
+            min_yards=None,
+            max_yards=None,
+            min_meters=None,
+            max_meters=None,
+            min_skeins=None,
+            max_skeins=None,
+            reset_clicks=None,
+            triggered_id="analytics-unit-selector",
+        )
+        weight_fig = res[2]
+        assert "Skeins" in weight_fig.layout.yaxis.title.text
+
     def test_filter_by_weight(self):
         raw = sample_raw_stash()
         res = update_analytics_dashboard_logic(
@@ -103,6 +170,7 @@ class TestAnalyticsCallbacks:
             selected_weights=["Worsted"],
             selected_colors=None,
             search_query=None,
+            unit="yards",
             min_grams=None,
             max_grams=None,
             min_yards=None,
@@ -128,6 +196,7 @@ class TestAnalyticsCallbacks:
             selected_weights=None,
             selected_colors=None,
             search_query=None,
+            unit="yards",
             min_grams=250.0,
             max_grams=None,
             min_yards=None,
@@ -150,6 +219,7 @@ class TestAnalyticsCallbacks:
             selected_weights=None,
             selected_colors=None,
             search_query=None,
+            unit="yards",
             min_grams=None,
             max_grams=None,
             min_yards=700.0,
@@ -173,6 +243,7 @@ class TestAnalyticsCallbacks:
             selected_weights=None,
             selected_colors=None,
             search_query=None,
+            unit="yards",
             min_grams=None,
             max_grams=None,
             min_yards=None,
@@ -195,6 +266,7 @@ class TestAnalyticsCallbacks:
             selected_weights=None,
             selected_colors=None,
             search_query=None,
+            unit="yards",
             min_grams=None,
             max_grams=None,
             min_yards=None,
@@ -217,6 +289,7 @@ class TestAnalyticsCallbacks:
             selected_weights=["Worsted"],
             selected_colors=["Blue"],
             search_query="Cascade",
+            unit="meters",
             min_grams=100.0,
             max_grams=200.0,
             min_yards=200.0,
@@ -228,7 +301,7 @@ class TestAnalyticsCallbacks:
             reset_clicks=1,
             triggered_id="analytics-filter-reset",
         )
-        # Check that outputs return None for all filters
+        # Check that outputs return None for all filters and unit reset to "yards"
         (
             kpi,
             fiber_fig,
@@ -236,6 +309,7 @@ class TestAnalyticsCallbacks:
             timeline_fig,
             flow_fig,
             vel_fig,
+            unit_val,
             w_val,
             c_val,
             s_val,
@@ -249,6 +323,7 @@ class TestAnalyticsCallbacks:
             max_sk,
         ) = res
 
+        assert unit_val == "yards"
         assert w_val is None
         assert c_val is None
         assert s_val is None
