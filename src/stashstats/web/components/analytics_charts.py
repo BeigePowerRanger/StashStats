@@ -15,18 +15,18 @@ CHART_THEME = {
 }
 
 PALETTE = [
-    "#8e6bb3",  # Soft Amethyst Purple
-    "#5c92d1",  # Slate Blue
-    "#d8839e",  # Dusty Rose Pink
-    "#6d597a",  # Plum Slate
-    "#7097c2",  # Denim Blue
-    "#b56576",  # Mauve Berry
-    "#a78bfa",  # Soft Lavender
-    "#5b84b1",  # Periwinkle Blue
-    "#c9708b",  # Blush Rose
-    "#9d84b7",  # Muted Violet
-    "#4f86c6",  # Steel Blue
-    "#e5989b",  # Warm Blush
+    "#8b5cf6",  # Violet Purple
+    "#3b82f6",  # Royal Blue
+    "#ec4899",  # Vivid Berry Pink
+    "#06b6d4",  # Sky Cyan
+    "#a855f7",  # Amethyst Purple
+    "#d946ef",  # Orchid Magenta
+    "#6366f1",  # Indigo Iris
+    "#0ea5e9",  # Deep Sky Blue
+    "#f43f5e",  # Rose Pink
+    "#c084fc",  # Soft Lilac
+    "#2563eb",  # Cobalt Blue
+    "#db2777",  # Deep Rose
 ]
 
 
@@ -93,6 +93,8 @@ def create_fiber_donut_chart(
     if not values or all(v == 0 for v in values):
         return _create_empty_figure("No fiber quantities recorded")
 
+    slice_colors = [PALETTE[i % len(PALETTE)] for i in range(len(labels))]
+
     fig = go.Figure(
         data=[
             go.Pie(
@@ -100,7 +102,10 @@ def create_fiber_donut_chart(
                 values=values,
                 hole=0.55,
                 textinfo="label+percent",
-                marker={"colors": PALETTE[: len(labels)]},
+                marker={
+                    "colors": slice_colors,
+                    "line": {"color": "#1f2428", "width": 2},
+                },
                 hovertemplate=f"<b>%{{label}}</b><br>{label_unit}: %{{value:,.1f}} {symbol}<br>Share: %{{percent}}<extra></extra>",
             )
         ]
@@ -147,13 +152,17 @@ def create_weight_distribution_chart(
     x_labels = [w.name for w in distributions]
     y_values = [extract_val(w) for w in distributions]
     item_counts = [w.count for w in distributions]
+    bar_colors = [PALETTE[i % len(PALETTE)] for i in range(len(x_labels))]
 
     fig = go.Figure(
         data=[
             go.Bar(
                 x=x_labels,
                 y=y_values,
-                marker={"color": "#7c5295", "line": {"color": "#8e6bb3", "width": 1.5}},
+                marker={
+                    "color": bar_colors,
+                    "line": {"color": "rgba(255, 255, 255, 0.25)", "width": 1.5},
+                },
                 customdata=item_counts,
                 hovertemplate=f"<b>%{{x}}</b><br>{label_unit}: %{{y:,.1f}} {symbol}<br>Items: %{{customdata}}<extra></extra>",
             )
@@ -211,9 +220,9 @@ def create_stash_by_time_chart(
                     y=cum_values,
                     mode="lines+markers",
                     fill="tozeroy",
-                    line={"color": "#5c92d1", "width": 3, "shape": "spline"},
-                    marker={"size": 6, "color": "#d8839e"},
-                    fillcolor="rgba(92, 146, 209, 0.12)",
+                    line={"color": "#0ea5e9", "width": 3, "shape": "spline"},
+                    marker={"size": 7, "color": "#ec4899", "line": {"color": "#ffffff", "width": 1.5}},
+                    fillcolor="rgba(14, 165, 233, 0.2)",
                     hovertemplate=f"<b>%{{x}}</b><br>Net Stash: %{{y:,.1f}} {symbol}<extra></extra>",
                 )
             ]
@@ -293,9 +302,9 @@ def create_stash_by_time_chart(
                     y=cum_values,
                     mode="lines+markers",
                     fill="tozeroy",
-                    line={"color": "#5c92d1", "width": 3, "shape": "spline"},
-                    marker={"size": 6, "color": "#d8839e"},
-                    fillcolor="rgba(92, 146, 209, 0.12)",
+                    line={"color": "#0ea5e9", "width": 3, "shape": "spline"},
+                    marker={"size": 7, "color": "#ec4899", "line": {"color": "#ffffff", "width": 1.5}},
+                    fillcolor="rgba(14, 165, 233, 0.2)",
                     hovertemplate=f"<b>%{{x}}</b><br>Cumulative Inflow: %{{y:,.1f}} {symbol}<extra></extra>",
                 )
             ]
@@ -306,6 +315,8 @@ def create_stash_by_time_chart(
             yaxis={"title": f"Cumulative Inflow ({symbol})", "gridcolor": "#333", "rangemode": "tozero", "automargin": True},
         )
         return fig
+
+    return _create_empty_figure("No stash timeline data available")
 
 
 def create_monthly_flow_chart(
@@ -346,14 +357,14 @@ def create_monthly_flow_chart(
                 name="Acquired",
                 x=periods,
                 y=acquired,
-                marker={"color": "#5c92d1"},
+                marker={"color": "#3b82f6", "line": {"color": "rgba(255, 255, 255, 0.2)", "width": 1}},
                 hovertemplate=f"<b>%{{x}}</b><br>Acquired: %{{y:,.1f}} {symbol}<extra></extra>",
             ),
             go.Bar(
                 name="Consumed",
                 x=periods,
                 y=consumed,
-                marker={"color": "#d8839e"},
+                marker={"color": "#ec4899", "line": {"color": "rgba(255, 255, 255, 0.2)", "width": 1}},
                 hovertemplate=f"<b>%{{x}}</b><br>Consumed: %{{y:,.1f}} {symbol}<extra></extra>",
             ),
         ]
@@ -478,6 +489,8 @@ def create_projects_pie_chart(
     if not values or all(v == 0 for v in values):
         return _create_empty_figure("No project yarn consumption recorded")
 
+    slice_colors = [PALETTE[i % len(PALETTE)] for i in range(len(labels))]
+
     fig = go.Figure(
         data=[
             go.Pie(
@@ -485,7 +498,10 @@ def create_projects_pie_chart(
                 values=values,
                 hole=0.55,
                 textinfo="label+percent",
-                marker={"colors": PALETTE[: len(labels)]},
+                marker={
+                    "colors": slice_colors,
+                    "line": {"color": "#1f2428", "width": 2},
+                },
                 hovertemplate=f"<b>%{{label}}</b><br>{label_unit}: %{{value:,.1f}} {symbol}<br>Share: %{{percent}}<extra></extra>",
             )
         ]
