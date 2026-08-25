@@ -55,8 +55,8 @@ class TestAnalyticsCharts:
         ]
         fig = create_stash_by_time_chart(rollups=rollups)
         assert isinstance(fig, go.Figure)
-        assert len(fig.data) == 1
-        assert list(fig.data[0].x) == ["2026-01", "2026-02"]
+        assert list(fig.data[0].x) == ["Jan '26", "Feb '26"]
+        assert list(fig.data[0].customdata) == ["2026-01", "2026-02"]
         assert list(fig.data[0].y) == [300.0, 500.0]
 
     def test_create_monthly_flow_chart(self):

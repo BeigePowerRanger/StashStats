@@ -194,9 +194,22 @@ def create_stash_by_time_chart(
     """
     label_unit, symbol = _get_unit_meta(unit)
 
+    def format_period(p: str) -> str:
+        try:
+            if len(p) == 7 and "-" in p:
+                parts = p.split("-")
+                month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                m_idx = int(parts[1]) - 1
+                if 0 <= m_idx < 12:
+                    return f"{month_names[m_idx]} '{parts[0][2:]}"
+        except Exception:
+            pass
+        return str(p)
+
     if rollups:
         sorted_rollups = sorted(rollups, key=lambda r: r.period)
         periods = [r.period for r in sorted_rollups]
+        display_periods = [format_period(p) for p in periods]
         cum_values = []
         total = 0.0
         for r in sorted_rollups:
@@ -216,20 +229,27 @@ def create_stash_by_time_chart(
         fig = go.Figure(
             data=[
                 go.Scatter(
-                    x=periods,
+                    x=display_periods,
                     y=cum_values,
+                    customdata=periods,
                     mode="lines+markers",
                     fill="tozeroy",
-                    line={"color": "#0ea5e9", "width": 3, "shape": "spline"},
-                    marker={"size": 7, "color": "#ec4899", "line": {"color": "#ffffff", "width": 1.5}},
-                    fillcolor="rgba(14, 165, 233, 0.2)",
-                    hovertemplate=f"<b>%{{x}}</b><br>Net Stash: %{{y:,.1f}} {symbol}<extra></extra>",
+                    line={"color": "#8b5cf6", "width": 3, "shape": "spline"},
+                    marker={"size": 8, "color": "#a855f7", "line": {"color": "#ffffff", "width": 1.5}},
+                    fillcolor="rgba(139, 92, 246, 0.18)",
+                    hovertemplate=f"<b>%{{x}} (%{{customdata}})</b><br>Net Stash: %{{y:,.1f}} {symbol}<extra></extra>",
                 )
             ]
         )
         fig.update_layout(
             **CHART_THEME,
-            xaxis={"title": "Timeline", "gridcolor": "#333", "automargin": True},
+            xaxis={
+                "title": "Timeline",
+                "type": "category",
+                "gridcolor": "#333",
+                "automargin": True,
+                "tickangle": -45 if len(periods) > 6 else 0,
+            },
             yaxis={"title": f"Total Stash ({symbol})", "gridcolor": "#333", "rangemode": "tozero", "automargin": True},
         )
         return fig
@@ -285,10 +305,12 @@ def create_stash_by_time_chart(
         if not sorted_periods:
             if "Undated" in period_totals:
                 sorted_periods = ["Active Stash"]
+                display_periods = ["Active Stash"]
                 cum_values = [period_totals["Undated"]]
             else:
                 return _create_empty_figure("No stash timeline data available")
         else:
+            display_periods = [format_period(p) for p in sorted_periods]
             cum_values = []
             running = 0.0
             for p in sorted_periods:
@@ -298,20 +320,27 @@ def create_stash_by_time_chart(
         fig = go.Figure(
             data=[
                 go.Scatter(
-                    x=sorted_periods,
+                    x=display_periods,
                     y=cum_values,
+                    customdata=sorted_periods,
                     mode="lines+markers",
                     fill="tozeroy",
-                    line={"color": "#0ea5e9", "width": 3, "shape": "spline"},
-                    marker={"size": 7, "color": "#ec4899", "line": {"color": "#ffffff", "width": 1.5}},
-                    fillcolor="rgba(14, 165, 233, 0.2)",
-                    hovertemplate=f"<b>%{{x}}</b><br>Cumulative Inflow: %{{y:,.1f}} {symbol}<extra></extra>",
+                    line={"color": "#8b5cf6", "width": 3, "shape": "spline"},
+                    marker={"size": 8, "color": "#a855f7", "line": {"color": "#ffffff", "width": 1.5}},
+                    fillcolor="rgba(139, 92, 246, 0.18)",
+                    hovertemplate=f"<b>%{{x}} (%{{customdata}})</b><br>Cumulative Inflow: %{{y:,.1f}} {symbol}<extra></extra>",
                 )
             ]
         )
         fig.update_layout(
             **CHART_THEME,
-            xaxis={"title": "Timeline", "gridcolor": "#333", "automargin": True},
+            xaxis={
+                "title": "Timeline",
+                "type": "category",
+                "gridcolor": "#333",
+                "automargin": True,
+                "tickangle": -45 if len(sorted_periods) > 6 else 0,
+            },
             yaxis={"title": f"Cumulative Inflow ({symbol})", "gridcolor": "#333", "rangemode": "tozero", "automargin": True},
         )
         return fig
