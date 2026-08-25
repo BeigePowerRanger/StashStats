@@ -177,12 +177,53 @@ def create_weight_distribution_chart(
     return fig
 
 
+def _build_continuous_monthly_timeline(
+    period_dict: dict[str, float],
+) -> tuple[list[str], list[str], list[float]]:
+    """Build a continuous chronological monthly series covering every calendar month.
+
+    Returns:
+        (iso_dates, display_labels, cumulative_values)
+    """
+    valid_periods = [p for p in period_dict.keys() if p != "Undated" and len(p) >= 7 and "-" in p]
+    if not valid_periods:
+        if "Undated" in period_dict:
+            return ["Active Stash"], ["Active Stash"], [period_dict["Undated"]]
+        return [], [], []
+
+    valid_periods.sort()
+    start_y, start_m = int(valid_periods[0][:4]), int(valid_periods[0][5:7])
+    end_y, end_m = int(valid_periods[-1][:4]), int(valid_periods[-1][5:7])
+
+    month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    iso_dates: list[str] = []
+    display_labels: list[str] = []
+    cum_values: list[float] = []
+
+    running = 0.0
+    curr_y, curr_m = start_y, start_m
+
+    while (curr_y < end_y) or (curr_y == end_y and curr_m <= end_m):
+        key = f"{curr_y:04d}-{curr_m:02d}"
+        iso_dates.append(f"{key}-01")
+        display_labels.append(f"{month_names[curr_m - 1]} '{str(curr_y)[2:]}")
+        running += period_dict.get(key, 0.0)
+        cum_values.append(max(0.0, running))
+
+        curr_m += 1
+        if curr_m > 12:
+            curr_m = 1
+            curr_y += 1
+
+    return iso_dates, display_labels, cum_values
+
+
 def create_stash_by_time_chart(
     items: list[Any] | None = None,
     rollups: list[PeriodicRollup] | None = None,
     unit: str = "yards",
 ) -> go.Figure:
-    """Generate a timeline area chart of stash volume over time.
+    """Generate a timeline area chart of stash volume over continuous calendar time.
 
     Args:
         items: Optional list of StashItem objects.
@@ -194,50 +235,37 @@ def create_stash_by_time_chart(
     """
     label_unit, symbol = _get_unit_meta(unit)
 
-    def format_period(p: str) -> str:
-        try:
-            if len(p) == 7 and "-" in p:
-                parts = p.split("-")
-                month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
-                m_idx = int(parts[1]) - 1
-                if 0 <= m_idx < 12:
-                    return f"{month_names[m_idx]} '{parts[0][2:]}"
-        except Exception:
-            pass
-        return str(p)
-
     if rollups:
-        sorted_rollups = sorted(rollups, key=lambda r: r.period)
-        periods = [r.period for r in sorted_rollups]
-        display_periods = [format_period(p) for p in periods]
-        cum_values = []
-        total = 0.0
-        for r in sorted_rollups:
+        period_dict: dict[str, float] = {}
+        for r in rollups:
             if symbol == "sk":
-                total += r.net_skeins
+                val = r.net_skeins
             elif symbol == "m":
-                total += r.net_yards * 0.9144
+                val = r.net_yards * 0.9144
             elif symbol == "g":
-                total += r.net_yards * 0.45
+                val = r.net_yards * 0.45
             else:
-                total += r.net_yards
-            cum_values.append(max(0.0, total))
+                val = r.net_yards
+            period_dict[r.period] = period_dict.get(r.period, 0.0) + val
 
-        if not periods or all(y == 0 for y in cum_values):
+        iso_dates, display_labels, cum_values = _build_continuous_monthly_timeline(period_dict)
+
+        if not iso_dates or all(y == 0 for y in cum_values):
             return _create_empty_figure("No timeline data available")
 
+        is_date_axis = iso_dates[0] != "Active Stash"
         fig = go.Figure(
             data=[
                 go.Scatter(
-                    x=display_periods,
+                    x=iso_dates,
                     y=cum_values,
-                    customdata=periods,
+                    customdata=display_labels,
                     mode="lines+markers",
                     fill="tozeroy",
                     line={"color": "#8b5cf6", "width": 3, "shape": "spline"},
-                    marker={"size": 8, "color": "#a855f7", "line": {"color": "#ffffff", "width": 1.5}},
+                    marker={"size": 6, "color": "#a855f7", "line": {"color": "#ffffff", "width": 1.5}},
                     fillcolor="rgba(139, 92, 246, 0.18)",
-                    hovertemplate=f"<b>%{{x}} (%{{customdata}})</b><br>Net Stash: %{{y:,.1f}} {symbol}<extra></extra>",
+                    hovertemplate=f"<b>%{{customdata}}</b><br>Net Stash: %{{y:,.1f}} {symbol}<extra></extra>",
                 )
             ]
         )
@@ -245,10 +273,10 @@ def create_stash_by_time_chart(
             **CHART_THEME,
             xaxis={
                 "title": "Timeline",
-                "type": "category",
+                "type": "date" if is_date_axis else "category",
+                "tickformat": "%b '%y" if is_date_axis else None,
                 "gridcolor": "#333",
                 "automargin": True,
-                "tickangle": -45 if len(periods) > 6 else 0,
             },
             yaxis={"title": f"Total Stash ({symbol})", "gridcolor": "#333", "rangemode": "tozero", "automargin": True},
         )
@@ -301,34 +329,24 @@ def create_stash_by_time_chart(
         for period, val in dated_items:
             period_totals[period] = period_totals.get(period, 0.0) + val
 
-        sorted_periods = sorted([p for p in period_totals.keys() if p != "Undated"])
-        if not sorted_periods:
-            if "Undated" in period_totals:
-                sorted_periods = ["Active Stash"]
-                display_periods = ["Active Stash"]
-                cum_values = [period_totals["Undated"]]
-            else:
-                return _create_empty_figure("No stash timeline data available")
-        else:
-            display_periods = [format_period(p) for p in sorted_periods]
-            cum_values = []
-            running = 0.0
-            for p in sorted_periods:
-                running += period_totals[p]
-                cum_values.append(running)
+        iso_dates, display_labels, cum_values = _build_continuous_monthly_timeline(period_totals)
 
+        if not iso_dates or all(y == 0 for y in cum_values):
+            return _create_empty_figure("No stash timeline data available")
+
+        is_date_axis = iso_dates[0] != "Active Stash"
         fig = go.Figure(
             data=[
                 go.Scatter(
-                    x=display_periods,
+                    x=iso_dates,
                     y=cum_values,
-                    customdata=sorted_periods,
+                    customdata=display_labels,
                     mode="lines+markers",
                     fill="tozeroy",
                     line={"color": "#8b5cf6", "width": 3, "shape": "spline"},
-                    marker={"size": 8, "color": "#a855f7", "line": {"color": "#ffffff", "width": 1.5}},
+                    marker={"size": 6, "color": "#a855f7", "line": {"color": "#ffffff", "width": 1.5}},
                     fillcolor="rgba(139, 92, 246, 0.18)",
-                    hovertemplate=f"<b>%{{x}} (%{{customdata}})</b><br>Cumulative Inflow: %{{y:,.1f}} {symbol}<extra></extra>",
+                    hovertemplate=f"<b>%{{customdata}}</b><br>Cumulative Inflow: %{{y:,.1f}} {symbol}<extra></extra>",
                 )
             ]
         )
@@ -336,10 +354,10 @@ def create_stash_by_time_chart(
             **CHART_THEME,
             xaxis={
                 "title": "Timeline",
-                "type": "category",
+                "type": "date" if is_date_axis else "category",
+                "tickformat": "%b '%y" if is_date_axis else None,
                 "gridcolor": "#333",
                 "automargin": True,
-                "tickangle": -45 if len(sorted_periods) > 6 else 0,
             },
             yaxis={"title": f"Cumulative Inflow ({symbol})", "gridcolor": "#333", "rangemode": "tozero", "automargin": True},
         )
