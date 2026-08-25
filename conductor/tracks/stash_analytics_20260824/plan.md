@@ -4,9 +4,9 @@
 - [x] Task: Create analytics models (`StashDeltaEvent`, `PeriodicRollup`, `RollingVelocity`, `StashHorizon`, `StashVelocityReport`) in `src/stashstats/models/analytics.py` [5dbc6f7]
     - [x] Create tests in `tests/test_analytics_models.py`
     - [x] Implement models in `src/stashstats/models/analytics.py` and export in `src/stashstats/models/__init__.py`
-- [ ] Task: Implement `StashVelocityCalculator` in `src/stashstats/analytics/velocity.py`
-    - [ ] Create tests in `tests/test_analytics_velocity.py`
-    - [ ] Implement event extraction, periodic rollups, rolling velocity windows, and lifespan horizon calculations
+- [x] Task: Implement `StashVelocityCalculator` in `src/stashstats/analytics/velocity.py` [fd800aa]
+    - [x] Create tests in `tests/test_analytics_velocity.py`
+    - [x] Implement event extraction, periodic rollups, rolling velocity windows, and lifespan horizon calculations
 - [ ] Task: Implement stash inventory distribution aggregators
     - [ ] Create tests in `tests/test_analytics_distributions.py`
     - [ ] Implement distribution functions for yarn weight, fiber content, color family, and brand aggregations
