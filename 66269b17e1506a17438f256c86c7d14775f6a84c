@@ -1,0 +1,3 @@
+Task: Project inputs in log usage modal and history table display
+Files: src/stashstats/web/components/modal.py, tests/web/test_modal.py
+Why: Allow user to input project/pattern and view them in usage table
