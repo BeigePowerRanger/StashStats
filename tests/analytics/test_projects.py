@@ -211,6 +211,7 @@ class TestStashProjectUsageCalculator:
                 Pack(
                     id=555,
                     project_id=888,
+                    project_name="Pecan Hat",
                     colorway="Glazed Pecan",
                     skeins=1.0,
                     total_yards=420.0,
@@ -218,6 +219,34 @@ class TestStashProjectUsageCalculator:
                 )
             ],
         )
+        records = StashProjectUsageCalculator.correlate_projects_and_stash([item])
+        assert len(records) == 1
+        assert records[0].project_id == 888
+        assert records[0].project_name == "Pecan Hat"
+        assert records[0].skeins_used == 1.0
+
+    def test_generic_stash_usage_without_project_does_not_create_project(self):
+        """Verify unlinked usage history without project_name or project_id does not create a fake project."""
+        stash = sample_stash_items()
+        histories = {
+            10: [
+                {
+                    "event_type": "consumed",
+                    "skeins": -1.0,
+                    "yards": -210.0,
+                    "grams": -100.0,
+                    "project_name": None,
+                    "project_id": None,
+                    "notes": "Used some yarn for swatching",
+                }
+            ]
+        }
+        records = StashProjectUsageCalculator.correlate_projects_and_stash(
+            stash_items=stash,
+            histories=histories,
+        )
+        assert len(records) == 0
+
     def test_correlate_from_log_usage_with_custom_project_name(self):
         stash = sample_stash_items()
         histories = {

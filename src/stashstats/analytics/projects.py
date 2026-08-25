@@ -216,11 +216,6 @@ class StashProjectUsageCalculator:
                     if event_type in ("initial", "acquired", "purchase", "in_stash"):
                         continue
 
-                    raw_skeins = float(_safe_get(entry, "skeins") or 0.0)
-                    raw_delta_skeins = float(_safe_get(entry, "delta_skeins") or 0.0)
-                    raw_yds = float(_safe_get(entry, "yards") or _safe_get(entry, "delta_yards") or 0.0)
-                    raw_g = float(_safe_get(entry, "grams") or _safe_get(entry, "delta_grams") or 0.0)
-
                     p_name = (_safe_get(entry, "project_name") or "").strip() or None
                     p_id = _safe_get(entry, "project_id")
                     if p_id:
@@ -229,6 +224,15 @@ class StashProjectUsageCalculator:
                                 p_id = None
                         except (ValueError, TypeError):
                             pass
+
+                    # Require an explicit project attribution (project_name or project_id)
+                    if not p_name and not p_id:
+                        continue
+
+                    raw_skeins = float(_safe_get(entry, "skeins") or 0.0)
+                    raw_delta_skeins = float(_safe_get(entry, "delta_skeins") or 0.0)
+                    raw_yds = float(_safe_get(entry, "yards") or _safe_get(entry, "delta_yards") or 0.0)
+                    raw_g = float(_safe_get(entry, "grams") or _safe_get(entry, "delta_grams") or 0.0)
                     pat_name = (_safe_get(entry, "pattern_name") or "").strip() or None
                     notes = (_safe_get(entry, "notes") or "").strip() or None
 
@@ -256,10 +260,7 @@ class StashProjectUsageCalculator:
                     if effective_skeins <= 0 and used_yards <= 0 and used_grams <= 0:
                         continue
 
-                    proj_display_name = (
-                        p_name
-                        or (f"Project #{p_id}" if p_id else (pat_name if pat_name else (notes if notes else f"{yarn_display_name} Usage")))
-                    )
+                    proj_display_name = p_name or f"Project #{p_id}"
                     effective_stash_id = sid or (_safe_get(matched_stash, "id") if matched_stash else None)
 
                     yards = used_yards
