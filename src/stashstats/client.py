@@ -405,27 +405,31 @@ class RavelryClient(BaseAPIClient):
         data = self.post("/app/data/delete.json", params={"keys": " ".join(keys)})
         return data.get("data", data)
 
-    def _stash_history_key(self, stash_id: int) -> str:
+    def _stash_history_key(self, stash_id: int, user_id: str | int | None = None) -> str:
         """Generate the storage key for a stash item's history.
 
         Args:
             stash_id: Unique stash item database ID.
+            user_id: Optional user ID or username for multi-user namespacing.
 
         Returns:
             Formatted app data storage key.
         """
+        if user_id:
+            return f"user_{user_id}_stash_history_{stash_id}"
         return f"stash_history_{stash_id}"
 
-    def get_stash_history(self, stash_id: int) -> StashHistory:
+    def get_stash_history(self, stash_id: int, user_id: str | int | None = None) -> StashHistory:
         """Retrieve quantity history timeline for a stash item.
 
         Args:
             stash_id: Unique stash item database ID.
+            user_id: Optional user identifier for namespaced history.
 
         Returns:
             Parsed StashHistory object with chronological snapshots.
         """
-        key = self._stash_history_key(stash_id)
+        key = self._stash_history_key(stash_id, user_id=user_id)
         app_data = self.get_app_data([key])
         raw_val = app_data.get(key)
         if not raw_val:
@@ -448,11 +452,16 @@ class RavelryClient(BaseAPIClient):
             )
         return StashHistory(stash_id=stash_id, entries=[])
 
-    def get_batch_stash_history(self, stash_ids: list[int]) -> dict[int, StashHistory]:
+    def get_batch_stash_history(
+        self,
+        stash_ids: list[int],
+        user_id: str | int | None = None,
+    ) -> dict[int, StashHistory]:
         """Retrieve quantity histories for multiple stash items in a single request.
 
         Args:
             stash_ids: List of stash item IDs to look up.
+            user_id: Optional user identifier for namespaced history.
 
         Returns:
             Dictionary mapping stash IDs to their respective StashHistory objects.
@@ -460,12 +469,12 @@ class RavelryClient(BaseAPIClient):
         if not stash_ids:
             return {}
 
-        keys = [self._stash_history_key(sid) for sid in stash_ids]
+        keys = [self._stash_history_key(sid, user_id=user_id) for sid in stash_ids]
         app_data = self.get_app_data(keys)
 
         result: dict[int, StashHistory] = {}
         for sid in stash_ids:
-            key = self._stash_history_key(sid)
+            key = self._stash_history_key(sid, user_id=user_id)
             raw_val = app_data.get(key)
             if not raw_val:
                 result[sid] = StashHistory(stash_id=sid, entries=[])
@@ -499,6 +508,7 @@ class RavelryClient(BaseAPIClient):
         pack_id: int | None = None,
         delta_skeins: float | None = None,
         notes: str | None = None,
+        user_id: str | int | None = None,
     ) -> StashHistory:
         """Record a quantity snapshot entry for a stash item in app data.
 
@@ -508,6 +518,7 @@ class RavelryClient(BaseAPIClient):
             pack_id: Optional pack ID.
             delta_skeins: Optional quantity delta.
             notes: Optional note.
+            user_id: Optional user identifier for namespaced history.
 
         Returns:
             Updated StashHistory object.
@@ -539,7 +550,7 @@ class RavelryClient(BaseAPIClient):
             notes=notes,
         )
 
-        history = self.get_stash_history(stash_item.id)
+        history = self.get_stash_history(stash_item.id, user_id=user_id)
         if history.entries:
             latest = history.entries[-1]
             if (
@@ -555,21 +566,21 @@ class RavelryClient(BaseAPIClient):
 
         history.entries.append(entry)
 
-        key = self._stash_history_key(stash_item.id)
+        key = self._stash_history_key(stash_item.id, user_id=user_id)
         self.set_app_data(**{key: history.model_dump_json()})
         return history
 
-
-    def delete_stash_history(self, stash_id: int) -> dict[str, str]:
+    def delete_stash_history(self, stash_id: int, user_id: str | int | None = None) -> dict[str, str]:
         """Delete stored quantity history for a stash item.
 
         Args:
             stash_id: Unique stash item database ID.
+            user_id: Optional user identifier for namespaced history.
 
         Returns:
             Dictionary of deleted keys and previous values.
         """
-        key = self._stash_history_key(stash_id)
+        key = self._stash_history_key(stash_id, user_id=user_id)
         return self.delete_app_data([key])
 
     def get_color_families(self) -> list[ColorFamily]:
