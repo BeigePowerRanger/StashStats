@@ -50,6 +50,7 @@ def create_navigation_tabs(
         sync_status=sync_status,
         pending_count=pending_count,
         last_synced=last_synced,
+        include_stores=False,
     )
     search_layout = create_yarn_search_layout()
 
@@ -162,11 +163,11 @@ def create_main_layout(
     tab_content: Any = None,
     items: Any = None,
 ) -> dbc.Container:
-    """Create root application layout shell with header and navigation tabs.
+    """Create the full top-level application layout with header, tabs, and content.
 
     Args:
-        username: Authenticated Ravelry username.
-        active_tab: Tab ID of active tab.
+        username: Authenticated username.
+        active_tab: ID of the currently active tab.
         sync_status: Sync state indicator string.
         pending_count: Number of uncommitted local mutations.
         last_synced: Timestamp string for last sync.
@@ -176,6 +177,17 @@ def create_main_layout(
     Returns:
         Root dbc.Container component.
     """
+    raw_items = items or []
+    serialized_items = [
+        item.model_dump() if hasattr(item, "model_dump") else item
+        for item in raw_items
+    ]
+
+    global_stores = [
+        dcc.Store(id="stash-raw-store", data=serialized_items),
+        dcc.Store(id="stash-dirty-store", data=[]),
+    ]
+
     header = create_header(
         username=username,
         sync_status=sync_status,
@@ -211,6 +223,7 @@ def create_main_layout(
         fluid=True,
         className="p-0 bg-dark text-light min-vh-100",
         children=[
+            *global_stores,
             header,
             body_container,
         ],

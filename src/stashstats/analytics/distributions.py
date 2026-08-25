@@ -157,10 +157,29 @@ class StashDistributionCalculator:
     def aggregate_fiber_categories(cls, stash_items: list[StashItem]) -> list[CategoryDistribution]:
         """Aggregate stash by fiber category or material."""
         def extract_fiber(item: StashItem) -> str:
-            # Check tag names or yarn fiber notes if available
-            for tag in item.tag_names:
-                if any(f in tag.lower() for f in ["wool", "merino", "silk", "cotton", "alpaca", "mohair", "cashmere", "acrylic", "linen", "nylon"]):
-                    return tag.capitalize()
+            # 1. Check yarn fibers list if available on item or yarn model
+            if item.yarn and getattr(item.yarn, "yarn_fibers", None):
+                fibers = getattr(item.yarn, "yarn_fibers", [])
+                if fibers:
+                    top_fiber = max(fibers, key=lambda f: getattr(f, "percentage", 0) or 0)
+                    ft = getattr(top_fiber, "fiber_type", None)
+                    if ft and hasattr(ft, "name") and ft.name:
+                        return str(ft.name).capitalize()
+                    elif hasattr(top_fiber, "name") and top_fiber.name:
+                        return str(top_fiber.name).capitalize()
+
+            # 2. Check yarn name, item title, or tags for known fiber keywords
+            tokens = " ".join(
+                [
+                    item.name or "",
+                    (item.yarn.name if item.yarn else "") or "",
+                    " ".join(item.tag_names or []),
+                ]
+            ).lower()
+            for fiber_kw in ["merino", "alpaca", "silk", "cotton", "cashmere", "mohair", "wool", "acrylic", "linen", "nylon", "bamboo", "viscose"]:
+                if fiber_kw in tokens:
+                    return fiber_kw.capitalize()
+
             return "General / Mixed Fiber"
 
         return cls._aggregate_dimension(stash_items, extract_fiber)

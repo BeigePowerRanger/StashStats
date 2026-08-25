@@ -192,19 +192,29 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
         raw_stash_data: list[dict[str, Any]] | None,
         unit: str | None,
     ):
-        if not raw_stash_data and getattr(app, "client", None) is not None:
+        raw_projects_data = None
+        if getattr(app, "client", None) is not None:
+            if not raw_stash_data:
+                try:
+                    stash_resp = app.client.get_my_stash()
+                    raw_stash_data = [
+                        it.model_dump() if hasattr(it, "model_dump") else it
+                        for it in stash_resp.stash
+                    ]
+                except Exception:
+                    pass
             try:
-                stash_resp = app.client.get_my_stash()
-                raw_stash_data = [
-                    it.model_dump() if hasattr(it, "model_dump") else it
-                    for it in stash_resp.stash
-                ]
+                user = app.client.get_current_user()
+                if user and user.user and user.user.username:
+                    resp = app.client.get(f"/people/{user.user.username}/projects/list.json")
+                    if resp and "projects" in resp:
+                        raw_projects_data = resp["projects"]
             except Exception:
                 pass
 
         return update_analytics_dashboard_logic(
             raw_stash_data=raw_stash_data,
-            raw_projects_data=None,
+            raw_projects_data=raw_projects_data,
             histories_data=None,
             unit=unit or "yards",
         )

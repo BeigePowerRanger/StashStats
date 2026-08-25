@@ -21,22 +21,24 @@ def create_stash_layout(
     sync_status: str = "Synced",
     pending_count: int = 0,
     last_synced: str | None = None,
-    page: int = 1,
-    page_size: int = 10,
-    sort_by: str = "brand_asc",
     query: str = "",
+    sort_by: str = "brand_asc",
+    page: int = 1,
+    page_size: int = 25,
+    include_stores: bool = True,
 ) -> dbc.Container:
-    """Create the Personal Stash inventory view layout.
+    """Create the Personal Stash interface layout.
 
     Args:
-        items: Optional initial list of StashItem objects or dicts.
-        sync_status: Sync state label string.
-        pending_count: Number of uncommitted local mutations.
-        last_synced: Timestamp string of last sync.
-        page: Active page index (1-indexed).
-        page_size: Number of parent yarn groups per page.
+        items: Optional list of StashItem objects or dictionary payloads.
+        sync_status: Status string for the sync status badge.
+        pending_count: Count of pending changes.
+        last_synced: Timestamp of last successful sync.
+        query: Initial search/filter string.
         sort_by: Initial sorting option key.
-        query: Initial search query string.
+        page: Current active page number (1-indexed).
+        page_size: Stash items per page count.
+        include_stores: Whether to include dcc.Store components in the container.
 
     Returns:
         Configured dbc.Container component.
@@ -193,15 +195,16 @@ def create_stash_layout(
     )
 
     # 5. Data Stores
-    serialized_items = [
-        item.model_dump() if hasattr(item, "model_dump") else item
-        for item in raw_items
-    ]
-
-    stores = [
-        dcc.Store(id="stash-raw-store", data=serialized_items),
-        dcc.Store(id="stash-dirty-store", data=[]),
-    ]
+    stores = []
+    if include_stores:
+        serialized_items = [
+            item.model_dump() if hasattr(item, "model_dump") else item
+            for item in raw_items
+        ]
+        stores = [
+            dcc.Store(id="stash-raw-store", data=serialized_items),
+            dcc.Store(id="stash-dirty-store", data=[]),
+        ]
 
     # 6. Modal Dialog
     modal = create_stash_modal()
