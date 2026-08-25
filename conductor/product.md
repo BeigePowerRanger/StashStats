@@ -12,9 +12,11 @@ StashStats is a Dash-based web application designed to help yarn enthusiasts sea
 1. **Ravelry API Python Client**:
    - Reusable Python client library within `stashies` wrapping Ravelry API endpoints.
    - Comprehensive coverage of Ravelry endpoints (yarns, patterns, stashes, etc.).
-2. **Stash Analytics**:
+2. **Stash Analytics & Consumption Velocity Engine**:
    - Visual charts displaying distributions of yarn weights, fiber types, color families, and brands.
-   - Interactive filtering to analyze specific categories of the stash.
+   - Consumption velocity calculations across rolling windows (30d, 90d, 365d) and stash lifespan horizon forecasting.
+   - Monthly net stash flow tracking (acquired vs consumed yardage).
+   - Interactive filtering by weight, color, and keyword to dynamically analyze stash segments.
 3. **Inventory Management**:
    - Keep track of original purchase values (yards, meters, skeins, grams) versus remaining amounts.
    - Log history events with specific dates when yarn is used in projects.
