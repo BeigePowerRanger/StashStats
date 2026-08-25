@@ -4,38 +4,167 @@
     background-color: #303030 !important;
 }
 
-/* Rounded UI Components (Original StashStats aesthetics) */
+/* ==========================================================================
+   Global Rounded Edges & Box Aesthetics
+   ========================================================================== */
+
+/* 1. Cards, KPI Panels, Chart Wrappers & Containers */
 .card,
-.modal-content,
-.accordion-item,
-.accordion-header .accordion-button {
-    border-radius: 8px !important;
+.card-body,
+.card-header,
+.card-footer,
+.kpi-card,
+.chart-card,
+.tab-content-container,
+.yarn-search-details,
+.dash-graph,
+.js-plotly-plot,
+.plot-container {
+    border-radius: 12px !important;
 }
 
-.accordion-item {
-    margin-bottom: 0.5rem;
+.card {
     overflow: hidden;
 }
 
-.nav-tabs .nav-link {
+/* 2. Accordions & List Groups */
+.accordion,
+.accordion-item,
+.accordion-header,
+.accordion-button {
+    border-radius: 10px !important;
+}
+
+.accordion-item {
+    margin-bottom: 0.6rem;
+    overflow: hidden;
+    border: 1px solid #444 !important;
+}
+
+.accordion-button:not(.collapsed) {
+    border-bottom-left-radius: 0 !important;
+    border-bottom-right-radius: 0 !important;
+}
+
+.accordion-body {
+    border-bottom-left-radius: 10px !important;
+    border-bottom-right-radius: 10px !important;
+}
+
+/* 3. Buttons, Inputs, Form Selects & Input Groups */
+.btn,
+.form-control,
+.form-select,
+.input-group-text,
+textarea,
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="search"],
+select {
+    border-radius: 8px !important;
+}
+
+.btn-sm {
+    border-radius: 6px !important;
+}
+
+.btn-lg {
+    border-radius: 10px !important;
+}
+
+/* Input group seamless rounded edges */
+.input-group {
+    border-radius: 8px !important;
+}
+
+.input-group > :first-child {
+    border-top-left-radius: 8px !important;
+    border-bottom-left-radius: 8px !important;
+}
+
+.input-group > :last-child {
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+}
+
+.btn-group > .btn:first-child {
+    border-top-left-radius: 8px !important;
+    border-bottom-left-radius: 8px !important;
+}
+
+.btn-group > .btn:last-child {
+    border-top-right-radius: 8px !important;
+    border-bottom-right-radius: 8px !important;
+}
+
+/* 4. Modals & Dialogs */
+.modal-content {
+    background-color: #222222 !important;
+    border: 1px solid #444444 !important;
+    border-radius: 14px !important;
+    overflow: hidden;
+}
+
+.modal-header {
+    border-top-left-radius: 14px !important;
+    border-top-right-radius: 14px !important;
+    border-color: #333333 !important;
+}
+
+.modal-footer {
+    border-bottom-left-radius: 14px !important;
+    border-bottom-right-radius: 14px !important;
+    border-color: #333333 !important;
+}
+
+/* 5. Alerts, Badges, Toasts & Banners */
+.alert {
+    border-radius: 10px !important;
+}
+
+.badge {
+    border-radius: 6px !important;
+}
+
+.toast {
+    border-radius: 10px !important;
+    overflow: hidden;
+}
+
+/* 6. Tabs & Navigation */
+.nav-tabs .nav-link,
+._tab,
+.tab,
+.custom-tab {
     border-top-left-radius: 8px !important;
     border-top-right-radius: 8px !important;
 }
 
-.btn,
-.form-control,
-.form-select,
-.input-group-text {
+/* 7. Tables & Responsive Wrappers */
+.table-responsive {
+    border-radius: 10px !important;
+    overflow: hidden;
+}
+
+table,
+.table {
+    border-radius: 10px !important;
+}
+
+/* 8. Pagination */
+.pagination {
+    border-radius: 8px !important;
+}
+
+.page-item .page-link {
     border-radius: 6px !important;
+    margin: 0 2px;
 }
 
-/* Modal dark theme adjustments */
-.modal-content {
-    background-color: #222222 !important;
-    border: 1px solid #444444 !important;
-}
-
-.modal-header,
-.modal-footer {
-    border-color: #333333 !important;
+/* 9. Images & Thumbnails */
+img,
+.img-thumbnail,
+.rounded {
+    border-radius: 8px !important;
 }
