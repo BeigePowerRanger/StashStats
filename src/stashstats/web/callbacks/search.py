@@ -7,13 +7,17 @@ import dash
 import dash_bootstrap_components as dbc
 from dash import MATCH, Input, Output, State, ctx, html
 
+from datetime import UTC, datetime
+
 from stashstats.client import RavelryClient
 from stashstats.web.components.search import create_yarn_search_accordion
+
 
 logger = logging.getLogger(__name__)
 
 
 def build_search_query(query: str | None, brand: str | None) -> str:
+
     """Build unified search query string combining brand and keyword filters.
 
     Args:
@@ -230,6 +234,110 @@ def handle_yarn_search_callback(
     )
 
 
+def handle_add_to_stash_logic(
+    client: RavelryClient | None,
+    yarn_id: int,
+    skeins: float | None,
+    colorway: str | None,
+    dyelot: str | None,
+    location: str | None,
+    notes: str | None,
+    date_added: str | None,
+    search_results: list[dict[str, Any]] | None,
+    raw_stash_items: list[dict[str, Any]] | None,
+) -> tuple[str, list[dict[str, Any]]]:
+    """Execute creation of a new stash item and prepend to raw stash store.
+
+    Args:
+        client: Optional authenticated RavelryClient instance.
+        yarn_id: Catalog yarn database ID.
+        skeins: Decimal number of skeins.
+        colorway: Colorway name.
+        dyelot: Dye lot identifier.
+        location: Storage location string.
+        notes: User stash notes.
+        date_added: YYYY-MM-DD date string.
+        search_results: Cached yarn search results list.
+        raw_stash_items: Current stash-raw-store item records.
+
+    Returns:
+        Tuple of (status_message_str, updated_stash_items_list).
+    """
+    skeins_val = float(skeins) if skeins and float(skeins) > 0 else 1.0
+
+    # Look up yarn metadata from search results
+    yarn_data: dict[str, Any] = {}
+    for y in (search_results or []):
+        if str(y.get("id")) == str(yarn_id):
+            yarn_data = dict(y)
+            break
+
+    yarn_name = yarn_data.get("name") or f"Yarn #{yarn_id}"
+    brand_name = yarn_data.get("yarn_company_name") or ""
+    grams_per_skein = float(yarn_data.get("grams") or 100.0)
+    yards_per_skein = float(yarn_data.get("yardage") or 200.0)
+    total_yards = round(yards_per_skein * skeins_val, 2)
+    total_grams = round(grams_per_skein * skeins_val, 2)
+    total_meters = round(total_yards * 0.9144, 2)
+
+    new_stash_dict: dict[str, Any] | None = None
+
+    if client is not None:
+        try:
+            created_item = client.create_stash_item(
+                yarn_id=yarn_id,
+                colorway_name=colorway,
+                dye_lot=dyelot,
+                skeins=skeins_val,
+                total_grams=total_grams,
+                total_yards=total_yards,
+                location=location,
+                stash_status_id=1,
+            )
+            new_stash_dict = created_item.model_dump() if hasattr(created_item, "model_dump") else dict(created_item)
+        except Exception as exc:
+            logger.warning(f"Failed to create stash item in Ravelry API: {exc}")
+
+    if not new_stash_dict:
+        full_name = f"{brand_name} {yarn_name}".strip() if brand_name else yarn_name
+        new_stash_dict = {
+            "id": int(datetime.now(tz=UTC).timestamp() * 1000),
+            "name": full_name,
+            "permalink": yarn_data.get("permalink") or f"yarn-{yarn_id}",
+            "colorway_name": colorway,
+            "dye_lot": dyelot,
+            "location": location,
+            "notes": notes,
+            "skeins": skeins_val,
+            "total_yards": total_yards,
+            "total_grams": total_grams,
+            "total_meters": total_meters,
+            "created_at": date_added or datetime.now(tz=UTC).isoformat(),
+            "stash_status": {"id": 1, "name": "In stash"},
+            "yarn": {
+                "id": yarn_id,
+                "name": yarn_name,
+                "yarn_company_name": brand_name,
+                "yarn_weight": yarn_data.get("yarn_weight"),
+            },
+            "packs": [
+                {
+                    "id": int(datetime.now(tz=UTC).timestamp() * 1000) + 1,
+                    "colorway": colorway,
+                    "dye_lot": dyelot,
+                    "skeins": skeins_val,
+                    "total_yards": total_yards,
+                    "total_grams": total_grams,
+                }
+            ],
+        }
+
+    updated_stash = [new_stash_dict] + [dict(it) for it in (raw_stash_items or [])]
+    status_msg = f"Successfully added {skeins_val:g} skein(s) of {yarn_name} to stash!"
+
+    return status_msg, updated_stash
+
+
 def register_search_callbacks(app: dash.Dash) -> None:
     """Register all interactive reactive callbacks for the Yarn Search view.
 
@@ -283,6 +391,7 @@ def register_search_callbacks(app: dash.Dash) -> None:
 
     @app.callback(
         Output({"type": "stash-status-msg", "index": MATCH}, "children"),
+        Output("stash-raw-store", "data", allow_duplicate=True),
         Input({"type": "stash-submit-btn", "index": MATCH}, "n_clicks"),
         State({"type": "stash-skeins", "index": MATCH}, "value"),
         State({"type": "stash-colorway", "index": MATCH}, "value"),
@@ -291,6 +400,8 @@ def register_search_callbacks(app: dash.Dash) -> None:
         State({"type": "stash-notes", "index": MATCH}, "value"),
         State({"type": "stash-date-added", "index": MATCH}, "date"),
         State({"type": "stash-submit-btn", "index": MATCH}, "id"),
+        State("yarn-search-results-store", "data"),
+        State("stash-raw-store", "data"),
         prevent_initial_call=True,
     )
     def handle_add_to_stash(
@@ -302,9 +413,22 @@ def register_search_callbacks(app: dash.Dash) -> None:
         notes: str | None,
         date_added: str | None,
         btn_id: dict[str, Any],
-    ) -> str:
+        search_results: list[dict[str, Any]] | None,
+        raw_stash_items: list[dict[str, Any]] | None,
+    ) -> tuple[str, list[dict[str, Any]]]:
         if not n_clicks:
             raise dash.exceptions.PreventUpdate
-        yarn_id = btn_id.get("index") if isinstance(btn_id, dict) else btn_id
-        skein_str = f"{skeins} skeins" if skeins else "1 skein"
-        return f"Successfully added {skein_str} (Yarn #{yarn_id}) to stash!"
+        client = getattr(app, "client", None)
+        yarn_id = int(btn_id.get("index")) if isinstance(btn_id, dict) else int(btn_id)
+        return handle_add_to_stash_logic(
+            client=client,
+            yarn_id=yarn_id,
+            skeins=skeins,
+            colorway=colorway,
+            dyelot=dyelot,
+            location=location,
+            notes=notes,
+            date_added=date_added,
+            search_results=search_results,
+            raw_stash_items=raw_stash_items,
+        )

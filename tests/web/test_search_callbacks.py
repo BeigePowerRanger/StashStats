@@ -14,6 +14,7 @@ from stashstats.models.yarn import YarnSearchResponse, YarnSearchResult, YarnWei
 from stashstats.web.app import create_app
 from stashstats.web.callbacks.search import (
     build_search_query,
+    handle_add_to_stash_logic,
     handle_yarn_search_callback,
     register_search_callbacks,
     update_yarn_search_logic,
@@ -462,3 +463,86 @@ def test_create_app_registers_search_callbacks() -> None:
     assert any("yarn-search-pagination-info" in o for o in outputs)
     assert any("yarn-search-results-store" in o for o in outputs)
     assert any("yarn-search-paginator-store" in o for o in outputs)
+
+
+# ===========================================================================
+# 5. handle_add_to_stash_logic Tests
+# ===========================================================================
+
+
+def test_handle_add_to_stash_logic_with_client() -> None:
+    """Verify handle_add_to_stash_logic calls client.create_stash_item and updates raw_stash store."""
+    from stashstats.models.stash import StashItem
+
+    mock_client = MagicMock()
+    mock_item = StashItem(
+        id=777,
+        name="Malabrigo Rios - Diana",
+        permalink="malabrigo-rios-diana",
+        colorway_name="Diana",
+        skeins=2.0,
+        total_yards=420.0,
+        total_grams=200.0,
+    )
+    mock_client.create_stash_item.return_value = mock_item
+
+    sample_search_results = [
+        {"id": 2420, "name": "Rios", "yarn_company_name": "Malabrigo", "grams": 100.0, "yardage": 210.0}
+    ]
+    raw_stash_items = [{"id": 1, "name": "Cascade 220", "skeins": 3.0}]
+
+    status_msg, updated_stash = handle_add_to_stash_logic(
+        client=mock_client,
+        yarn_id=2420,
+        skeins=2.0,
+        colorway="Diana",
+        dyelot="42",
+        location="Bin 1",
+        notes="Knitting sweater",
+        date_added="2026-08-24",
+        search_results=sample_search_results,
+        raw_stash_items=raw_stash_items,
+    )
+
+    mock_client.create_stash_item.assert_called_once()
+    _, kwargs = mock_client.create_stash_item.call_args
+    assert kwargs.get("yarn_id") == 2420
+    assert kwargs.get("colorway_name") == "Diana"
+    assert kwargs.get("skeins") == 2.0
+
+    assert "Successfully added" in status_msg
+    assert len(updated_stash) == 2
+    assert updated_stash[0]["id"] == 777
+    assert updated_stash[0]["skeins"] == 2.0
+
+
+def test_handle_add_to_stash_logic_offline_fallback() -> None:
+    """Verify handle_add_to_stash_logic creates a synthesized stash item when client is None."""
+    sample_search_results = [
+        {"id": 2420, "name": "Rios", "yarn_company_name": "Malabrigo", "grams": 100.0, "yardage": 210.0, "permalink": "rios"}
+    ]
+    raw_stash_items = []
+
+    status_msg, updated_stash = handle_add_to_stash_logic(
+        client=None,
+        yarn_id=2420,
+        skeins=3.0,
+        colorway="Diana",
+        dyelot="42",
+        location="Bin 1",
+        notes="Sample notes",
+        date_added="2026-08-24",
+        search_results=sample_search_results,
+        raw_stash_items=raw_stash_items,
+    )
+
+    assert "Successfully added" in status_msg
+    assert len(updated_stash) == 1
+    new_item = updated_stash[0]
+    assert new_item["name"] == "Malabrigo Rios"
+    assert new_item["skeins"] == 3.0
+    assert new_item["total_yards"] == 630.0
+    assert new_item["total_grams"] == 300.0
+    assert new_item["colorway_name"] == "Diana"
+    assert new_item["stash_status"]["name"] == "In stash"
+
