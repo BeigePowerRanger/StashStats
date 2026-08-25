@@ -234,6 +234,36 @@ class TestStashHistoryAndDeduplication:
         res = client.delete_stash_history(777)
         assert "stash_history_777" in res
 
+    def test_stash_history_key_namespacing(self, mock_settings):
+        client = RavelryClient(settings=mock_settings)
+        assert client._stash_history_key(123) == "stash_history_123"
+        assert client._stash_history_key(123, user_id="alice") == "user_alice_stash_history_123"
+        assert client._stash_history_key(123, user_id=456) == "user_456_stash_history_123"
+
+    def test_get_stash_history_with_user_id(self, mock_settings):
+        def handler(request: httpx.Request) -> httpx.Response:
+            assert request.url.params["keys"] == "user_alice_stash_history_999"
+            return httpx.Response(
+                200,
+                json={
+                    "data": {
+                        "user_alice_stash_history_999": '{"stash_id": 999, "entries": [{"timestamp": "2024/06/01 10:00:00 +0000", "skeins": 1.0, "total_grams": 100.0, "total_yards": 200.0}]}'
+                    }
+                },
+            )
+
+        client = RavelryClient(settings=mock_settings)
+        client._client = httpx.Client(
+            transport=MockTransport(handler),
+            base_url=client.base_url,
+            auth=client.auth,
+        )
+
+        hist = client.get_stash_history(999, user_id="alice")
+        assert hist.stash_id == 999
+        assert len(hist.entries) == 1
+        assert hist.entries[0].skeins == 1.0
+
 
 class TestYarnAPI:
     def test_search_yarns_default(self, mock_settings):
