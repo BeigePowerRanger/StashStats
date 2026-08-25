@@ -1,0 +1,3 @@
+Task: Fix Add to Stash reflection in Personal Stash
+Files: src/stashstats/web/callbacks/search.py, tests/web/test_search_callbacks.py
+Why: Persist added yarn into stash-raw-store and update UI seamlessly
