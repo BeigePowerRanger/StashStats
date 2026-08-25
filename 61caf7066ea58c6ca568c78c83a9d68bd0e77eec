@@ -1,0 +1,3 @@
+Task: Register callbacks in src/stashstats/web/app.py and verify full suite
+Files: src/stashstats/web/app.py
+Why: Connects reactive analytics callbacks to Dash application instance and verifies 100% pass across full test suite.
