@@ -58,4 +58,8 @@ htmlcov/
 # Teamwork agent scaffolding
 .agents/
 ORIGINAL_REQUEST.md
+
+# Syncthing conflict files
+*sync-conflict*
+.*sync-conflict*
 Brainstorm.md
