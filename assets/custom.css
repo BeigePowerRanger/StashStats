@@ -177,11 +177,15 @@ table,
     margin: 0 2px;
 }
 
-/* 9. Images & Thumbnails */
+/* 9. Images, Banners & Thumbnails */
 img,
 .img-thumbnail,
 .rounded {
-    border-radius: 8px !important;
+    border-radius: 10px !important;
+}
+
+#header-logo {
+    border-radius: 16px !important;
 }
 
 /* ==========================================================================

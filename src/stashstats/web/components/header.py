@@ -79,7 +79,7 @@ def create_header(
         src="/assets/Images/logo_color.png",
         alt="StashStats",
         id="header-logo",
-        style={"width": "100%", "maxWidth": "500px", "maxHeight": "165px", "objectFit": "contain"},
+        style={"width": "100%", "maxWidth": "500px", "maxHeight": "165px", "objectFit": "contain", "borderRadius": "16px"},
     )
 
     logo_row = dbc.Row(
