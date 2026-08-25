@@ -1,0 +1,3 @@
+Task: Implement KPI summary metric cards and filter controls in src/stashstats/web/components/analytics.py
+Files: src/stashstats/web/components/analytics.py, src/stashstats/web/components/__init__.py, tests/web/test_analytics_components.py
+Why: Implements summary cards for active yardage, knitting burn velocity, lifespan horizon estimation, and inventory count, along with interactive filter controls.
