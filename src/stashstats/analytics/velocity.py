@@ -119,8 +119,8 @@ class StashVelocityCalculator:
                     # Synthesize initial acquisition for this item
                     if matched_item:
                         acq_ts = (
-                            matched_item.created_at
-                            or matched_item.purchased
+                            getattr(matched_item, "created_at", None)
+                            or getattr(matched_item, "purchased", None)
                             or (datetime.now(tz=UTC) - timedelta(days=60)).strftime("%Y/%m/%d %H:%M:%S +0000")
                         )
                         orig_yds = (matched_item.total_yards or 0.0) + total_consumed_yds
@@ -215,10 +215,20 @@ class StashVelocityCalculator:
                 if item.id and item.id in covered_stash_ids:
                     continue
 
-                ts = item.created_at or item.purchased or datetime.now(tz=UTC).strftime("%Y/%m/%d %H:%M:%S +0000")
-                initial_skeins = item.skeins or 0.0
-                initial_yards = item.total_yards or 0.0
-                initial_grams = item.total_grams or 0.0
+                primary_pack = getattr(item, "primary_pack", None)
+                packs = getattr(item, "packs", None) or []
+                first_photo = getattr(item, "first_photo", None)
+                ts = (
+                    getattr(item, "purchased", None)
+                    or (primary_pack.purchased_date if primary_pack and getattr(primary_pack, "purchased_date", None) else None)
+                    or (packs[0].purchased_date if packs and getattr(packs[0], "purchased_date", None) else None)
+                    or getattr(item, "created_at", None)
+                    or (first_photo.created_at if first_photo and getattr(first_photo, "created_at", None) else None)
+                    or datetime.now(tz=UTC).strftime("%Y/%m/%d %H:%M:%S +0000")
+                )
+                initial_skeins = getattr(item, "skeins", None) or 0.0
+                initial_yards = getattr(item, "total_yards", None) or 0.0
+                initial_grams = getattr(item, "total_grams", None) or 0.0
 
                 all_events.append(
                     StashDeltaEvent(

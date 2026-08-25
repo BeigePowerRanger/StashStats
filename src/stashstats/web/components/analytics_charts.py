@@ -10,7 +10,8 @@ CHART_THEME = {
     "paper_bgcolor": "rgba(0,0,0,0)",
     "plot_bgcolor": "rgba(0,0,0,0)",
     "font": {"color": "#e0e0e0", "family": "Inter, Roboto, sans-serif"},
-    "margin": {"l": 30, "r": 20, "t": 40, "b": 30},
+    "margin": {"l": 55, "r": 25, "t": 35, "b": 45},
+    "autosize": True,
 }
 
 PALETTE = [
@@ -219,8 +220,8 @@ def create_stash_by_time_chart(
         )
         fig.update_layout(
             **CHART_THEME,
-            xaxis={"title": "Timeline", "gridcolor": "#333"},
-            yaxis={"title": f"Total Stash ({symbol})", "gridcolor": "#333"},
+            xaxis={"title": "Timeline", "gridcolor": "#333", "automargin": True},
+            yaxis={"title": f"Total Stash ({symbol})", "gridcolor": "#333", "rangemode": "tozero", "automargin": True},
         )
         return fig
 
@@ -301,8 +302,8 @@ def create_stash_by_time_chart(
         )
         fig.update_layout(
             **CHART_THEME,
-            xaxis={"title": "Timeline", "gridcolor": "#333"},
-            yaxis={"title": f"Cumulative Inflow ({symbol})", "gridcolor": "#333"},
+            xaxis={"title": "Timeline", "gridcolor": "#333", "automargin": True},
+            yaxis={"title": f"Cumulative Inflow ({symbol})", "gridcolor": "#333", "rangemode": "tozero", "automargin": True},
         )
         return fig
 
