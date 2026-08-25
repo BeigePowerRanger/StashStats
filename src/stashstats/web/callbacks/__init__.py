@@ -1,5 +1,9 @@
 """Reactive Dash callbacks for StashStats."""
 
+from stashstats.web.callbacks.analytics import (
+    register_analytics_callbacks,
+    update_analytics_dashboard_logic,
+)
 from stashstats.web.callbacks.modal import (
     handle_history_rollback,
     handle_save_modal,
@@ -25,9 +29,11 @@ __all__ = [
     "handle_stash_sync_logic",
     "handle_usage_preview_update",
     "handle_yarn_search_callback",
+    "register_analytics_callbacks",
     "register_modal_callbacks",
     "register_search_callbacks",
     "register_stash_callbacks",
+    "update_analytics_dashboard_logic",
     "update_stash_view_logic",
     "update_yarn_search_logic",
 ]
