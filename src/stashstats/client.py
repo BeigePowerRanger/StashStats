@@ -8,6 +8,8 @@ from stashstats.models import (
     ColorFamily,
     CurrentUserResponse,
     FiberCategory,
+    ProjectDetailResponse,
+    ProjectListResponse,
     StashHistory,
     StashHistoryEntry,
     StashItem,
@@ -618,4 +620,98 @@ class RavelryClient(BaseAPIClient):
         fiber_categories = data.get("fiber_categories", [])
         set_reference_data("fiber_categories", fiber_categories)
         return [FiberCategory.model_validate(f) for f in fiber_categories]
+
+    def get_project_list(
+        self,
+        username: str,
+        *,
+        page: int = 1,
+        page_size: int = 50,
+        sort: str = "created_",
+        query: str | None = None,
+        craft: str | None = None,
+        status: str | None = None,
+    ) -> ProjectListResponse:
+        """Fetch a page of projects for a specified user.
+
+        Args:
+            username: Ravelry username.
+            page: Result page index (1-indexed).
+            page_size: Number of items per page.
+            sort: Sort order (e.g. 'created_', 'started_', 'completed_', 'name').
+            query: Optional search filter within projects.
+            craft: Optional filter for craft type.
+            status: Optional filter for project status.
+
+        Returns:
+            ProjectListResponse with paginator metadata and list of project records.
+        """
+        params = {
+            "page": page,
+            "page_size": page_size,
+            "sort": sort,
+            "query": query,
+            "craft": craft,
+            "status": status,
+        }
+        data = self.get(f"/people/{username}/projects/list.json", params=params)
+        return ProjectListResponse.model_validate(data)
+
+    def get_my_projects(
+        self,
+        *,
+        username: str | None = None,
+        page: int = 1,
+        page_size: int = 50,
+        sort: str = "created_",
+        query: str | None = None,
+        craft: str | None = None,
+        status: str | None = None,
+    ) -> ProjectListResponse:
+        """Fetch a page of projects for the currently authenticated user.
+
+        Args:
+            username: Optional explicit username override.
+            page: Result page index (1-indexed).
+            page_size: Number of items per page.
+            sort: Sort order.
+            query: Optional search query.
+            craft: Optional craft filter.
+            status: Optional status filter.
+
+        Returns:
+            ProjectListResponse for current authenticated user.
+        """
+        target_username = username or self._cached_username
+        if not target_username:
+            user_resp = self.get_current_user()
+            target_username = user_resp.user.username
+
+        return self.get_project_list(
+            username=target_username,
+            page=page,
+            page_size=page_size,
+            sort=sort,
+            query=query,
+            craft=craft,
+            status=status,
+        )
+
+    def get_project(self, project_id: int, username: str | None = None) -> ProjectDetailResponse:
+        """Fetch details for a single project record.
+
+        Args:
+            project_id: Unique project database ID.
+            username: Optional username override (defaults to current user).
+
+        Returns:
+            ProjectDetailResponse containing detailed project record and comments.
+        """
+        target_username = username or self._cached_username
+        if not target_username:
+            user_resp = self.get_current_user()
+            target_username = user_resp.user.username
+
+        data = self.get(f"/projects/{target_username}/{project_id}.json")
+        return ProjectDetailResponse.model_validate(data)
 

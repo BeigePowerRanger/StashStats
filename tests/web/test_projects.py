@@ -222,6 +222,66 @@ class TestDecodeUpload:
         assert data is None
 
 
+class TestProjectsSyncLogic:
+    def test_sync_no_clicks_prevents_update(self):
+        import dash
+        from stashstats.web.callbacks.projects import handle_projects_sync_logic
+
+        with pytest.raises(dash.exceptions.PreventUpdate):
+            handle_projects_sync_logic(None, [])
+
+    def test_sync_with_client_success(self):
+        from unittest.mock import MagicMock
+        from stashstats.models.project import ProjectListResponse, ProjectListResult
+        from stashstats.web.callbacks.projects import handle_projects_sync_logic
+
+        mock_client = MagicMock()
+        mock_client.get_my_projects.return_value = ProjectListResponse(
+            projects=[
+                ProjectListResult(id=1, name="Test Scarf", status_name="In progress", progress=40)
+            ],
+            paginator={"page_count": 1, "page": 1, "page_size": 50, "results": 1, "last_page": 1},
+        )
+
+        status, color, last_synced, items = handle_projects_sync_logic(1, [], client=mock_client)
+        assert status == "Synced"
+        assert color == "success"
+        assert "Last synced:" in last_synced
+        assert len(items) == 1
+        assert items[0]["name"] == "Test Scarf"
+
+    def test_sync_with_client_failure(self):
+        from unittest.mock import MagicMock
+        from stashstats.web.callbacks.projects import handle_projects_sync_logic
+
+        mock_client = MagicMock()
+        mock_client.get_my_projects.side_effect = RuntimeError("API error")
+
+        status, color, last_synced, items = handle_projects_sync_logic(1, [{"id": 1}], client=mock_client)
+        assert status == "Sync Failed"
+        assert color == "danger"
+        assert "offline/error" in last_synced
+        assert items == [{"id": 1}]
+
+
+class TestUpdateProjectsCardsLogic:
+    def test_empty_renders_alert(self):
+        import dash_bootstrap_components as dbc
+        from stashstats.web.callbacks.projects import update_projects_cards_logic
+
+        res = update_projects_cards_logic([])
+        assert isinstance(res, dbc.Alert)
+
+    def test_projects_render_cards(self):
+        import dash_bootstrap_components as dbc
+        from stashstats.web.callbacks.projects import update_projects_cards_logic
+
+        res = update_projects_cards_logic([{"id": 1, "name": "Beanie"}], user_id="alice")
+        assert isinstance(res, list)
+        assert len(res) == 1
+        assert isinstance(res[0], dbc.Card)
+
+
 # ---------------------------------------------------------------------------
 # Helper: recursive component finder
 # ---------------------------------------------------------------------------

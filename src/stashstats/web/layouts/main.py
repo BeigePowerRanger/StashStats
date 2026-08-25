@@ -21,6 +21,7 @@ def create_navigation_tabs(
     pending_count: int = 0,
     last_synced: str | None = None,
     user_id: str | int = "default",
+    projects: Any = None,
 ) -> dcc.Tabs:
     """Create the 4 primary navigation tabs with embedded tab content.
 
@@ -31,6 +32,7 @@ def create_navigation_tabs(
         pending_count: Number of uncommitted local mutations.
         last_synced: Timestamp string for last sync.
         user_id: Current user identifier for projects PDF scoping.
+        projects: Optional initial list of project records.
 
     Returns:
         Configured dcc.Tabs component.
@@ -50,7 +52,7 @@ def create_navigation_tabs(
         last_synced=last_synced,
     )
     search_layout = create_yarn_search_layout()
-    projects_layout = create_projects_layout(user_id=user_id)
+    projects_layout = create_projects_layout(projects=projects, user_id=user_id)
 
     return dcc.Tabs(
         id="main-tabs",
@@ -138,6 +140,7 @@ def create_main_layout(
     last_synced: str | None = None,
     tab_content: Any = None,
     items: Any = None,
+    projects: Any = None,
 ) -> dbc.Container:
     """Create root application layout shell with header and navigation tabs.
 
@@ -149,6 +152,7 @@ def create_main_layout(
         last_synced: Timestamp string for last sync.
         tab_content: Optional custom content for the tab container.
         items: Optional initial list of stash items.
+        projects: Optional initial list of project items.
 
     Returns:
         Root dbc.Container component.
@@ -166,6 +170,8 @@ def create_main_layout(
         sync_status=sync_status,
         pending_count=pending_count,
         last_synced=last_synced,
+        user_id=username or "default",
+        projects=projects,
     )
 
     content_area = html.Div(

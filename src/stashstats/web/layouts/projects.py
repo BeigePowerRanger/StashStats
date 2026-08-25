@@ -104,47 +104,97 @@ def create_project_card(
 def create_projects_layout(
     projects: list[dict[str, Any]] | None = None,
     user_id: str | int = "default",
+    sync_status: str = "Synced",
+    last_synced: str | None = None,
 ) -> dbc.Container:
     """Create the Projects tab content layout.
 
-    Renders a card grid of project entries, each with an optional PDF upload
-    zone and inline viewer. When no projects are loaded, shows a placeholder.
+    Renders a sync control bar and a card grid of project entries, each with
+    an optional PDF upload zone and inline viewer. When no projects are loaded,
+    shows a placeholder alert.
 
     Args:
         projects: Optional list of project dicts fetched from Ravelry.
         user_id: Current user identifier for scoping PDF storage.
+        sync_status: Initial sync status string.
+        last_synced: Timestamp string for last sync.
 
     Returns:
         Configured dbc.Container layout.
     """
-    # dcc.Store holds user_id for callbacks that cannot access it otherwise
     user_store = dcc.Store(id="projects-user-store", data={"user_id": str(user_id)})
 
-    if not projects:
-        return dbc.Container(
-            [
-                user_store,
-                dbc.Alert(
+    raw_projects: list[dict[str, Any]] = []
+    if projects:
+        for p in projects:
+            if hasattr(p, "model_dump"):
+                raw_projects.append(p.model_dump())
+            elif isinstance(p, dict):
+                raw_projects.append(p)
+
+    projects_store = dcc.Store(id="projects-raw-store", data=raw_projects)
+
+    sync_btn = dbc.Button(
+        [html.I(className="bi bi-arrow-repeat me-1"), "Sync Now"],
+        id="projects-sync-btn",
+        color="success",
+        size="sm",
+        className="fw-semibold me-2 d-flex align-items-center",
+    )
+
+    sync_badge = dbc.Badge(
+        sync_status,
+        color="success",
+        pill=True,
+        className="me-2 px-2 py-1 align-self-center",
+        id="projects-sync-badge",
+    )
+
+    last_synced_text = f"Last synced: {last_synced}" if last_synced else "Last synced: Never"
+    last_synced_elem = html.Small(
+        last_synced_text,
+        className="text-muted align-self-center",
+        id="projects-last-synced",
+    )
+
+    sync_row = dbc.Row(
+        [
+            dbc.Col(
+                html.Div(
                     [
-                        html.I(className="bi bi-folder2-open me-2"),
-                        "No projects loaded. Sync with Ravelry to see your projects.",
+                        sync_btn,
+                        sync_badge,
+                        last_synced_elem,
                     ],
-                    color="info",
-                    className="text-center my-4",
-                    id="projects-empty-alert",
+                    className="d-flex align-items-center mb-3",
                 ),
+                xs=12,
+            )
+        ]
+    )
+
+    if not raw_projects:
+        cards_content = dbc.Alert(
+            [
+                html.I(className="bi bi-folder2-open me-2"),
+                "No projects loaded. Sync with Ravelry to see your projects.",
             ],
-            fluid=True,
-            className="p-0",
+            color="info",
+            className="text-center my-4",
+            id="projects-empty-alert",
+        )
+    else:
+        cards_content = html.Div(
+            [create_project_card(project, user_id=user_id) for project in raw_projects]
         )
 
-    cards = [
-        create_project_card(project, user_id=user_id)
-        for project in projects
-    ]
+    cards_container = html.Div(
+        cards_content,
+        id="projects-cards-container",
+    )
 
     return dbc.Container(
-        [user_store, *cards],
+        [user_store, projects_store, sync_row, cards_container],
         fluid=True,
         className="p-0",
     )

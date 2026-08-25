@@ -403,3 +403,114 @@ class TestYarnAPI:
         assert res.yarn.id == 2420
         assert res.yarn.name == "Rios"
 
+
+class TestRavelryClientProjects:
+    def test_get_project_list(self, mock_settings):
+        def handler(request: httpx.Request) -> httpx.Response:
+            assert request.url.path == "/people/knitter1/projects/list.json"
+            assert request.url.params["page"] == "1"
+            assert request.url.params["page_size"] == "50"
+            return httpx.Response(
+                200,
+                json={
+                    "projects": [
+                        {
+                            "id": 101,
+                            "name": "Cozy Beanie",
+                            "status_name": "In progress",
+                            "progress": 60,
+                            "craft_name": "Knitting",
+                        }
+                    ],
+                    "paginator": {
+                        "page_count": 1,
+                        "page": 1,
+                        "page_size": 50,
+                        "results": 1,
+                        "last_page": 1,
+                    },
+                },
+            )
+
+        client = RavelryClient(settings=mock_settings)
+        client._client = httpx.Client(
+            transport=MockTransport(handler),
+            base_url=client.base_url,
+            auth=client.auth,
+        )
+
+        res = client.get_project_list("knitter1")
+        assert len(res.projects) == 1
+        assert res.projects[0].id == 101
+        assert res.projects[0].name == "Cozy Beanie"
+        assert res.projects[0].progress == 60
+        assert res.projects[0].status_name == "In progress"
+
+    def test_get_my_projects(self, mock_settings):
+        def handler(request: httpx.Request) -> httpx.Response:
+            if request.url.path == "/current_user.json":
+                return httpx.Response(200, json={"user": {"id": 1, "username": "knitter1"}})
+            assert request.url.path == "/people/knitter1/projects/list.json"
+            return httpx.Response(
+                200,
+                json={
+                    "projects": [
+                        {
+                            "id": 102,
+                            "name": "Wool Socks",
+                            "status_name": "Finished",
+                            "progress": 100,
+                        }
+                    ],
+                    "paginator": {
+                        "page_count": 1,
+                        "page": 1,
+                        "page_size": 50,
+                        "results": 1,
+                        "last_page": 1,
+                    },
+                },
+            )
+
+        client = RavelryClient(settings=mock_settings)
+        client._client = httpx.Client(
+            transport=MockTransport(handler),
+            base_url=client.base_url,
+            auth=client.auth,
+        )
+
+        res = client.get_my_projects()
+        assert len(res.projects) == 1
+        assert res.projects[0].id == 102
+        assert res.projects[0].name == "Wool Socks"
+
+    def test_get_project(self, mock_settings):
+        def handler(request: httpx.Request) -> httpx.Response:
+            if request.url.path == "/current_user.json":
+                return httpx.Response(200, json={"user": {"id": 1, "username": "knitter1"}})
+            assert request.url.path == "/projects/knitter1/101.json"
+            return httpx.Response(
+                200,
+                json={
+                    "project": {
+                        "id": 101,
+                        "name": "Cozy Beanie",
+                        "status_name": "In progress",
+                        "progress": 60,
+                        "notes": "Using size 7 needles",
+                    },
+                    "comments": [],
+                },
+            )
+
+        client = RavelryClient(settings=mock_settings)
+        client._client = httpx.Client(
+            transport=MockTransport(handler),
+            base_url=client.base_url,
+            auth=client.auth,
+        )
+
+        res = client.get_project(101)
+        assert res.project.id == 101
+        assert res.project.notes == "Using size 7 needles"
+

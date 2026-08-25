@@ -1,7 +1,6 @@
-"""Dash callbacks for Projects tab: PDF upload, list, delete, and inline viewer."""
-
 import base64
 import logging
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -189,3 +188,89 @@ def register_projects_callbacks(app: dash.Dash) -> None:
         filename = triggered.get("filename", "")
 
         return f"/projects/pdf/{user_id}/{project_id}/{filename}"
+
+    @app.callback(
+        Output("projects-sync-badge", "children"),
+        Output("projects-sync-badge", "color"),
+        Output("projects-last-synced", "children"),
+        Output("projects-raw-store", "data", allow_duplicate=True),
+        Input("projects-sync-btn", "n_clicks"),
+        State("projects-raw-store", "data"),
+        prevent_initial_call=True,
+    )
+    def handle_projects_sync(
+        n_clicks: int | None,
+        raw_data: list[dict[str, Any]] | None,
+    ) -> tuple[str, str, str, list[dict[str, Any]]]:
+        client = getattr(app, "client", None)
+        return handle_projects_sync_logic(n_clicks, raw_data, client=client)
+
+    @app.callback(
+        Output("projects-cards-container", "children"),
+        Input("projects-raw-store", "data"),
+        State("projects-user-store", "data"),
+        prevent_initial_call=True,
+    )
+    def render_project_cards(
+        raw_projects: list[dict[str, Any]] | None,
+        user_data: dict | None,
+    ) -> Any:
+        user_id = (user_data or {}).get("user_id", "default")
+        return update_projects_cards_logic(raw_projects, user_id=user_id)
+
+
+def handle_projects_sync_logic(
+    n_clicks: int | None,
+    raw_data: list[dict[str, Any]] | None,
+    client: Any = None,
+) -> tuple[str, str, str, list[dict[str, Any]]]:
+    """Handle Sync Now button click to synchronize projects with Ravelry."""
+    if not n_clicks:
+        raise dash.exceptions.PreventUpdate
+
+    fresh_items = raw_data or []
+    if client:
+        try:
+            logger.info("Executing manual projects sync with Ravelry API...")
+            proj_resp = client.get_my_projects()
+            fresh_items = [
+                it.model_dump() if hasattr(it, "model_dump") else it
+                for it in proj_resp.projects
+            ]
+            logger.info(f"Manual projects sync complete: {len(fresh_items)} projects retrieved")
+            now_str = datetime.now(UTC).strftime("Today %H:%M")
+            return "Synced", "success", f"Last synced: {now_str}", fresh_items
+        except Exception as e:
+            logger.warning(f"Manual projects sync failed: {e}")
+            return "Sync Failed", "danger", "Sync failed (offline/error)", fresh_items
+
+    now_str = datetime.now(UTC).strftime("Today %H:%M")
+    return "Synced", "success", f"Last synced: {now_str}", fresh_items
+
+
+def update_projects_cards_logic(
+    raw_projects: list[dict[str, Any]] | None,
+    user_id: str | int = "default",
+) -> Any:
+    """Render project cards or empty alert based on projects store."""
+    import dash_bootstrap_components as dbc
+    from dash import html
+    from stashstats.web.layouts.projects import create_project_card
+
+    if not raw_projects:
+        return dbc.Alert(
+            [
+                html.I(className="bi bi-folder2-open me-2"),
+                "No projects loaded. Sync with Ravelry to see your projects.",
+            ],
+            color="info",
+            className="text-center my-4",
+            id="projects-empty-alert",
+        )
+
+    cards = []
+    for project in raw_projects:
+        pid = str(project.get("id", "unknown"))
+        pdfs = list_project_pdfs(user_id, pid, base_dir=DEFAULT_DATA_DIR)
+        cards.append(create_project_card(project, user_id=user_id, existing_pdfs=pdfs))
+    return cards
