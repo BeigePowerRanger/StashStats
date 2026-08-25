@@ -22,9 +22,9 @@
 - [x] Task: Implement Plotly chart generators in `src/stashstats/web/components/analytics_charts.py` [601febf]
     - [x] Create tests in `tests/test_web_analytics_charts.py`
     - [x] Implement fiber donut chart, weight distribution bar chart, monthly flow chart, and velocity trend charts
-- [ ] Task: Implement KPI summary metric cards and filter controls in `src/stashstats/web/components/analytics.py`
-    - [ ] Create tests in `tests/test_web_analytics_components.py`
-    - [ ] Implement summary cards (active yards/skeins/items, pace, lifespan) and interactive filter bar components
+- [x] Task: Implement KPI summary metric cards and filter controls in `src/stashstats/web/components/analytics.py` [4cebbb9]
+    - [x] Create tests in `tests/test_web_analytics_components.py`
+    - [x] Implement summary cards (active yards/skeins/items, pace, lifespan) and interactive filter bar components
 - [ ] Task: Implement Stash Analytics layout and wire into navigation tabs
     - [ ] Create tests in `tests/test_web_analytics_layout.py`
     - [ ] Build `src/stashstats/web/layouts/analytics.py` and embed in `src/stashstats/web/layouts/main.py`
