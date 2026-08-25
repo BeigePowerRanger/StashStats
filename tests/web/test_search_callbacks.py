@@ -580,3 +580,33 @@ def test_handle_yarn_search_callback_empty_query_search_btn() -> None:
     assert "Showing page 1 of 10" in info
     assert len(results_store) == 2
 
+
+def test_handle_add_to_stash_logic_with_manual_colorway_override() -> None:
+    """Verify manual custom colorway overrides API colorway selection."""
+    mock_client = MagicMock()
+    mock_client.create_stash_item.return_value = {
+        "id": 888,
+        "name": "Malabrigo Rios",
+        "colorway_name": "My Custom Hand Dye",
+        "skeins": 2.0,
+    }
+    sample_search_results = [
+        {"id": 2420, "name": "Rios", "yarn_company_name": "Malabrigo", "grams": 100.0, "yardage": 210.0}
+    ]
+
+    status_msg, updated_stash = handle_add_to_stash_logic(
+        client=mock_client,
+        yarn_id=2420,
+        skeins=2.0,
+        colorway="Diana",
+        manual_colorway="My Custom Hand Dye",
+        dyelot="99",
+        search_results=sample_search_results,
+        raw_stash_items=[],
+    )
+
+    mock_client.create_stash_item.assert_called_once()
+    _, kwargs = mock_client.create_stash_item.call_args
+    assert kwargs.get("colorway_name") == "My Custom Hand Dye"
+    assert "Successfully added" in status_msg
+

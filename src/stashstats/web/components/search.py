@@ -224,28 +224,37 @@ def create_yarn_search_details(
                             ),
                         ],
                         xs=12,
-                        sm=4,
+                        sm=3,
                         className="mb-2 mb-sm-0",
                     ),
                     dbc.Col(
                         [
-                            dbc.Label("Colorway"),
+                            dbc.Label("Colorway (API)"),
                             dbc.Select(
                                 id={"type": "stash-colorway", "index": yarn_id},
-                                options=colorway_options,
-                                placeholder="Select or leave blank",
-                                style=DARK_INPUT_STYLE,
-                            )
-                            if colorways
-                            else dbc.Input(
-                                type="text",
-                                id={"type": "stash-colorway", "index": yarn_id},
-                                placeholder="Colorway name",
+                                options=[{"label": "-- Select API Colorway --", "value": ""}] + colorway_options
+                                if colorways
+                                else [{"label": "No API colorways", "value": ""}],
+                                value=colorways[0] if colorways else "",
                                 style=DARK_INPUT_STYLE,
                             ),
                         ],
                         xs=12,
-                        sm=4,
+                        sm=3,
+                        className="mb-2 mb-sm-0",
+                    ),
+                    dbc.Col(
+                        [
+                            dbc.Label("Custom Colorway"),
+                            dbc.Input(
+                                type="text",
+                                id={"type": "stash-colorway-manual", "index": yarn_id},
+                                placeholder="Or enter custom colorway...",
+                                style=DARK_INPUT_STYLE,
+                            ),
+                        ],
+                        xs=12,
+                        sm=3,
                         className="mb-2 mb-sm-0",
                     ),
                     dbc.Col(
@@ -259,7 +268,7 @@ def create_yarn_search_details(
                             ),
                         ],
                         xs=12,
-                        sm=4,
+                        sm=3,
                     ),
                 ],
                 className="mb-2",

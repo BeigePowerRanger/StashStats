@@ -143,11 +143,22 @@ def update_yarn_search_logic(
         clamped_page = max(1, min(page_num, total_pages))
         total_results = paginator.results if paginator else len(yarns)
 
-        accordion = create_yarn_search_accordion(yarns)
+        # Enrich search results with official colorways from Ravelry API
+        enriched_yarns = []
+        for y in yarns:
+            y_dict = y.model_dump() if hasattr(y, "model_dump") else dict(y)
+            if not y_dict.get("colorways") and client and y_dict.get("id"):
+                try:
+                    detail = client.get_yarn_details(y_dict["id"])
+                    if detail and detail.yarn and detail.yarn.colorways:
+                        y_dict["colorways"] = [cw.name for cw in detail.yarn.colorways if cw.name]
+                except Exception:
+                    pass
+            enriched_yarns.append(y_dict)
+
+        accordion = create_yarn_search_accordion(enriched_yarns)
         info_text = f"Showing page {clamped_page} of {total_pages} ({total_results} yarns found)"
-        serialized_yarns = [
-            y.model_dump() if hasattr(y, "model_dump") else y for y in yarns
-        ]
+        serialized_yarns = enriched_yarns
         paginator_data = {
             "page": clamped_page,
             "total_pages": total_pages,
@@ -253,12 +264,13 @@ def handle_add_to_stash_logic(
     yarn_id: int,
     skeins: float | None,
     colorway: str | None,
-    dyelot: str | None,
-    location: str | None,
-    notes: str | None,
-    date_added: str | None,
-    search_results: list[dict[str, Any]] | None,
-    raw_stash_items: list[dict[str, Any]] | None,
+    dyelot: str | None = None,
+    location: str | None = None,
+    notes: str | None = None,
+    date_added: str | None = None,
+    search_results: list[dict[str, Any]] | None = None,
+    raw_stash_items: list[dict[str, Any]] | None = None,
+    manual_colorway: str | None = None,
 ) -> tuple[str, list[dict[str, Any]]]:
     """Process adding a catalog yarn to personal stash either via API or local state fallback.
 
@@ -273,12 +285,19 @@ def handle_add_to_stash_logic(
         date_added: Purchase or addition date string.
         search_results: Cached yarn search results for metadata lookup.
         raw_stash_items: Current stash item dictionaries in browser store.
+        manual_colorway: Optional manual custom colorway override string.
 
     Returns:
         Tuple of (status_message, updated_stash_items_list).
     """
     raw_stash = list(raw_stash_items) if raw_stash_items else []
     results = search_results or []
+
+    effective_colorway = (
+        manual_colorway.strip()
+        if manual_colorway and manual_colorway.strip()
+        else (colorway.strip() if colorway and colorway.strip() else None)
+    )
 
     # Find matching yarn metadata from search results
     matching_yarn: dict[str, Any] | None = None
@@ -310,7 +329,7 @@ def handle_add_to_stash_logic(
             created_item = client.create_stash_item(
                 yarn_id=yarn_id,
                 skeins=skeins or 1.0,
-                colorway_name=colorway,
+                colorway_name=effective_colorway,
                 dye_lot=dyelot,
                 location=location,
                 notes=notes,
@@ -349,7 +368,7 @@ def handle_add_to_stash_logic(
         "id": synthetic_id,
         "name": display_title,
         "permalink": matching_yarn.get("permalink", f"stash-{synthetic_id}") if matching_yarn else f"stash-{synthetic_id}",
-        "colorway_name": colorway,
+        "colorway_name": effective_colorway,
         "dye_lot": dyelot,
         "location": location,
         "notes": notes,
@@ -371,7 +390,7 @@ def handle_add_to_stash_logic(
                 "id": synthetic_id + 5000,
                 "stash_id": synthetic_id,
                 "yarn_id": yarn_id,
-                "colorway": colorway,
+                "colorway": effective_colorway,
                 "dye_lot": dyelot,
                 "skeins": sk,
                 "total_yards": total_yards,
@@ -445,6 +464,7 @@ def register_search_callbacks(app: dash.Dash) -> None:
         Input({"type": "stash-submit-btn", "index": ALL}, "n_clicks"),
         State({"type": "stash-skeins", "index": ALL}, "value"),
         State({"type": "stash-colorway", "index": ALL}, "value"),
+        State({"type": "stash-colorway-manual", "index": ALL}, "value"),
         State({"type": "stash-dyelot", "index": ALL}, "value"),
         State({"type": "stash-location", "index": ALL}, "value"),
         State({"type": "stash-notes", "index": ALL}, "value"),
@@ -458,6 +478,7 @@ def register_search_callbacks(app: dash.Dash) -> None:
         n_clicks_list: list[int | None],
         skeins_list: list[float | None],
         colorway_list: list[str | None],
+        manual_colorway_list: list[str | None],
         dyelot_list: list[str | None],
         location_list: list[str | None],
         notes_list: list[str | None],
@@ -489,6 +510,7 @@ def register_search_callbacks(app: dash.Dash) -> None:
             yarn_id=int(clicked_yarn_id),
             skeins=skeins_list[target_idx],
             colorway=colorway_list[target_idx],
+            manual_colorway=manual_colorway_list[target_idx] if manual_colorway_list and target_idx < len(manual_colorway_list) else None,
             dyelot=dyelot_list[target_idx],
             location=location_list[target_idx],
             notes=notes_list[target_idx],

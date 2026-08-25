@@ -243,6 +243,30 @@ def test_create_yarn_search_details_structure() -> None:
     assert "Add to Stash" in json_repr
 
 
+def test_create_yarn_search_details_with_colorways_prefilled_and_manual_input() -> None:
+    """Verify colorways are pre-filled in API dropdown and manual input is available."""
+    yarn_with_cws = {
+        "id": 999,
+        "name": "Malabrigo Rios",
+        "yarn_company_name": "Malabrigo",
+        "colorways": ["Diana", "Frank Ochre", "Peacock"],
+        "yardage": 210.0,
+        "grams": 100.0,
+    }
+    details = create_yarn_search_details(yarn_with_cws)
+    json_repr = str(details.to_plotly_json())
+
+    # Official colorways in Select
+    assert "Colorway (API)" in json_repr
+    assert "Diana" in json_repr
+    assert "Frank Ochre" in json_repr
+    assert "Peacock" in json_repr
+
+    # Custom / Manual Colorway Input
+    assert "Custom Colorway" in json_repr
+    assert "stash-colorway-manual" in json_repr
+
+
 # ===========================================================================
 # 3. Accordion List & Empty State Tests
 # ===========================================================================
