@@ -150,13 +150,13 @@ def create_kpi_summary_cards(
 
 
 def create_unit_selector_bar(active_unit: str = "yards") -> dbc.Card:
-    """Create unit toggle toolbar for the analytics dashboard.
+    """Create unit toggle toolbar for the analytics dashboard with sleek neon pill design.
 
     Args:
         active_unit: Initial selected metric unit ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
-        dbc.Card containing unit radio selector.
+        dbc.Card containing stylized unit radio selector.
     """
     return dbc.Card(
         dbc.CardBody(
@@ -165,32 +165,38 @@ def create_unit_selector_bar(active_unit: str = "yards") -> dbc.Card:
                     [
                         dbc.Col(
                             [
-                                html.Span("View Metric Unit: ", className="fw-bold text-light me-3"),
-                                dbc.RadioItems(
-                                    id="analytics-unit-selector",
-                                    options=[
-                                        {"label": "Yards (yd)", "value": "yards"},
-                                        {"label": "Meters (m)", "value": "meters"},
-                                        {"label": "Grams (g)", "value": "grams"},
-                                        {"label": "Skeins (sk)", "value": "skeins"},
+                                html.Div(
+                                    [
+                                        html.Span("⚡ VIEW METRIC UNIT", className="unit-label-pill me-3"),
+                                        html.Div(
+                                            dbc.RadioItems(
+                                                id="analytics-unit-selector",
+                                                options=[
+                                                    {"label": "📏 Yards (yd)", "value": "yards"},
+                                                    {"label": "📐 Meters (m)", "value": "meters"},
+                                                    {"label": "⚖️ Grams (g)", "value": "grams"},
+                                                    {"label": "🧶 Skeins (sk)", "value": "skeins"},
+                                                ],
+                                                value=active_unit,
+                                                inline=True,
+                                                className="unit-segmented-control",
+                                                inputClassName="btn-check",
+                                                labelClassName="btn btn-unit-toggle",
+                                                labelCheckedClassName="active",
+                                            ),
+                                            className="unit-segmented-pill-box",
+                                        ),
                                     ],
-                                    value=active_unit,
-                                    inline=True,
-                                    className="d-inline-flex flex-wrap gap-3",
+                                    className="d-flex align-items-center flex-wrap gap-2",
                                 ),
                             ],
                             xs=12,
-                            className="d-flex align-items-center flex-wrap",
+                            className="d-flex align-items-center justify-content-between flex-wrap",
                         ),
                     ]
                 )
             ],
             className="py-2 px-3",
         ),
-        style={
-            "backgroundColor": "#2b3035",
-            "border": "1px solid #3e444c",
-            "borderRadius": "8px",
-        },
-        className="mb-4 shadow-sm",
+        className="unit-selector-card mb-4 shadow-sm",
     )
