@@ -101,7 +101,8 @@ def create_fiber_donut_chart(
                 labels=labels,
                 values=values,
                 hole=0.55,
-                textinfo="label+percent",
+                domain={"x": [0, 1], "y": [0.22, 1.0]},
+                textinfo="percent",
                 marker={
                     "colors": slice_colors,
                     "line": {"color": "#1f2428", "width": 2},
@@ -111,10 +112,11 @@ def create_fiber_donut_chart(
         ]
     )
 
+    theme = {**CHART_THEME, "margin": {"l": 25, "r": 25, "t": 25, "b": 35}}
     fig.update_layout(
-        **CHART_THEME,
+        **theme,
         showlegend=True,
-        legend={"orientation": "h", "yanchor": "top", "y": -0.12, "xanchor": "center", "x": 0.5},
+        legend={"orientation": "h", "yanchor": "top", "y": 0.15, "xanchor": "center", "x": 0.5},
     )
     return fig
 
@@ -573,7 +575,8 @@ def create_projects_pie_chart(
                 labels=labels,
                 values=values,
                 hole=0.55,
-                textinfo="label+percent",
+                domain={"x": [0, 1], "y": [0.22, 1.0]},
+                textinfo="percent",
                 marker={
                     "colors": slice_colors,
                     "line": {"color": "#1f2428", "width": 2},
@@ -583,10 +586,11 @@ def create_projects_pie_chart(
         ]
     )
 
+    theme = {**CHART_THEME, "margin": {"l": 25, "r": 25, "t": 25, "b": 35}}
     fig.update_layout(
-        **CHART_THEME,
+        **theme,
         showlegend=True,
-        legend={"orientation": "h", "yanchor": "top", "y": -0.12, "xanchor": "center", "x": 0.5},
+        legend={"orientation": "h", "yanchor": "top", "y": 0.15, "xanchor": "center", "x": 0.5},
     )
     return fig
 
