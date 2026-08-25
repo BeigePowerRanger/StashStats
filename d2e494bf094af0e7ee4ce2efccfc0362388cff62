@@ -1,0 +1,3 @@
+Task: Project PDF Upload — all phases (storage, layout, callbacks, components)
+Files: src/stashstats/storage.py, src/stashstats/web/app.py, src/stashstats/web/callbacks/projects.py, src/stashstats/web/components/projects.py, src/stashstats/web/layouts/projects.py, src/stashstats/web/layouts/main.py, tests/test_project_pdf_storage.py, tests/web/test_projects.py
+Why: Adds optional PDF attachment to project entries: filesystem storage in data/<user_id>/projects/pdfs/<project_id>/, dcc.Upload (PDF-only, ≤25 MB), multiple files per project with individual delete, inline iframe viewer via Flask serve route, path-traversal guard.
