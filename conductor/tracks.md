@@ -70,7 +70,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Log Project Details on Stash Usage Logging**
+- [x] **Track: Log Project Details on Stash Usage Logging**
   *Link: [./tracks/log_project_usage_20260824/index.md](./tracks/log_project_usage_20260824/index.md)*
+
 
 
