@@ -464,7 +464,8 @@ def create_projects_pie_chart(
             val = u.skeins_used
         else:
             val = u.yards_used
-        project_totals[p_name] = project_totals.get(p_name, 0.0) + val
+        if val > 0:
+            project_totals[p_name] = project_totals.get(p_name, 0.0) + val
 
     labels = list(project_totals.keys())
     values = [project_totals[l] for l in labels]

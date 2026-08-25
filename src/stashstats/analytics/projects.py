@@ -238,7 +238,17 @@ class StashProjectUsageCalculator:
                         )
                     )
 
-        return results
+        # Strictly return records where yarn was actually used
+        return [
+            r
+            for r in results
+            if (
+                float(r.skeins_used or 0.0) > 0
+                or float(r.yards_used or 0.0) > 0
+                or float(r.grams_used or 0.0) > 0
+                or float(r.meters_used or 0.0) > 0
+            )
+        ]
 
     @classmethod
     def aggregate_summary(
