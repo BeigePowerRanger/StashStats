@@ -14,6 +14,7 @@ from stashstats.web.components.analytics import (
 from stashstats.web.components.analytics_charts import (
     create_fiber_donut_chart,
     create_monthly_flow_chart,
+    create_stash_by_time_chart,
     create_velocity_pace_chart,
     create_weight_distribution_chart,
 )
@@ -71,6 +72,9 @@ def create_analytics_layout(
     fiber_fig = create_fiber_donut_chart(distribution.fibers if distribution else [])
     weight_fig = create_weight_distribution_chart(
         distribution.weights if distribution else []
+    )
+    timeline_fig = create_stash_by_time_chart(
+        rollups=report.periodic_monthly if report else None
     )
     flow_fig = create_monthly_flow_chart(report.periodic_monthly if report else [])
     velocity_fig = create_velocity_pace_chart(
@@ -155,6 +159,35 @@ def create_analytics_layout(
                     [
                         dbc.CardHeader(
                             html.H5(
+                                "Stash Inventory Over Time",
+                                className="m-0 text-light fs-6 fw-bold",
+                            ),
+                            className="bg-transparent border-secondary",
+                        ),
+                        dbc.CardBody(
+                            dcc.Loading(
+                                dcc.Graph(
+                                    id="analytics-timeline-chart",
+                                    figure=timeline_fig,
+                                    config={"displayModeBar": False, "responsive": True},
+                                ),
+                                type="circle",
+                                color="#00bc8c",
+                            )
+                        ),
+                    ],
+                    style=card_container_style,
+                    className="h-100 shadow-sm",
+                ),
+                xs=12,
+                lg=6,
+                className="mb-4",
+            ),
+            dbc.Col(
+                dbc.Card(
+                    [
+                        dbc.CardHeader(
+                            html.H5(
                                 "Monthly Stash Flow (Acquisitions vs Consumption)",
                                 className="m-0 text-light fs-6 fw-bold",
                             ),
@@ -179,6 +212,11 @@ def create_analytics_layout(
                 lg=6,
                 className="mb-4",
             ),
+        ]
+    )
+
+    charts_row_3 = dbc.Row(
+        [
             dbc.Col(
                 dbc.Card(
                     [
@@ -205,7 +243,6 @@ def create_analytics_layout(
                     className="h-100 shadow-sm",
                 ),
                 xs=12,
-                lg=6,
                 className="mb-4",
             ),
         ]
@@ -216,7 +253,7 @@ def create_analytics_layout(
             html.Div(
                 [
                     html.H4("Stash Analytics & Consumption Velocity", className="text-light fw-bold mb-1"),
-                    html.P("Real-time inventory breakdowns, net flow history, and projected depletion horizons.", className="text-muted small mb-3"),
+                    html.P("Real-time inventory breakdowns, timeline trends, net flow history, and projected depletion horizons.", className="text-muted small mb-3"),
                 ],
                 className="mb-3",
             ),
@@ -224,6 +261,7 @@ def create_analytics_layout(
             filter_bar,
             charts_row_1,
             charts_row_2,
+            charts_row_3,
         ],
         id="analytics-container",
         fluid=True,

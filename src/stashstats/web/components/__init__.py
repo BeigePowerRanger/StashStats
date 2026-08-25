@@ -7,6 +7,7 @@ from stashstats.web.components.analytics import (
 from stashstats.web.components.analytics_charts import (
     create_fiber_donut_chart,
     create_monthly_flow_chart,
+    create_stash_by_time_chart,
     create_velocity_pace_chart,
     create_weight_distribution_chart,
 )
@@ -38,6 +39,7 @@ __all__ = [
     "create_kpi_summary_cards",
     "create_monthly_flow_chart",
     "create_parent_yarn_accordion_item",
+    "create_stash_by_time_chart",
     "create_stash_item_row",
     "create_velocity_pace_chart",
     "create_weight_distribution_chart",

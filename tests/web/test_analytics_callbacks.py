@@ -15,6 +15,7 @@ def sample_raw_stash() -> list[dict[str, Any]]:
             "colorway_name": "Azul Profundo",
             "color_family_name": "Blue",
             "yarn_weight_name": "Worsted",
+            "created_at": "2026-01-10T00:00:00Z",
             "skeins": 3.0,
             "total_yards": 630.0,
             "total_meters": 576.0,
@@ -33,6 +34,7 @@ def sample_raw_stash() -> list[dict[str, Any]]:
             "colorway_name": "Lettuce",
             "color_family_name": "Green",
             "yarn_weight_name": "Fingering",
+            "created_at": "2026-02-15T00:00:00Z",
             "skeins": 2.0,
             "total_yards": 880.0,
             "total_meters": 804.0,
@@ -51,6 +53,7 @@ def sample_raw_stash() -> list[dict[str, Any]]:
             "colorway_name": "Navy",
             "color_family_name": "Blue",
             "yarn_weight_name": "Worsted",
+            "created_at": "2026-03-20T00:00:00Z",
             "skeins": 1.0,
             "total_yards": 220.0,
             "total_meters": 201.0,
@@ -84,11 +87,12 @@ class TestAnalyticsCallbacks:
             reset_clicks=None,
             triggered_id=None,
         )
-        kpi, fiber_fig, weight_fig, flow_fig, vel_fig = res[:5]
+        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, vel_fig = res[:6]
 
         assert isinstance(kpi, dbc.Row)
         assert isinstance(fiber_fig, go.Figure)
         assert isinstance(weight_fig, go.Figure)
+        assert isinstance(timeline_fig, go.Figure)
         assert isinstance(flow_fig, go.Figure)
         assert isinstance(vel_fig, go.Figure)
 
@@ -229,6 +233,7 @@ class TestAnalyticsCallbacks:
             kpi,
             fiber_fig,
             weight_fig,
+            timeline_fig,
             flow_fig,
             vel_fig,
             w_val,

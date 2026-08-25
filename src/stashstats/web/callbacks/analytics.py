@@ -15,6 +15,7 @@ from stashstats.web.components.analytics import create_kpi_summary_cards
 from stashstats.web.components.analytics_charts import (
     create_fiber_donut_chart,
     create_monthly_flow_chart,
+    create_stash_by_time_chart,
     create_velocity_pace_chart,
     create_weight_distribution_chart,
 )
@@ -158,7 +159,7 @@ def update_analytics_dashboard_logic(
     """Pure calculation logic for updating the analytics dashboard components and charts.
 
     Returns:
-        tuple containing (kpi_cards, fiber_fig, weight_fig, flow_fig, velocity_fig,
+        tuple containing (kpi_cards, fiber_fig, weight_fig, timeline_fig, flow_fig, velocity_fig,
         weight_val, color_val, search_val, min_g, max_g, min_y, max_y, min_m, max_m, min_sk, max_sk).
     """
     if triggered_id == "analytics-filter-reset":
@@ -241,6 +242,10 @@ def update_analytics_dashboard_logic(
 
     fiber_fig = create_fiber_donut_chart(distributions.fibers)
     weight_fig = create_weight_distribution_chart(distributions.weights)
+    timeline_fig = create_stash_by_time_chart(
+        items=filtered_items,
+        rollups=report.periodic_monthly if report else None,
+    )
     flow_fig = create_monthly_flow_chart(report.periodic_monthly)
     velocity_fig = create_velocity_pace_chart(
         velocity_30d=report.velocity_30d,
@@ -252,6 +257,7 @@ def update_analytics_dashboard_logic(
         kpi_cards,
         fiber_fig,
         weight_fig,
+        timeline_fig,
         flow_fig,
         velocity_fig,
         selected_weights,
@@ -275,6 +281,7 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
         Output("analytics-kpi-container", "children"),
         Output("analytics-fiber-chart", "figure"),
         Output("analytics-weight-chart", "figure"),
+        Output("analytics-timeline-chart", "figure"),
         Output("analytics-flow-chart", "figure"),
         Output("analytics-velocity-chart", "figure"),
         Output("analytics-filter-weight", "value"),

@@ -1,5 +1,6 @@
 """Plotly chart generation functions for Stash Analytics dashboard."""
 
+from typing import Any
 import plotly.graph_objects as go
 
 from stashstats.analytics.distributions import CategoryDistribution
@@ -216,3 +217,109 @@ def create_velocity_pace_chart(
         yaxis={"title": "Estimated Yards / Month", "gridcolor": "#333"},
     )
     return fig
+
+
+def create_stash_by_time_chart(
+    items: list[Any] | None = None,
+    rollups: list[PeriodicRollup] | None = None,
+) -> go.Figure:
+    """Generate a timeline area chart of stash volume over time.
+
+    Args:
+        items: Optional list of StashItem objects.
+        rollups: Optional list of PeriodicRollup summaries.
+
+    Returns:
+        Configured Plotly Figure.
+    """
+    if rollups:
+        sorted_rollups = sorted(rollups, key=lambda r: r.period)
+        periods = [r.period for r in sorted_rollups]
+        cum_yards = []
+        total = 0.0
+        for r in sorted_rollups:
+            total += r.net_yards
+            cum_yards.append(max(0.0, total))
+
+        if not periods or all(y == 0 for y in cum_yards):
+            return _create_empty_figure("No timeline data available")
+
+        fig = go.Figure(
+            data=[
+                go.Scatter(
+                    x=periods,
+                    y=cum_yards,
+                    mode="lines+markers",
+                    fill="tozeroy",
+                    line={"color": "#00bc8c", "width": 3, "shape": "spline"},
+                    marker={"size": 6, "color": "#00bc8c"},
+                    fillcolor="rgba(0, 188, 140, 0.15)",
+                    hovertemplate="<b>%{x}</b><br>Net Stash: %{y:,.0f} yds<extra></extra>",
+                )
+            ]
+        )
+        fig.update_layout(
+            **CHART_THEME,
+            xaxis={"title": "Timeline", "gridcolor": "#333"},
+            yaxis={"title": "Total Stash (Yards)", "gridcolor": "#333"},
+        )
+        return fig
+
+    if items:
+        dated_items: list[tuple[str, float]] = []
+        for item in items:
+            date_val = (
+                getattr(item, "purchased", None)
+                or (item.primary_pack.purchased_date if getattr(item, "primary_pack", None) and item.primary_pack and item.primary_pack.purchased_date else None)
+                or (item.packs[0].purchased_date if getattr(item, "packs", None) and item.packs and item.packs[0].purchased_date else None)
+                or getattr(item, "created_at", None)
+                or (item.first_photo.created_at[:10] if getattr(item, "first_photo", None) and getattr(item.first_photo, "created_at", None) else None)
+                or "Undated"
+            )
+            yards = (
+                (getattr(item, "yards_remaining", None) if getattr(item, "yards_remaining", None) is not None else getattr(item, "total_yards", 0.0))
+                or 0.0
+            )
+            period_key = str(date_val)[:7].replace("/", "-") if len(str(date_val)) >= 7 and date_val != "Undated" else "Undated"
+            dated_items.append((period_key, yards))
+
+        period_totals: dict[str, float] = {}
+        for period, yards in dated_items:
+            period_totals[period] = period_totals.get(period, 0.0) + yards
+
+        sorted_periods = sorted([p for p in period_totals.keys() if p != "Undated"])
+        if not sorted_periods:
+            if "Undated" in period_totals:
+                sorted_periods = ["Active Stash"]
+                cum_yards = [period_totals["Undated"]]
+            else:
+                return _create_empty_figure("No stash timeline data available")
+        else:
+            cum_yards = []
+            running = 0.0
+            for p in sorted_periods:
+                running += period_totals[p]
+                cum_yards.append(running)
+
+        fig = go.Figure(
+            data=[
+                go.Scatter(
+                    x=sorted_periods,
+                    y=cum_yards,
+                    mode="lines+markers",
+                    fill="tozeroy",
+                    line={"color": "#00bc8c", "width": 3, "shape": "spline"},
+                    marker={"size": 6, "color": "#00bc8c"},
+                    fillcolor="rgba(0, 188, 140, 0.15)",
+                    hovertemplate="<b>%{x}</b><br>Cumulative Inflow: %{y:,.0f} yds<extra></extra>",
+                )
+            ]
+        )
+        fig.update_layout(
+            **CHART_THEME,
+            xaxis={"title": "Timeline", "gridcolor": "#333"},
+            yaxis={"title": "Cumulative Inflow (Yards)", "gridcolor": "#333"},
+        )
+        return fig
+
+    return _create_empty_figure("No stash timeline data available")

@@ -3,9 +3,11 @@ import pytest
 
 from stashstats.analytics.distributions import CategoryDistribution
 from stashstats.models.analytics import PeriodicRollup, RollingVelocity
+from stashstats.models.stash import StashItem
 from stashstats.web.components.analytics_charts import (
     create_fiber_donut_chart,
     create_monthly_flow_chart,
+    create_stash_by_time_chart,
     create_velocity_pace_chart,
     create_weight_distribution_chart,
 )
@@ -72,3 +74,32 @@ class TestAnalyticsCharts:
         assert len(fig.data) >= 1
         assert list(fig.data[0].x) == ["30 Days", "90 Days", "365 Days"]
         assert list(fig.data[0].y) == [304.38, 243.5, 182.6]
+
+    def test_create_stash_by_time_chart_with_rollups(self):
+        rollups = [
+            PeriodicRollup(period="2026-01", acquired_yards=1000.0, consumed_yards=200.0, net_yards=800.0),
+            PeriodicRollup(period="2026-02", acquired_yards=500.0, consumed_yards=300.0, net_yards=200.0),
+            PeriodicRollup(period="2026-03", acquired_yards=200.0, consumed_yards=400.0, net_yards=-200.0),
+        ]
+        fig = create_stash_by_time_chart(rollups=rollups)
+        assert isinstance(fig, go.Figure)
+        assert len(fig.data) == 1
+        assert fig.data[0].type == "scatter"
+        assert list(fig.data[0].x) == ["2026-01", "2026-02", "2026-03"]
+        assert list(fig.data[0].y) == [800.0, 1000.0, 800.0]
+
+    def test_create_stash_by_time_chart_with_items(self):
+        items = [
+            StashItem(id=1, name="Yarn A", permalink="yarn-a", created_at="2026-01-15T12:00:00Z", total_yards=400.0),
+            StashItem(id=2, name="Yarn B", permalink="yarn-b", created_at="2026-02-10T12:00:00Z", total_yards=600.0),
+        ]
+        fig = create_stash_by_time_chart(items=items)
+        assert isinstance(fig, go.Figure)
+        assert len(fig.data) == 1
+        assert fig.data[0].type == "scatter"
+        assert len(fig.data[0].x) >= 2
+
+    def test_create_stash_by_time_chart_empty(self):
+        fig = create_stash_by_time_chart()
+        assert isinstance(fig, go.Figure)
+        assert len(fig.layout.annotations) >= 1
