@@ -5,7 +5,7 @@
 }
 
 /* ==========================================================================
-   Global Rounded Edges & Box Aesthetics
+   Global Rounded Edges & Box Aesthetics (All 4 Corners)
    ========================================================================== */
 
 /* 1. Cards, KPI Panels, Chart Wrappers & Containers */
@@ -16,10 +16,16 @@
 .kpi-card,
 .chart-card,
 .tab-content-container,
+.tab-content,
+.tab-pane,
 .yarn-search-details,
 .dash-graph,
 .js-plotly-plot,
-.plot-container {
+.plot-container,
+.list-group-item,
+.dropdown-menu,
+.popover,
+.offcanvas {
     border-radius: 12px !important;
 }
 
@@ -31,7 +37,8 @@
 .accordion,
 .accordion-item,
 .accordion-header,
-.accordion-button {
+.accordion-button,
+.accordion-body {
     border-radius: 10px !important;
 }
 
@@ -39,16 +46,6 @@
     margin-bottom: 0.6rem;
     overflow: hidden;
     border: 1px solid #444 !important;
-}
-
-.accordion-button:not(.collapsed) {
-    border-bottom-left-radius: 0 !important;
-    border-bottom-right-radius: 0 !important;
-}
-
-.accordion-body {
-    border-bottom-left-radius: 10px !important;
-    border-bottom-right-radius: 10px !important;
 }
 
 /* 3. Buttons, Inputs, Form Selects & Input Groups */
@@ -79,23 +76,15 @@ select {
 }
 
 .input-group > :first-child {
-    border-top-left-radius: 8px !important;
-    border-bottom-left-radius: 8px !important;
+    border-radius: 8px !important;
 }
 
 .input-group > :last-child {
-    border-top-right-radius: 8px !important;
-    border-bottom-right-radius: 8px !important;
+    border-radius: 8px !important;
 }
 
-.btn-group > .btn:first-child {
-    border-top-left-radius: 8px !important;
-    border-bottom-left-radius: 8px !important;
-}
-
-.btn-group > .btn:last-child {
-    border-top-right-radius: 8px !important;
-    border-bottom-right-radius: 8px !important;
+.btn-group > .btn {
+    border-radius: 8px !important;
 }
 
 /* 4. Modals & Dialogs */
@@ -106,15 +95,10 @@ select {
     overflow: hidden;
 }
 
-.modal-header {
-    border-top-left-radius: 14px !important;
-    border-top-right-radius: 14px !important;
-    border-color: #333333 !important;
-}
-
+.modal-header,
+.modal-body,
 .modal-footer {
-    border-bottom-left-radius: 14px !important;
-    border-bottom-right-radius: 14px !important;
+    border-radius: 14px !important;
     border-color: #333333 !important;
 }
 
@@ -132,13 +116,19 @@ select {
     overflow: hidden;
 }
 
-/* 6. Tabs & Navigation */
+/* 6. Tabs & Navigation (All 4 corners rounded) */
 .nav-tabs .nav-link,
 ._tab,
 .tab,
-.custom-tab {
-    border-top-left-radius: 8px !important;
-    border-top-right-radius: 8px !important;
+.custom-tab,
+.tab--selected {
+    border-radius: 8px !important;
+    margin-right: 4px;
+}
+
+.tab-container,
+.main-navigation-tabs {
+    border-radius: 8px !important;
 }
 
 /* 7. Tables & Responsive Wrappers */
@@ -150,6 +140,22 @@ select {
 table,
 .table {
     border-radius: 10px !important;
+}
+
+.table thead th:first-child {
+    border-top-left-radius: 10px !important;
+}
+
+.table thead th:last-child {
+    border-top-right-radius: 10px !important;
+}
+
+.table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 10px !important;
+}
+
+.table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 10px !important;
 }
 
 /* 8. Pagination */
