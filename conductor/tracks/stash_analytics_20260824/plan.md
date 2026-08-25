@@ -16,7 +16,7 @@
 - [x] Task: Implement `get_stash_velocity_report` on `RavelryClient` [4747a35]
     - [x] Create tests in `tests/test_client_analytics.py`
     - [x] Implement client method to fetch stash, batch load quantity history, and generate velocity report
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Dash Components, Charts & Analytics Layout
 - [ ] Task: Implement Plotly chart generators in `src/stashstats/web/components/analytics_charts.py`
