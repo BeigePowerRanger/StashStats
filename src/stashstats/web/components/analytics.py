@@ -76,7 +76,7 @@ def create_kpi_summary_cards(
                     dbc.CardBody(
                         [
                             html.H6(f"Active Stash ({u.capitalize()})", className="card-subtitle text-muted mb-1"),
-                            html.H3(main_val_text, className="card-title text-success mb-1"),
+                            html.H3(main_val_text, className="card-title mb-1 fw-bold", style={"color": "#38bdf8"}),
                             html.Small(main_subtext, className="text-secondary"),
                         ]
                     ),
@@ -93,7 +93,7 @@ def create_kpi_summary_cards(
                     dbc.CardBody(
                         [
                             html.H6("Knitting Velocity", className="card-subtitle text-muted mb-1"),
-                            html.H3(rate_val_text, className="card-title text-info mb-1"),
+                            html.H3(rate_val_text, className="card-title mb-1 fw-bold", style={"color": "#a855f7"}),
                             html.Small(rate_subtext, className="text-secondary"),
                         ]
                     ),
@@ -110,7 +110,7 @@ def create_kpi_summary_cards(
                     dbc.CardBody(
                         [
                             html.H6("Stash Lifespan Horizon", className="card-subtitle text-muted mb-1"),
-                            html.H3(horizon_text, className="card-title text-warning mb-1"),
+                            html.H3(horizon_text, className="card-title mb-1 fw-bold", style={"color": "#ec4899"}),
                             html.Small(horizon_subtext, className="text-secondary"),
                         ]
                     ),
@@ -129,7 +129,8 @@ def create_kpi_summary_cards(
                             html.H6("Inventory Utilization", className="card-subtitle text-muted mb-1"),
                             html.H3(
                                 f"{total_items} items",
-                                className="card-title text-primary mb-1",
+                                className="card-title mb-1 fw-bold",
+                                style={"color": "#c084fc"},
                             ),
                             html.Small("Tracked in active stash", className="text-secondary"),
                         ]

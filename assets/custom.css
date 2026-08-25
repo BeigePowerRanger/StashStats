@@ -174,3 +174,110 @@ img,
 .rounded {
     border-radius: 8px !important;
 }
+
+/* ==========================================================================
+   Purple, Blue & Pink Color Theme (Zero Orange)
+   ========================================================================== */
+
+:root {
+    --stash-purple: #a855f7;
+    --stash-purple-dark: #7c3aed;
+    --stash-blue: #38bdf8;
+    --stash-blue-dark: #0284c7;
+    --stash-pink: #ec4899;
+    --stash-pink-dark: #db2777;
+    --stash-lavender: #c084fc;
+}
+
+/* Primary buttons -> Vibrant Purple */
+.btn-primary {
+    background-color: var(--stash-purple-dark) !important;
+    border-color: var(--stash-purple) !important;
+    color: #ffffff !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: var(--stash-purple) !important;
+    border-color: var(--stash-lavender) !important;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.4) !important;
+}
+
+.btn-outline-primary {
+    color: var(--stash-purple) !important;
+    border-color: var(--stash-purple) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+    background-color: var(--stash-purple-dark) !important;
+    color: #ffffff !important;
+    border-color: var(--stash-lavender) !important;
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.3) !important;
+}
+
+/* Info buttons & badges -> Electric Sky Blue */
+.btn-info {
+    background-color: var(--stash-blue-dark) !important;
+    border-color: var(--stash-blue) !important;
+    color: #ffffff !important;
+}
+
+.btn-info:hover {
+    background-color: var(--stash-blue) !important;
+    color: #ffffff !important;
+}
+
+/* Warning badges & alerts -> Magenta / Rose Pink (replace orange) */
+.badge.bg-warning,
+.badge-warning,
+.bg-warning {
+    background-color: var(--stash-pink) !important;
+    color: #ffffff !important;
+}
+
+.text-warning {
+    color: var(--stash-pink) !important;
+}
+
+.text-info {
+    color: var(--stash-blue) !important;
+}
+
+.text-primary {
+    color: var(--stash-lavender) !important;
+}
+
+/* Radio buttons & Checkboxes -> Pink / Purple accents */
+.form-check-input:checked {
+    background-color: var(--stash-purple) !important;
+    border-color: var(--stash-purple) !important;
+    box-shadow: 0 0 8px rgba(168, 85, 247, 0.5) !important;
+}
+
+.form-check-input:focus {
+    border-color: var(--stash-pink) !important;
+    box-shadow: 0 0 0 0.25rem rgba(236, 72, 153, 0.25) !important;
+}
+
+/* Navigation tabs active state -> Glowing Purple/Pink */
+.nav-tabs .nav-link.active,
+.tab--selected,
+.custom-tab--selected {
+    border-bottom: 3px solid var(--stash-pink) !important;
+    color: var(--stash-blue) !important;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--stash-lavender) !important;
+}
+
+/* Pagination active link */
+.page-item.active .page-link {
+    background-color: var(--stash-purple-dark) !important;
+    border-color: var(--stash-purple) !important;
+    color: #ffffff !important;
+}
+

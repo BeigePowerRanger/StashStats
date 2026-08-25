@@ -14,16 +14,18 @@ CHART_THEME = {
 }
 
 PALETTE = [
-    "#00bc8c",
-    "#3498db",
-    "#9b59b6",
-    "#f39c12",
-    "#e74c3c",
-    "#1abc9c",
-    "#e67e22",
-    "#fd7e14",
-    "#6f42c1",
-    "#20c997",
+    "#a855f7",  # Vibrant Purple
+    "#3b82f6",  # Electric Blue
+    "#ec4899",  # Neon Pink
+    "#8b5cf6",  # Lavender Purple
+    "#0ea5e9",  # Sky Blue
+    "#d946ef",  # Fuchsia Pink
+    "#6366f1",  # Indigo Purple-Blue
+    "#38bdf8",  # Cyan Blue
+    "#f472b6",  # Rose Pink
+    "#c084fc",  # Soft Violet
+    "#2563eb",  # Royal Blue
+    "#db2777",  # Deep Pink
 ]
 
 
@@ -60,13 +62,13 @@ def _create_empty_figure(message: str = "No data available") -> go.Figure:
 
 
 def create_fiber_donut_chart(
-    fibers: list[CategoryDistribution],
+    distributions: list[CategoryDistribution],
     unit: str = "yards",
 ) -> go.Figure:
-    """Generate a donut pie chart representing fiber composition distributions.
+    """Generate a donut pie chart of fiber content distribution.
 
     Args:
-        fibers: List of CategoryDistribution objects for fiber categories.
+        distributions: List of CategoryDistribution objects for fibers.
         unit: Quantity dimension ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
@@ -74,20 +76,21 @@ def create_fiber_donut_chart(
     """
     label_unit, symbol = _get_unit_meta(unit)
 
-    def extract_val(f: CategoryDistribution) -> float:
-        if symbol == "m":
-            return f.total_meters if f.total_meters > 0 else f.total_yards * 0.9144
-        if symbol == "g":
-            return f.total_grams
-        if symbol == "sk":
-            return f.total_skeins
-        return f.total_yards
+    if not distributions:
+        return _create_empty_figure("No fiber data available")
 
-    if not fibers or all(extract_val(f) == 0 for f in fibers):
-        return _create_empty_figure(f"No fiber {label_unit.lower()} distribution data available")
+    labels = [d.name for d in distributions]
+    if symbol == "m":
+        values = [d.total_meters for d in distributions]
+    elif symbol == "g":
+        values = [d.total_grams for d in distributions]
+    elif symbol == "sk":
+        values = [d.total_skeins for d in distributions]
+    else:
+        values = [d.total_yards for d in distributions]
 
-    labels = [f.name for f in fibers]
-    values = [extract_val(f) for f in fibers]
+    if not values or all(v == 0 for v in values):
+        return _create_empty_figure("No fiber quantities recorded")
 
     fig = go.Figure(
         data=[
@@ -111,19 +114,22 @@ def create_fiber_donut_chart(
 
 
 def create_weight_distribution_chart(
-    weights: list[CategoryDistribution],
+    distributions: list[CategoryDistribution],
     unit: str = "yards",
 ) -> go.Figure:
-    """Generate a bar chart of stash breakdown by yarn weight classification.
+    """Generate a horizontal or vertical bar chart for yarn weight categories.
 
     Args:
-        weights: List of CategoryDistribution objects for yarn weights.
+        distributions: List of CategoryDistribution objects for yarn weights.
         unit: Quantity dimension ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
         Configured Plotly Figure.
     """
     label_unit, symbol = _get_unit_meta(unit)
+
+    if not distributions:
+        return _create_empty_figure("No yarn weight data available")
 
     def extract_val(w: CategoryDistribution) -> float:
         if symbol == "m":
@@ -134,19 +140,19 @@ def create_weight_distribution_chart(
             return w.total_skeins
         return w.total_yards
 
-    if not weights or all(extract_val(w) == 0 for w in weights):
-        return _create_empty_figure(f"No yarn weight {label_unit.lower()} data available")
+    if all(extract_val(w) == 0 for w in distributions):
+        return _create_empty_figure("No weight quantities recorded")
 
-    x_labels = [w.name for w in weights]
-    y_values = [extract_val(w) for w in weights]
-    item_counts = [w.count for w in weights]
+    x_labels = [w.name for w in distributions]
+    y_values = [extract_val(w) for w in distributions]
+    item_counts = [w.count for w in distributions]
 
     fig = go.Figure(
         data=[
             go.Bar(
                 x=x_labels,
                 y=y_values,
-                marker={"color": "#3498db", "line": {"color": "#2980b9", "width": 1}},
+                marker={"color": "#8b5cf6", "line": {"color": "#a855f7", "width": 1.5}},
                 customdata=item_counts,
                 hovertemplate=f"<b>%{{x}}</b><br>{label_unit}: %{{y:,.1f}} {symbol}<br>Items: %{{customdata}}<extra></extra>",
             )
@@ -204,9 +210,9 @@ def create_stash_by_time_chart(
                     y=cum_values,
                     mode="lines+markers",
                     fill="tozeroy",
-                    line={"color": "#00bc8c", "width": 3, "shape": "spline"},
-                    marker={"size": 6, "color": "#00bc8c"},
-                    fillcolor="rgba(0, 188, 140, 0.15)",
+                    line={"color": "#38bdf8", "width": 3, "shape": "spline"},
+                    marker={"size": 6, "color": "#ec4899"},
+                    fillcolor="rgba(56, 189, 248, 0.15)",
                     hovertemplate=f"<b>%{{x}}</b><br>Net Stash: %{{y:,.1f}} {symbol}<extra></extra>",
                 )
             ]
@@ -286,9 +292,9 @@ def create_stash_by_time_chart(
                     y=cum_values,
                     mode="lines+markers",
                     fill="tozeroy",
-                    line={"color": "#00bc8c", "width": 3, "shape": "spline"},
-                    marker={"size": 6, "color": "#00bc8c"},
-                    fillcolor="rgba(0, 188, 140, 0.15)",
+                    line={"color": "#38bdf8", "width": 3, "shape": "spline"},
+                    marker={"size": 6, "color": "#ec4899"},
+                    fillcolor="rgba(56, 189, 248, 0.15)",
                     hovertemplate=f"<b>%{{x}}</b><br>Cumulative Inflow: %{{y:,.1f}} {symbol}<extra></extra>",
                 )
             ]
@@ -341,14 +347,14 @@ def create_monthly_flow_chart(
                 name="Acquired",
                 x=periods,
                 y=acquired,
-                marker={"color": "#00bc8c"},
+                marker={"color": "#38bdf8"},
                 hovertemplate=f"<b>%{{x}}</b><br>Acquired: %{{y:,.1f}} {symbol}<extra></extra>",
             ),
             go.Bar(
                 name="Consumed",
                 x=periods,
                 y=consumed,
-                marker={"color": "#e74c3c"},
+                marker={"color": "#ec4899"},
                 hovertemplate=f"<b>%{{x}}</b><br>Consumed: %{{y:,.1f}} {symbol}<extra></extra>",
             ),
         ]
