@@ -114,7 +114,7 @@ def create_fiber_donut_chart(
     fig.update_layout(
         **CHART_THEME,
         showlegend=True,
-        legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5},
+        legend={"orientation": "h", "yanchor": "top", "y": -0.12, "xanchor": "center", "x": 0.5},
     )
     return fig
 
@@ -404,7 +404,7 @@ def create_monthly_flow_chart(
             "rangemode": "tozero",
             "automargin": True,
         },
-        legend={"orientation": "h", "yanchor": "bottom", "y": -0.25, "xanchor": "center", "x": 0.5},
+        legend={"orientation": "h", "yanchor": "bottom", "y": 1.02, "xanchor": "right", "x": 1.0},
     )
     return fig
 
@@ -539,7 +539,7 @@ def create_projects_pie_chart(
     fig.update_layout(
         **CHART_THEME,
         showlegend=True,
-        legend={"orientation": "h", "yanchor": "bottom", "y": -0.2, "xanchor": "center", "x": 0.5},
+        legend={"orientation": "h", "yanchor": "top", "y": -0.12, "xanchor": "center", "x": 0.5},
     )
     return fig
 
