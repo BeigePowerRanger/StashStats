@@ -1,0 +1,3 @@
+Task: Implement reactive callbacks for Stash Analytics in src/stashstats/web/callbacks/analytics.py
+Files: src/stashstats/web/callbacks/analytics.py, src/stashstats/web/callbacks/__init__.py, tests/web/test_analytics_callbacks.py
+Why: Implements reactive filtering by yarn weight, color family, search term, filter reset, and updates KPI cards and Plotly charts.
