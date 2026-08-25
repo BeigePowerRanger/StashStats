@@ -73,5 +73,12 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Log Project Details on Stash Usage Logging**
   *Link: [./tracks/log_project_usage_20260824/index.md](./tracks/log_project_usage_20260824/index.md)*
 
+---
+
+- [x] **Track: Fix Live Updates for Projects Made and Monthly Flow**
+  *Link: [./tracks/fix_analytics_live_updates_20260824/index.md](./tracks/fix_analytics_live_updates_20260824/index.md)*
+
+
+
 
 
