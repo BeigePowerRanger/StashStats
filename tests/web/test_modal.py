@@ -525,6 +525,32 @@ def test_handle_save_modal_calls_client_update_and_app_data() -> None:
     mock_client.set_app_data.assert_called_once()
 
 
+def test_handle_save_modal_with_project_metadata() -> None:
+    """Verify handle_save_modal preserves project_name and pattern_name in new history entry."""
+    is_open, updated_stash, updated_history = handle_save_modal(
+        n_clicks=1,
+        active_tab="tab-log-usage",
+        colorway=None,
+        dye_lot=None,
+        location=None,
+        skeins=None,
+        status=None,
+        notes="Hat project",
+        used_skeins=1.5,
+        date_used="2026-08-20",
+        stash_data={"id": 123, "skeins": 4.0},
+        history_data=[],
+        project_name="Winter Beanie",
+        pattern_name="Classic Ribbed Hat",
+    )
+
+    assert is_open is False
+    assert len(updated_history) == 1
+    assert updated_history[0]["project_name"] == "Winter Beanie"
+    assert updated_history[0]["pattern_name"] == "Classic Ribbed Hat"
+    assert updated_history[0]["skeins"] == -1.5
+
+
 def test_handle_history_rollback_calls_client_update_and_app_data() -> None:
     """Verify handle_history_rollback invokes client.update_stash_item and client.set_app_data."""
     mock_client = MagicMock()
