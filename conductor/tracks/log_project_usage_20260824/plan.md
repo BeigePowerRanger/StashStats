@@ -1,9 +1,9 @@
 # Implementation Plan: Log Project Details on Stash Usage Logging
 
 ## Phase 1: History Model & apply_usage_to_stash Project Metadata (TDD)
-- [ ] Task: Unit tests for `StashHistoryEntry` project metadata and `apply_usage_to_stash`
-- [ ] Task: Update `StashHistoryEntry` in `src/stashstats/models/history.py` and `apply_usage_to_stash` in `src/stashstats/web/components/modal.py`
-- [ ] Task: Phase 1 Checkpoint
+- [x] Task: Unit tests for `StashHistoryEntry` project metadata and `apply_usage_to_stash` [7473187]
+- [x] Task: Update `StashHistoryEntry` in `src/stashstats/models/history.py` and `apply_usage_to_stash` in `src/stashstats/web/components/modal.py` [7473187]
+- [x] Task: Phase 1 Checkpoint [7473187]
 
 ## Phase 2: Log Usage Modal UI & History Table Display (TDD)
 - [ ] Task: Unit tests for project/pattern inputs and usage history table display
