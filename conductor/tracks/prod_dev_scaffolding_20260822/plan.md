@@ -21,8 +21,8 @@
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Multi-User Data Storage Refactor
-- [ ] Task: Write Tests for Multi-User Storage
-  - [ ] Write tests ensuring that data reads/writes route to `app/data/<user_id>/` instead of a global path.
-- [ ] Task: Refactor Storage Logic
+- [x] Task: Write Tests for Multi-User Storage [d45662c]
+  - [x] Write tests ensuring that data reads/writes route to `app/data/<user_id>/` instead of a global path.
+- [~] Task: Refactor Storage Logic
   - [ ] Update `app/data` read/write functions to accept and namespace via `user_id`.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
