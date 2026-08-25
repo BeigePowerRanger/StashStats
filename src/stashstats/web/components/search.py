@@ -319,12 +319,11 @@ def create_yarn_search_details(
                     dbc.Col(
                         [
                             dbc.Label("Date Added"),
-                            html.Br(),
-                            dcc.DatePickerSingle(
+                            dbc.Input(
+                                type="date",
                                 id={"type": "stash-date-added", "index": yarn_id},
-                                date=datetime.now(tz=UTC).date().isoformat(),
-                                display_format="YYYY-MM-DD",
-                                className="w-100",
+                                value=datetime.now(tz=UTC).date().isoformat(),
+                                style=DARK_INPUT_STYLE,
                             ),
                         ],
                         xs=12,

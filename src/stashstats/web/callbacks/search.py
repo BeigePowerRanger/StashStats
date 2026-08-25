@@ -468,7 +468,7 @@ def register_search_callbacks(app: dash.Dash) -> None:
         State({"type": "stash-dyelot", "index": ALL}, "value"),
         State({"type": "stash-location", "index": ALL}, "value"),
         State({"type": "stash-notes", "index": ALL}, "value"),
-        State({"type": "stash-date-added", "index": ALL}, "date"),
+        State({"type": "stash-date-added", "index": ALL}, "value"),
         State({"type": "stash-submit-btn", "index": ALL}, "id"),
         State("yarn-search-results-store", "data"),
         State("stash-raw-store", "data"),
