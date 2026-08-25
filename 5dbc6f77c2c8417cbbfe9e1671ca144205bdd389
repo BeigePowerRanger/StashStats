@@ -1,0 +1,3 @@
+Task: Create analytics models in src/stashstats/models/analytics.py
+Files: src/stashstats/models/analytics.py, src/stashstats/models/__init__.py, tests/models/test_analytics.py
+Why: Provide structured Pydantic schemas for atomic stash delta events, periodic rollups, rolling velocities, lifespan horizons, and composite velocity reports.
