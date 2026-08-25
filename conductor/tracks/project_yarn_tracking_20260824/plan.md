@@ -1,10 +1,10 @@
 # Implementation Plan: Track Projects Made from Stash Yarn
 
 ## Phase 1: Data Models & Usage Analytics Engine (TDD)
-- [ ] Task: Unit tests for `ProjectUsageRecord` and `StashProjectUsageCalculator`
-- [ ] Task: Implement `ProjectUsageRecord` model in `src/stashstats/models/analytics.py`
-- [ ] Task: Implement `StashProjectUsageCalculator` in `src/stashstats/analytics/projects.py`
-- [ ] Task: Phase 1 Checkpoint
+- [x] Task: Unit tests for `ProjectUsageRecord` and `StashProjectUsageCalculator` [45bfd54]
+- [x] Task: Implement `ProjectUsageRecord` model in `src/stashstats/models/analytics.py` [45bfd54]
+- [x] Task: Implement `StashProjectUsageCalculator` in `src/stashstats/analytics/projects.py` [45bfd54]
+- [x] Task: Phase 1 Checkpoint [45bfd54]
 
 ## Phase 2: 'Projects Made from Stash' Pie Chart (TDD)
 - [ ] Task: Unit tests for `create_projects_pie_chart` across unit dimensions (yards, meters, grams, skeins)
