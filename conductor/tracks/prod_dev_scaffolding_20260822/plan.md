@@ -20,9 +20,9 @@
   - [x] Configure the sidecar to route traffic securely to `web_prod` over the tailnet without exposing public host ports.
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3: Multi-User Data Storage Refactor
+## Phase 3: Multi-User Data Storage Refactor [checkpoint: b2d45cb]
 - [x] Task: Write Tests for Multi-User Storage [d45662c]
   - [x] Write tests ensuring that data reads/writes route to `app/data/<user_id>/` instead of a global path.
 - [x] Task: Refactor Storage Logic [c3fab41]
   - [x] Update `app/data` read/write functions to accept and namespace via `user_id`.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [b2d45cb]
