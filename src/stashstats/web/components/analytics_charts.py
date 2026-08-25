@@ -9,7 +9,7 @@ from stashstats.models.analytics import PeriodicRollup, ProjectUsageRecord, Roll
 CHART_THEME = {
     "paper_bgcolor": "rgba(0,0,0,0)",
     "plot_bgcolor": "rgba(0,0,0,0)",
-    "font": {"color": "#e0e0e0", "family": "Inter, Roboto, sans-serif"},
+    "font": {"color": "#e0e0e0", "family": "Inter, Roboto, sans-serif", "size": 13.5},
     "margin": {"l": 55, "r": 25, "t": 35, "b": 45},
     "autosize": True,
 }
