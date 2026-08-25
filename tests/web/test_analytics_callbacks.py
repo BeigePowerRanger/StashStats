@@ -17,6 +17,7 @@ def sample_raw_stash() -> list[dict[str, Any]]:
             "yarn_weight_name": "Worsted",
             "skeins": 3.0,
             "total_yards": 630.0,
+            "total_meters": 576.0,
             "total_grams": 300.0,
             "yarn": {
                 "id": 101,
@@ -34,6 +35,7 @@ def sample_raw_stash() -> list[dict[str, Any]]:
             "yarn_weight_name": "Fingering",
             "skeins": 2.0,
             "total_yards": 880.0,
+            "total_meters": 804.0,
             "total_grams": 200.0,
             "yarn": {
                 "id": 102,
@@ -51,6 +53,7 @@ def sample_raw_stash() -> list[dict[str, Any]]:
             "yarn_weight_name": "Worsted",
             "skeins": 1.0,
             "total_yards": 220.0,
+            "total_meters": 201.0,
             "total_grams": 100.0,
             "yarn": {
                 "id": 103,
@@ -65,66 +68,192 @@ def sample_raw_stash() -> list[dict[str, Any]]:
 class TestAnalyticsCallbacks:
     def test_update_analytics_all_data(self):
         raw = sample_raw_stash()
-        kpi, fiber_fig, weight_fig, flow_fig, vel_fig, w_val, c_val, s_val = update_analytics_dashboard_logic(
+        res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
             selected_weights=None,
             selected_colors=None,
             search_query=None,
+            min_grams=None,
+            max_grams=None,
+            min_yards=None,
+            max_yards=None,
+            min_meters=None,
+            max_meters=None,
+            min_skeins=None,
+            max_skeins=None,
             reset_clicks=None,
             triggered_id=None,
         )
+        kpi, fiber_fig, weight_fig, flow_fig, vel_fig = res[:5]
 
         assert isinstance(kpi, dbc.Row)
         assert isinstance(fiber_fig, go.Figure)
         assert isinstance(weight_fig, go.Figure)
         assert isinstance(flow_fig, go.Figure)
         assert isinstance(vel_fig, go.Figure)
-        assert w_val is None
-        assert c_val is None
-        assert s_val is None
 
     def test_filter_by_weight(self):
         raw = sample_raw_stash()
-        kpi, fiber_fig, weight_fig, flow_fig, vel_fig, w_val, c_val, s_val = update_analytics_dashboard_logic(
+        res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
             selected_weights=["Worsted"],
             selected_colors=None,
             search_query=None,
+            min_grams=None,
+            max_grams=None,
+            min_yards=None,
+            max_yards=None,
+            min_meters=None,
+            max_meters=None,
+            min_skeins=None,
+            max_skeins=None,
             reset_clicks=None,
             triggered_id="analytics-filter-weight",
         )
+        weight_fig = res[2]
 
         # Only 2 worsted items (total 850 yards)
         assert isinstance(weight_fig, go.Figure)
         assert list(weight_fig.data[0].x) == ["Worsted"]
         assert list(weight_fig.data[0].y) == [850.0]
 
-    def test_filter_by_search_query(self):
+    def test_filter_by_grams(self):
         raw = sample_raw_stash()
-        kpi, fiber_fig, weight_fig, flow_fig, vel_fig, w_val, c_val, s_val = update_analytics_dashboard_logic(
+        res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
             selected_weights=None,
             selected_colors=None,
-            search_query="Cascade",
+            search_query=None,
+            min_grams=250.0,
+            max_grams=None,
+            min_yards=None,
+            max_yards=None,
+            min_meters=None,
+            max_meters=None,
+            min_skeins=None,
+            max_skeins=None,
             reset_clicks=None,
-            triggered_id="analytics-filter-search",
+            triggered_id="analytics-filter-min-grams",
         )
+        weight_fig = res[2]
+        # Only item 1 (300g, 630 yards) matches
+        assert list(weight_fig.data[0].y) == [630.0]
 
-        assert list(weight_fig.data[0].y) == [220.0]
-
-    def test_reset_filters(self):
+    def test_filter_by_yards(self):
         raw = sample_raw_stash()
-        kpi, fiber_fig, weight_fig, flow_fig, vel_fig, w_val, c_val, s_val = update_analytics_dashboard_logic(
+        res = update_analytics_dashboard_logic(
+            raw_stash_data=raw,
+            selected_weights=None,
+            selected_colors=None,
+            search_query=None,
+            min_grams=None,
+            max_grams=None,
+            min_yards=700.0,
+            max_yards=900.0,
+            min_meters=None,
+            max_meters=None,
+            min_skeins=None,
+            max_skeins=None,
+            reset_clicks=None,
+            triggered_id="analytics-filter-min-yards",
+        )
+        weight_fig = res[2]
+        # Only item 2 (880 yards) matches
+        assert list(weight_fig.data[0].x) == ["Fingering"]
+        assert list(weight_fig.data[0].y) == [880.0]
+
+    def test_filter_by_meters(self):
+        raw = sample_raw_stash()
+        res = update_analytics_dashboard_logic(
+            raw_stash_data=raw,
+            selected_weights=None,
+            selected_colors=None,
+            search_query=None,
+            min_grams=None,
+            max_grams=None,
+            min_yards=None,
+            max_yards=None,
+            min_meters=500.0,
+            max_meters=600.0,
+            min_skeins=None,
+            max_skeins=None,
+            reset_clicks=None,
+            triggered_id="analytics-filter-min-meters",
+        )
+        weight_fig = res[2]
+        # Only item 1 (576 meters, 630 yards) matches
+        assert list(weight_fig.data[0].y) == [630.0]
+
+    def test_filter_by_skeins(self):
+        raw = sample_raw_stash()
+        res = update_analytics_dashboard_logic(
+            raw_stash_data=raw,
+            selected_weights=None,
+            selected_colors=None,
+            search_query=None,
+            min_grams=None,
+            max_grams=None,
+            min_yards=None,
+            max_yards=None,
+            min_meters=None,
+            max_meters=None,
+            min_skeins=2.5,
+            max_skeins=None,
+            reset_clicks=None,
+            triggered_id="analytics-filter-min-skeins",
+        )
+        weight_fig = res[2]
+        # Only item 1 (3.0 skeins, 630 yards) matches
+        assert list(weight_fig.data[0].y) == [630.0]
+
+    def test_reset_filters_clears_quantities(self):
+        raw = sample_raw_stash()
+        res = update_analytics_dashboard_logic(
             raw_stash_data=raw,
             selected_weights=["Worsted"],
             selected_colors=["Blue"],
             search_query="Cascade",
+            min_grams=100.0,
+            max_grams=200.0,
+            min_yards=200.0,
+            max_yards=300.0,
+            min_meters=150.0,
+            max_meters=250.0,
+            min_skeins=1.0,
+            max_skeins=2.0,
             reset_clicks=1,
             triggered_id="analytics-filter-reset",
         )
+        # Check that outputs return None for all filters
+        (
+            kpi,
+            fiber_fig,
+            weight_fig,
+            flow_fig,
+            vel_fig,
+            w_val,
+            c_val,
+            s_val,
+            min_g,
+            max_g,
+            min_y,
+            max_y,
+            min_m,
+            max_m,
+            min_sk,
+            max_sk,
+        ) = res
 
         assert w_val is None
         assert c_val is None
         assert s_val is None
+        assert min_g is None
+        assert max_g is None
+        assert min_y is None
+        assert max_y is None
+        assert min_m is None
+        assert max_m is None
+        assert min_sk is None
+        assert max_sk is None
         # All items restored (3 items)
         assert len(weight_fig.data[0].x) == 2

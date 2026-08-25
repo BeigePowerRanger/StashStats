@@ -138,6 +138,7 @@ def create_analytics_filter_bar(
     return dbc.Card(
         dbc.CardBody(
             [
+                # Row 1: Weight, Color, Search, and Reset
                 dbc.Row(
                     [
                         dbc.Col(
@@ -203,7 +204,132 @@ def create_analytics_filter_bar(
                         ),
                     ],
                     align="center",
-                )
+                    className="mb-3",
+                ),
+                # Row 2: Quantity Filters (Grams, Yards, Meters, Skeins)
+                dbc.Row(
+                    [
+                        dbc.Col(
+                            [
+                                dbc.Label("Grams (Min / Max)", className="small text-muted mb-1"),
+                                dbc.InputGroup(
+                                    [
+                                        dbc.Input(
+                                            id="analytics-filter-min-grams",
+                                            type="number",
+                                            placeholder="Min g",
+                                            min=0,
+                                            className="bg-dark text-light border-secondary",
+                                        ),
+                                        dbc.InputGroupText("-", className="bg-dark text-muted border-secondary"),
+                                        dbc.Input(
+                                            id="analytics-filter-max-grams",
+                                            type="number",
+                                            placeholder="Max g",
+                                            min=0,
+                                            className="bg-dark text-light border-secondary",
+                                        ),
+                                    ],
+                                    size="sm",
+                                ),
+                            ],
+                            xs=12,
+                            sm=6,
+                            md=3,
+                            className="mb-2 mb-md-0",
+                        ),
+                        dbc.Col(
+                            [
+                                dbc.Label("Yards (Min / Max)", className="small text-muted mb-1"),
+                                dbc.InputGroup(
+                                    [
+                                        dbc.Input(
+                                            id="analytics-filter-min-yards",
+                                            type="number",
+                                            placeholder="Min yd",
+                                            min=0,
+                                            className="bg-dark text-light border-secondary",
+                                        ),
+                                        dbc.InputGroupText("-", className="bg-dark text-muted border-secondary"),
+                                        dbc.Input(
+                                            id="analytics-filter-max-yards",
+                                            type="number",
+                                            placeholder="Max yd",
+                                            min=0,
+                                            className="bg-dark text-light border-secondary",
+                                        ),
+                                    ],
+                                    size="sm",
+                                ),
+                            ],
+                            xs=12,
+                            sm=6,
+                            md=3,
+                            className="mb-2 mb-md-0",
+                        ),
+                        dbc.Col(
+                            [
+                                dbc.Label("Meters (Min / Max)", className="small text-muted mb-1"),
+                                dbc.InputGroup(
+                                    [
+                                        dbc.Input(
+                                            id="analytics-filter-min-meters",
+                                            type="number",
+                                            placeholder="Min m",
+                                            min=0,
+                                            className="bg-dark text-light border-secondary",
+                                        ),
+                                        dbc.InputGroupText("-", className="bg-dark text-muted border-secondary"),
+                                        dbc.Input(
+                                            id="analytics-filter-max-meters",
+                                            type="number",
+                                            placeholder="Max m",
+                                            min=0,
+                                            className="bg-dark text-light border-secondary",
+                                        ),
+                                    ],
+                                    size="sm",
+                                ),
+                            ],
+                            xs=12,
+                            sm=6,
+                            md=3,
+                            className="mb-2 mb-md-0",
+                        ),
+                        dbc.Col(
+                            [
+                                dbc.Label("Skeins (Min / Max)", className="small text-muted mb-1"),
+                                dbc.InputGroup(
+                                    [
+                                        dbc.Input(
+                                            id="analytics-filter-min-skeins",
+                                            type="number",
+                                            placeholder="Min sk",
+                                            step=0.1,
+                                            min=0,
+                                            className="bg-dark text-light border-secondary",
+                                        ),
+                                        dbc.InputGroupText("-", className="bg-dark text-muted border-secondary"),
+                                        dbc.Input(
+                                            id="analytics-filter-max-skeins",
+                                            type="number",
+                                            placeholder="Max sk",
+                                            step=0.1,
+                                            min=0,
+                                            className="bg-dark text-light border-secondary",
+                                        ),
+                                    ],
+                                    size="sm",
+                                ),
+                            ],
+                            xs=12,
+                            sm=6,
+                            md=3,
+                            className="mb-2 mb-md-0",
+                        ),
+                    ],
+                    align="center",
+                ),
             ]
         ),
         style={
