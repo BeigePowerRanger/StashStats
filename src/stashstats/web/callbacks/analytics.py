@@ -29,6 +29,7 @@ logger = logging.getLogger("stashstats.web.analytics")
 def update_analytics_dashboard_logic(
     raw_stash_data: list[dict[str, Any]] | None,
     raw_projects_data: list[dict[str, Any]] | None = None,
+    histories_data: dict[int, Any] | list[Any] | None = None,
     unit: str = "yards",
 ) -> tuple[Any, ...]:
     """Pure calculation logic for updating the analytics dashboard components and charts.
@@ -58,12 +59,31 @@ def update_analytics_dashboard_logic(
             except Exception:
                 pass
 
+    # Extract histories embedded on stash items or raw_items if histories_data is None
+    histories: dict[int, Any] = {}
+    if isinstance(histories_data, dict):
+        histories.update(histories_data)
+    elif isinstance(histories_data, list):
+        for idx, h in enumerate(histories_data):
+            sid = h.get("stash_id") if isinstance(h, dict) else getattr(h, "stash_id", idx)
+            histories.setdefault(sid or idx, []).append(h)
+    else:
+        for it in raw_items:
+            if isinstance(it, dict):
+                sid = it.get("id")
+                if sid and it.get("history"):
+                    histories[sid] = it["history"]
+                elif sid and it.get("usage_history"):
+                    histories[sid] = it["usage_history"]
+
     # Calculate distributions
     distributions = StashDistributionCalculator.aggregate_all(stash_items)
 
     # Correlate projects and stash usage
     project_usages = StashProjectUsageCalculator.correlate_projects_and_stash(
-        stash_items, project_items
+        stash_items=stash_items,
+        projects=project_items,
+        histories=histories,
     )
 
     # Compute baseline metrics
@@ -90,7 +110,6 @@ def update_analytics_dashboard_logic(
     total_items = len(stash_items)
 
     # Velocity Report calculation
-    histories: dict[int, Any] = {}
     report = StashVelocityCalculator.generate_report(stash_items, histories)
 
     monthly_burn_rate = (
@@ -151,14 +170,18 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
         Output("analytics-projects-chart", "figure"),
         Input("stash-raw-store", "data"),
         Input("analytics-unit-selector", "value"),
+        State("modal-store-history", "data"),
         prevent_initial_call=False,
     )
     def update_analytics_dashboard(
         raw_stash_data: list[dict[str, Any]] | None,
         unit: str | None,
+        modal_history: list[dict[str, Any]] | None = None,
     ):
+        histories_data = modal_history if modal_history else None
         return update_analytics_dashboard_logic(
             raw_stash_data=raw_stash_data,
             raw_projects_data=None,
+            histories_data=histories_data,
             unit=unit or "yards",
         )

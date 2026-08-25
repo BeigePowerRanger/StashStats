@@ -127,3 +127,44 @@ class TestAnalyticsCallbacks:
         )
         weight_fig = res[2]
         assert "Skeins" in weight_fig.layout.yaxis.title.text
+
+    def test_update_analytics_with_histories_data(self):
+        raw_stash = sample_raw_stash()
+        histories = {
+            1: [
+                {
+                    "id": "entry-1",
+                    "date": "2026-03-01",
+                    "skeins": -1.0,
+                    "yards": -210.0,
+                    "grams": -100.0,
+                    "project_name": "Cozy Scarf",
+                    "pattern_name": "Ribbed Scarf",
+                }
+            ]
+        }
+        res = update_analytics_dashboard_logic(
+            raw_stash_data=raw_stash,
+            raw_projects_data=None,
+            histories_data=histories,
+            unit="yards",
+        )
+        flow_fig = res[4]
+        proj_fig = res[6]
+
+        assert isinstance(flow_fig, go.Figure)
+        assert isinstance(proj_fig, go.Figure)
+        assert "Cozy Scarf" in list(proj_fig.data[0].labels)
+
+    def test_update_analytics_without_histories_or_projects(self):
+        raw_stash = sample_raw_stash()
+        res = update_analytics_dashboard_logic(
+            raw_stash_data=raw_stash,
+            raw_projects_data=None,
+            histories_data=None,
+            unit="yards",
+        )
+        flow_fig = res[4]
+        assert isinstance(flow_fig, go.Figure)
+        assert len(flow_fig.data) >= 1
+

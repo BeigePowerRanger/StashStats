@@ -1,6 +1,7 @@
 """Analytics data models for stash flow, consumption velocity, and horizon projections."""
 
-from datetime import datetime
+from datetime import UTC, datetime
+
 
 from pydantic import BaseModel, Field
 
@@ -37,7 +38,10 @@ class StashDeltaEvent(BaseModel):
             pass
         try:
             normalized = self.timestamp.replace("/", "-")
-            return datetime.fromisoformat(normalized)
+            dt = datetime.fromisoformat(normalized)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=UTC)
+            return dt
         except (ValueError, TypeError):
             return None
 
