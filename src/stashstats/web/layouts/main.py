@@ -5,6 +5,10 @@ from typing import Any
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
+from stashstats.analytics.distributions import StashDistributionCalculator
+from stashstats.analytics.projects import StashProjectUsageCalculator
+from stashstats.analytics.velocity import StashVelocityCalculator
+from stashstats.models.stash import StashItem
 from stashstats.web.components.header import create_header
 from stashstats.web.layouts.analytics import create_analytics_layout
 from stashstats.web.layouts.search import create_yarn_search_layout
@@ -48,7 +52,28 @@ def create_navigation_tabs(
         last_synced=last_synced,
     )
     search_layout = create_yarn_search_layout()
-    analytics_layout = create_analytics_layout()
+
+    report = None
+    distribution = None
+    project_usages = None
+    if items:
+        try:
+            stash_items = [
+                it if isinstance(it, StashItem) else StashItem.model_validate(it)
+                for it in items
+            ]
+            distribution = StashDistributionCalculator.aggregate_all(stash_items)
+            report = StashVelocityCalculator.generate_report(stash_items)
+            project_usages = StashProjectUsageCalculator.correlate_projects_and_stash(stash_items)
+        except Exception:
+            pass
+
+    analytics_layout = create_analytics_layout(
+        report=report,
+        distribution=distribution,
+        project_usages=project_usages,
+        unit="yards",
+    )
 
     return dcc.Tabs(
         id="main-tabs",

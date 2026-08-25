@@ -170,18 +170,15 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
         Output("analytics-projects-chart", "figure"),
         Input("stash-raw-store", "data"),
         Input("analytics-unit-selector", "value"),
-        State("modal-store-history", "data"),
         prevent_initial_call=False,
     )
     def update_analytics_dashboard(
         raw_stash_data: list[dict[str, Any]] | None,
         unit: str | None,
-        modal_history: list[dict[str, Any]] | None = None,
     ):
-        histories_data = modal_history if modal_history else None
         return update_analytics_dashboard_logic(
             raw_stash_data=raw_stash_data,
             raw_projects_data=None,
-            histories_data=histories_data,
+            histories_data=None,
             unit=unit or "yards",
         )
