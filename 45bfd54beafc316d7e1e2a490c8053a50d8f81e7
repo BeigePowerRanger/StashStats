@@ -1,0 +1,3 @@
+Task: ProjectUsageRecord and StashProjectUsageCalculator
+Files: src/stashstats/models/analytics.py, src/stashstats/analytics/projects.py, tests/analytics/test_projects.py
+Why: Track what projects were made when yarn is consumed
