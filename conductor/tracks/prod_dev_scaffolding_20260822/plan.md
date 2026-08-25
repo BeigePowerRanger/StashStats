@@ -8,7 +8,7 @@
   - [x] Ensure application config validation (e.g., Pydantic settings) is updated to require/support the new DEV/PROD environment variables.
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [b5cd93a]
 
-## Phase 2: Docker Compose Stack Refactor
+## Phase 2: Docker Compose Stack Refactor [checkpoint: e175fc8]
 - [x] Task: Refactor Dev Service [f145d47]
   - [x] Rename `web` to `web_dev` in `docker-compose.yml`.
   - [x] Verify `web_dev` remains accessible via local host ports.
@@ -18,7 +18,7 @@
 - [x] Task: Introduce Tailscale Sidecar [f145d47]
   - [x] Add `stashstats-tailscale` service to `docker-compose.yml`.
   - [x] Configure the sidecar to route traffic securely to `web_prod` over the tailnet without exposing public host ports.
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [e175fc8]
 
 ## Phase 3: Multi-User Data Storage Refactor [checkpoint: b2d45cb]
 - [x] Task: Write Tests for Multi-User Storage [d45662c]
