@@ -8,9 +8,9 @@
 - [x] Task: Phase 1 Checkpoint [44b62bc]
 
 ## Phase 2: Analytics Callback Wiring & Live Data Stores (TDD)
-- [ ] Task: Unit tests for `update_analytics_dashboard_logic` with history and project data
-- [ ] Task: Update `update_analytics_dashboard` callback in `src/stashstats/web/callbacks/analytics.py` and layout stores
-- [ ] Task: Phase 2 Checkpoint
+- [x] Task: Unit tests for `update_analytics_dashboard_logic` with history and project data [90d1967]
+- [x] Task: Update `update_analytics_dashboard` callback in `src/stashstats/web/callbacks/analytics.py` and layout stores [90d1967]
+- [x] Task: Phase 2 Checkpoint [90d1967]
 
 ## Phase 3: Full Verification & Container Rebuild
 - [ ] Task: Run complete automated test suite (`pytest tests/`)
