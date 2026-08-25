@@ -63,3 +63,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [x] **Track: Stash Consumption Velocity & Analytics Engine**
   *Link: [./tracks/stash_analytics_20260824/index.md](./tracks/stash_analytics_20260824/index.md)*
 
+---
+
+- [ ] **Track: Track Projects Made from Stash Yarn & Analytics Breakdown**
+  *Link: [./tracks/project_yarn_tracking_20260824/index.md](./tracks/project_yarn_tracking_20260824/index.md)*
+
