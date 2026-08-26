@@ -3,8 +3,17 @@ from typing import Any
 import httpx
 import pytest
 
-from stashstats.client import RavelryClient
+from stashstats.client import (
+    Client,
+    RavelryClient,
+    AppDataClientMixin,
+    ProjectClientMixin,
+    ReferenceClientMixin,
+    StashClientMixin,
+    YarnClientMixin,
+)
 from stashstats.config import Settings
+from stashstats.models.history import StashHistory, StashHistoryEntry
 from stashstats.models.stash import Pack, StashItem
 from stashstats.models.yarn import YarnDetailResponse, YarnSearchResponse
 
@@ -550,4 +559,123 @@ class TestRavelryClientProjects:
         res = client.get_project(101)
         assert res.project.id == 101
         assert res.project.notes == "Using size 7 needles"
+
+
+class TestModularMixins:
+    def test_client_mixins_inheritance(self, mock_settings):
+        client = RavelryClient(settings=mock_settings)
+        assert isinstance(client, YarnClientMixin)
+        assert isinstance(client, StashClientMixin)
+        assert isinstance(client, ProjectClientMixin)
+        assert isinstance(client, AppDataClientMixin)
+        assert isinstance(client, ReferenceClientMixin)
+        assert Client is RavelryClient
+
+    def test_username_property(self, mock_settings):
+        def handler(request: httpx.Request) -> httpx.Response:
+            return httpx.Response(200, json={"user": {"id": 1, "username": "prop_user"}})
+
+        client = RavelryClient(settings=mock_settings)
+        client._client = httpx.Client(
+            transport=MockTransport(handler),
+            base_url=client.base_url,
+            auth=client.auth,
+        )
+        assert client.username == "prop_user"
+        assert client._cached_username == "prop_user"
+
+    def test_stash_packs_and_photos(self, mock_settings):
+        def handler(request: httpx.Request) -> httpx.Response:
+            if request.url.path == "/packs/create.json":
+                return httpx.Response(200, json={"pack": {"id": 10, "skeins": 2.0}})
+            if request.url.path == "/packs/10.json" and request.method == "PUT":
+                return httpx.Response(200, json={"pack": {"id": 10, "skeins": 3.0}})
+            if request.url.path == "/packs/10.json" and request.method == "DELETE":
+                return httpx.Response(200, json={"success": True})
+            if "/create_photo.json" in request.url.path:
+                return httpx.Response(200, json={"status_token": "tok123"})
+            return httpx.Response(404)
+
+        client = RavelryClient(settings=mock_settings)
+        client._cached_username = "testuser"
+        client._client = httpx.Client(
+            transport=MockTransport(handler),
+            base_url=client.base_url,
+            auth=client.auth,
+        )
+
+        pack = client.create_stash_pack(100, skeins=2.0)
+        assert pack.id == 10
+        assert pack.skeins == 2.0
+
+        updated_pack = client.update_stash_pack(10, skeins=3.0)
+        assert updated_pack.id == 10
+        assert updated_pack.skeins == 3.0
+
+        del_res = client.delete_stash_pack(10)
+        assert del_res["success"] is True
+
+        photo_res = client.create_stash_photo(100, source_url="https://example.com/yarn.jpg")
+        assert photo_res["status_token"] == "tok123"
+
+    def test_project_crud_and_photos(self, mock_settings):
+        def handler(request: httpx.Request) -> httpx.Response:
+            if request.url.path == "/projects/testuser/create.json":
+                return httpx.Response(200, json={"project": {"id": 201, "name": "New Scarf"}})
+            if request.url.path == "/projects/testuser/201.json" and request.method == "POST":
+                return httpx.Response(200, json={"project": {"id": 201, "name": "Updated Scarf"}})
+            if request.url.path == "/projects/testuser/201.json" and request.method == "DELETE":
+                return httpx.Response(200, json={"success": True})
+            if request.url.path == "/projects/testuser/201/create_photo.json":
+                return httpx.Response(200, json={"status_token": "photo_tok"})
+            return httpx.Response(404)
+
+        client = RavelryClient(settings=mock_settings)
+        client._cached_username = "testuser"
+        client._client = httpx.Client(
+            transport=MockTransport(handler),
+            base_url=client.base_url,
+            auth=client.auth,
+        )
+
+        p = client.create_project(name="New Scarf")
+        assert p.project.id == 201
+        assert p.project.name == "New Scarf"
+
+        up = client.update_project(201, name="Updated Scarf")
+        assert up.project.id == 201
+        assert up.project.name == "Updated Scarf"
+
+        del_p = client.delete_project(201)
+        assert del_p["success"] is True
+
+        photo = client.create_project_photo(201, source_url="https://example.com/proj.jpg")
+        assert photo["status_token"] == "photo_tok"
+
+    def test_app_data_save_and_append(self, mock_settings):
+        def handler(request: httpx.Request) -> httpx.Response:
+            if request.url.path == "/app/data/get.json":
+                return httpx.Response(200, json={"data": {}})
+            if request.url.path == "/app/data/set.json":
+                return httpx.Response(200, json={"data": dict(request.url.params)})
+            return httpx.Response(404)
+
+        client = RavelryClient(settings=mock_settings)
+        client._client = httpx.Client(
+            transport=MockTransport(handler),
+            base_url=client.base_url,
+            auth=client.auth,
+        )
+
+        entry = StashHistoryEntry(
+            timestamp="2024/01/01 00:00:00 +0000",
+            skeins=1.0,
+            total_grams=100.0,
+            total_yards=200.0,
+        )
+        hist = client.append_stash_history_entry(888, entry)
+        assert hist.stash_id == 888
+        assert len(hist.entries) == 1
+        assert hist.entries[0].skeins == 1.0
+
 
