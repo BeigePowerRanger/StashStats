@@ -1,0 +1,3 @@
+Task: RavelryClient Modularization
+Files: src/stashstats/client/
+Why: Split 800-line God class into domain mixins for Yarn, Stash, Projects, AppData, and Reference taxonomy
