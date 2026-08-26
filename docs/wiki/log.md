@@ -60,4 +60,12 @@
 - Resolved broken wikilinks in [[auth-and-permissions]] and [[api-people-and-current-user]].
 - Validated wiki health: 36 content pages (45 total md files including journals/schema/index), 0 broken links, 0 orphan pages, 100% index completeness.
 
+## [2026-08-26] lint | Tag taxonomy reconciliation & health audit (0 errors, 1 warning)
+- Ran comprehensive wiki lint across 41 content pages, schema, index, log, and raw sources.
+- 0 broken wikilinks, 0 orphan pages, 100% index completeness.
+- Reconciled and expanded Tag Taxonomy in `SCHEMA.md` to cover UI, architecture, protocol, and domain model tags.
+- Verified raw source hash integrity (0 drift against `raw/articles/ravelry-api-reference.md`).
+- Flagged `concepts/web-app-specification.md` (373 lines) as candidate for future modular split.
+- Synchronized `index.md` header page count (41 content pages).
+
 

@@ -2,7 +2,7 @@
 
 > Content catalog for Ravelry API Documentation & StashStats Architecture.
 > Read this first to find relevant pages for any query.
-> Last updated: 2026-08-18 | Total pages: 36
+> Last updated: 2026-08-26 | Total pages: 41
 
 ## Daily Diary & Journal
 - [[2026-08-18]]: Full Live Ravelry API audit, modal dual-write quantity persistence, Project Pydantic models.

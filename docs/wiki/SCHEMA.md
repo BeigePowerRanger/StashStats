@@ -56,9 +56,9 @@ confidence: high | medium | low
 
 ## Tag Taxonomy
 - **Auth & Access**: `auth`, `oauth`, `permissions`, `security`
-- **Core Entities**: `model`, `stash`, `yarn`, `pattern`, `project`, `user`, `needle`, `pack`, `colorway`, `library`, `cart`, `forum`, `search`, `app`
-- **Protocols & Infra**: `endpoint`, `pagination`, `caching`, `etag`, `cors`, `http-status`, `rate-limits`
-- **Application & Development**: `stashstats`, `data-pipeline`, `client`, `diary`, `journal`, `dev-log`
+- **Core Entities**: `model`, `stash`, `yarn`, `pattern`, `project`, `user`, `needle`, `pack`, `colorway`, `library`, `cart`, `forum`, `search`, `app`, `store`, `social`, `fiber`, `craft`, `reference`, `api-reference`
+- **Protocols & Infra**: `endpoint`, `pagination`, `caching`, `etag`, `cors`, `http-status`, `rate-limits`, `protocol`, `config`, `kv-storage`
+- **Application & Development**: `stashstats`, `data-pipeline`, `client`, `diary`, `journal`, `dev-log`, `ui`, `specification`, `frontend`, `analytics`, `plans`, `cavecrew`
 
 ## Page Thresholds
 - **Create a page** when an entity or concept is central to the Ravelry ecosystem or API integration.

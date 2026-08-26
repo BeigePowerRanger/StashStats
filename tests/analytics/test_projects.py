@@ -339,6 +339,56 @@ class TestStashProjectUsageCalculator:
         )
         assert len(records) == 0
 
+    def test_correlate_with_dict_inputs(self):
+        """Verify dictionary inputs for stash_items and projects are normalized correctly."""
+        stash_dicts = [
+            {
+                "id": 10,
+                "name": "Malabrigo Rios - Blue",
+                "colorway_name": "Azul Profundo",
+                "skeins": 2.0,
+                "total_yards": 420.0,
+                "total_meters": 384.0,
+                "total_grams": 200.0,
+                "yarn": {
+                    "id": 101,
+                    "name": "Rios",
+                    "yarn_company_name": "Malabrigo",
+                },
+            }
+        ]
+        project_dicts = [
+            {
+                "id": 501,
+                "name": "Winter Beanie",
+                "status_name": "Finished",
+                "packs": [
+                    {
+                        "id": 1001,
+                        "stash_id": 10,
+                        "yarn_id": 101,
+                        "colorway": "Azul Profundo",
+                        "skeins": 1.5,
+                        "total_yards": 315.0,
+                        "total_meters": 288.0,
+                        "total_grams": 150.0,
+                    }
+                ],
+            }
+        ]
+        records = StashProjectUsageCalculator.correlate_projects_and_stash(
+            stash_items=stash_dicts,  # type: ignore[arg-type]
+            projects=project_dicts,  # type: ignore[arg-type]
+        )
+        assert len(records) == 1
+        assert records[0].project_id == 501
+        assert records[0].project_name == "Winter Beanie"
+        assert records[0].stash_id == 10
+        assert records[0].yarn_name == "Malabrigo Rios - Blue"
+        assert records[0].skeins_used == 1.5
+        assert records[0].yards_used == 315.0
+
+
 
 
 
