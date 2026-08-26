@@ -1,0 +1,3 @@
+Phase 2 Verification:
+Command: uv run pytest tests/test_client.py
+Result: 23 passed, 0 failures. RavelryClient domain mixins (Yarn, Stash, Projects, AppData, Reference) verified.
