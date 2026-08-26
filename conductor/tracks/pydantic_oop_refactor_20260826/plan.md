@@ -1,12 +1,12 @@
 # Plan: Pydantic Models & OOP Architecture Refactoring
 
-## Phase 1: Pydantic Model Validation & Typing Hardening
-- [ ] Task: Update `Photo` model with URL validation
-- [ ] Task: Update `StashHistoryEntry` with timestamp `@field_validator`, `Field(ge=0)`, and `@computed_field`
-- [ ] Task: Update `StashDeltaEvent` with `Literal` event types and `@computed_field`
-- [ ] Task: Update `Project` and `Settings` models with `Literal` / constrained fields
-- [ ] Task: Write tests for new model validators and computed fields
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 1: Pydantic Model Validation & Typing Hardening [checkpoint: f889470]
+- [x] Task: Update `Photo` model with URL validation [073f187]
+- [x] Task: Update `StashHistoryEntry` with timestamp `@field_validator`, `Field(ge=0)`, and `@computed_field` [073f187]
+- [x] Task: Update `StashDeltaEvent` with `Literal` event types and `@computed_field` [073f187]
+- [x] Task: Update `Project` and `Settings` models with `Literal` / constrained fields [073f187]
+- [x] Task: Write tests for new model validators and computed fields [073f187]
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Client Modularization & Domain Mixins
 - [ ] Task: Create domain mixins for `RavelryClient` (`YarnClientMixin`, `StashClientMixin`, `ProjectClientMixin`, `AppDataClientMixin`, `ReferenceClientMixin`)
