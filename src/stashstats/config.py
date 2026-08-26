@@ -26,7 +26,7 @@ class Settings(BaseSettings):
     base_url: str = "https://api.ravelry.com"
     """Ravelry API base URL."""
 
-    timeout_seconds: float = 15.0
+    timeout_seconds: float = Field(default=15.0, gt=0)
     """Default request timeout in seconds."""
 
     @property

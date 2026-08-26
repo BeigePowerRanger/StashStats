@@ -1,4 +1,6 @@
-from pydantic import BaseModel, model_validator
+from urllib.parse import urlparse
+
+from pydantic import BaseModel, field_validator, model_validator
 
 
 class Paginator(BaseModel):
@@ -28,8 +30,7 @@ class Paginator(BaseModel):
 
 class Photo(BaseModel):
     """Image assets and URLs associated with Ravelry entities."""
-    #TODO: `_url` fields need to be validated as proper URLS. alternatively, the pydantic `HttpUrl` type can be used instead of `str` on input and a field validator can be used so the final result, if a string is provided, is a valid URL stored as a regular string.
-    
+
     id: int
     """Unique photo ID."""
 
@@ -65,6 +66,29 @@ class Photo(BaseModel):
 
     aspect_ratio: float | None = None
     """Image width-to-height ratio."""
+
+    @field_validator(
+        "square_url",
+        "small_url",
+        "medium_url",
+        "medium2_url",
+        "thumbnail_url",
+        "small2_url",
+        mode="before",
+    )
+    @classmethod
+    def validate_urls(cls, v: str | None) -> str | None:
+        if v is None:
+            return None
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return None
+        s = str(v)
+        parsed = urlparse(s)
+        if not (parsed.scheme in ("http", "https") and parsed.netloc):
+            raise ValueError(f"Invalid URL: {v}")
+        return s
 
 
 class PersonalAttributes(BaseModel):

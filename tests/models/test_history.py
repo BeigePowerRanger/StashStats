@@ -1,5 +1,8 @@
 from datetime import UTC
 
+import pytest
+from pydantic import ValidationError
+
 from stashstats.models.history import StashHistory, StashHistoryEntry
 
 
@@ -50,18 +53,18 @@ class TestStashHistoryEntry:
         assert dt.month == 6
 
     def test_invalid_timestamp(self):
-        entry = StashHistoryEntry(
-            timestamp="not-a-timestamp",
-            skeins=1.0,
-            total_grams=100.0,
-            total_yards=200.0,
-        )
-        assert entry.datetime is None
+        with pytest.raises(ValidationError):
+            StashHistoryEntry(
+                timestamp="not-a-timestamp",
+                skeins=1.0,
+                total_grams=100.0,
+                total_yards=200.0,
+            )
 
     def test_entry_with_project_metadata(self):
         entry = StashHistoryEntry(
             timestamp="2026/08/24 12:00:00 +0000",
-            skeins=-1.5,
+            skeins=0.0,
             delta_skeins=-1.5,
             yards=315.0,
             grams=150.0,

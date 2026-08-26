@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field, field_validator
 
 
 class StashHistoryEntry(BaseModel):
@@ -12,22 +12,22 @@ class StashHistoryEntry(BaseModel):
     date: str | None = None
     """ISO date string (YYYY-MM-DD)."""
 
-    timestamp: str = "" # TODO: needs to be validated as a proper Ravelry timestamp string (YYYY/MM/DD HH:MM:SS ±HHMM)
+    timestamp: str = ""
     """Ravelry timestamp string for the change event."""
 
-    skeins: float # can't be negative, but can be zero
+    skeins: float = Field(default=0.0, ge=0)
     """Number of skeins or delta skeins."""
 
-    yards: float | None = None # can't be negative, but can be zero
+    yards: float | None = Field(default=None, ge=0)
     """Deducted or delta yards."""
 
-    grams: float | None = None # can't be negative, but can be zero
+    grams: float | None = Field(default=None, ge=0)
     """Deducted or delta grams."""
 
-    total_grams: float = 0.0
+    total_grams: float = Field(default=0.0, ge=0)
     """Total weight in grams at this point in time."""
 
-    total_yards: float = 0.0
+    total_yards: float = Field(default=0.0, ge=0)
     """Total length in yards at this point in time."""
 
     pack_id: int | None = None
@@ -48,7 +48,25 @@ class StashHistoryEntry(BaseModel):
     pattern_name: str | None = None
     """Associated pattern name."""
 
+    @field_validator("timestamp")
+    @classmethod
+    def validate_timestamp(cls, v: str) -> str:
+        """Validate timestamp format if non-empty string."""
+        if not v or not v.strip():
+            return ""
+        try:
+            datetime.strptime(v, "%Y/%m/%d %H:%M:%S %z")
+            return v
+        except ValueError:
+            pass
+        try:
+            normalized = v.replace("/", "-")
+            datetime.fromisoformat(normalized)
+            return v
+        except (ValueError, TypeError):
+            raise ValueError(f"Invalid timestamp format: {v}")
 
+    @computed_field
     @property
     def datetime(self) -> datetime | None:
         """Parse the timestamp string into a datetime object."""

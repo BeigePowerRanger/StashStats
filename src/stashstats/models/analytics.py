@@ -1,8 +1,9 @@
 """Analytics data models for stash flow, consumption velocity, and horizon projections."""
 
 from datetime import UTC, datetime
+from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, computed_field
 
 
 
@@ -25,9 +26,10 @@ class StashDeltaEvent(BaseModel):
     delta_yards: float = 0.0
     """Change in length in yards."""
 
-    event_type: str = "initial"
+    event_type: Literal["initial", "consumed", "acquired", "neutral"] = "initial"
     """Classification: 'consumed' (delta < 0), 'acquired' (delta > 0), or 'initial'."""
 
+    @computed_field
     @property
     def datetime(self) -> datetime | None:
         """Parse timestamp string into timezone-aware datetime."""

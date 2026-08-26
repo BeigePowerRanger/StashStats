@@ -57,6 +57,29 @@ class TestStashDeltaEvent:
         assert dt.year == 2026
         assert dt.tzinfo == UTC
 
+    def test_invalid_event_type(self):
+        import pytest
+        from pydantic import ValidationError
+
+        with pytest.raises(ValidationError):
+            StashDeltaEvent(
+                stash_id=100,
+                timestamp="2026-08-01T12:00:00+00:00",
+                delta_skeins=2.0,
+                event_type="unknown_type",
+            )
+
+    def test_computed_field_in_dump(self):
+        event = StashDeltaEvent(
+            stash_id=100,
+            timestamp="2026-08-01T12:00:00+00:00",
+            delta_skeins=2.0,
+            event_type="neutral",
+        )
+        dump = event.model_dump()
+        assert "datetime" in dump
+        assert dump["datetime"] == datetime(2026, 8, 1, 12, 0, tzinfo=UTC)
+
 
 class TestPeriodicRollup:
     def test_defaults(self):
