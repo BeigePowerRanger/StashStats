@@ -18,7 +18,7 @@ logger = logging.getLogger("stashstats.web.projects")
 
 MAX_PDF_BYTES = 25 * 1024 * 1024  # 25 MB
 
-
+# NOTE: explain pdf storage setup
 def _decode_upload(contents: str) -> tuple[str, bytes] | tuple[None, None]:
     """Decode a dcc.Upload base64 payload into (mime_type, bytes).
 

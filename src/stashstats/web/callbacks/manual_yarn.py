@@ -9,6 +9,7 @@ import dash_bootstrap_components as dbc
 from dash import Input, Output, State, ctx, html
 
 from stashstats.client import RavelryClient
+from stashstats.models.stash import StashItem
 
 logger = logging.getLogger("stashstats.web.manual_yarn")
 
@@ -161,7 +162,7 @@ def handle_manual_add_to_stash_logic(
         "total_meters": tot_meters,
         "stash_status": {"id": status_id, "name": status or "In stash"},
         "yarn": {
-            "id": None,
+            "id": 0,
             "name": clean_name,
             "yarn_company_name": clean_brand,
             "yarn_weight": {"id": 0, "name": weight or "Worsted"} if weight else None,
@@ -183,7 +184,8 @@ def handle_manual_add_to_stash_logic(
         ],
     }
 
-    updated_stash = [new_stash_item] + raw_stash
+    validated_stash_item = StashItem.model_validate(new_stash_item).model_dump(mode="json")
+    updated_stash = [validated_stash_item] + raw_stash
     return (
         True,
         dbc.Alert(

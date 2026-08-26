@@ -16,14 +16,36 @@ def _safe_get(obj: Any, key: str, default: Any = None) -> Any:
     return getattr(obj, key, default)
 
 
+def _normalize_stash_item(item: Any) -> StashItem:
+    """Normalize input into a StashItem model instance."""
+    if isinstance(item, StashItem):
+        return item
+    if isinstance(item, dict):
+        return StashItem.model_validate(item)
+    if hasattr(item, "model_dump"):
+        return StashItem.model_validate(item.model_dump())
+    return StashItem.model_validate(item)
+
+
+def _normalize_project(project: Any) -> Project:
+    """Normalize input into a Project model instance."""
+    if isinstance(project, Project):
+        return project
+    if isinstance(project, dict):
+        return Project.model_validate(project)
+    if hasattr(project, "model_dump"):
+        return Project.model_validate(project.model_dump())
+    return Project.model_validate(project)
+
+
 class StashProjectUsageCalculator:
     """Correlates project yarn pack allocations with user stash inventory."""
 
     @classmethod
     def correlate_projects_and_stash(
         cls,
-        stash_items: list[StashItem],
-        projects: list[Project] | None = None,
+        stash_items: list[StashItem] | list[Any],
+        projects: list[Project] | list[Any] | None = None,
         histories: dict[int, Any] | list[Any] | None = None,
     ) -> list[ProjectUsageRecord]:
         """Match project yarn allocations, packs, and usage ledger entries to stash items.
@@ -36,10 +58,17 @@ class StashProjectUsageCalculator:
         Returns:
             List of ProjectUsageRecord correlation objects.
         """
-        stash_by_id: dict[Any, Any] = {}
-        stash_by_yarn: dict[Any, list[Any]] = {}
-        for item in stash_items:
-            s_id = _safe_get(item, "id")
+        normalized_stash: list[StashItem] = [
+            _normalize_stash_item(item) for item in (stash_items or [])
+        ]
+        normalized_projects: list[Project] = [
+            _normalize_project(proj) for proj in (projects or [])
+        ]
+
+        stash_by_id: dict[Any, StashItem] = {}
+        stash_by_yarn: dict[Any, list[StashItem]] = {}
+        for item in normalized_stash:
+            s_id = item.id
             if s_id is not None:
                 stash_by_id[s_id] = item
                 stash_by_id[str(s_id)] = item
@@ -47,8 +76,8 @@ class StashProjectUsageCalculator:
                     stash_by_id[int(s_id)] = item
                 except (ValueError, TypeError):
                     pass
-            yarn_info = _safe_get(item, "yarn")
-            yarn_id = _safe_get(item, "yarn_id") or (_safe_get(yarn_info, "id") if yarn_info else None)
+            yarn_info = item.yarn
+            yarn_id = yarn_info.id if yarn_info else None
             if yarn_id is not None:
                 stash_by_yarn.setdefault(yarn_id, []).append(item)
                 stash_by_yarn.setdefault(str(yarn_id), []).append(item)
@@ -61,25 +90,25 @@ class StashProjectUsageCalculator:
         seen_keys: set[tuple[Any, Any, Any]] = set()
 
         # 1. Correlate from external Project records
-        for proj in (projects or []):
-            proj_id = _safe_get(proj, "id")
-            proj_name = _safe_get(proj, "name") or f"Project #{proj_id}"
-            pattern_name = _safe_get(proj, "pattern_name")
-            status_name = _safe_get(proj, "status_name") or "Finished"
-            craft_name = _safe_get(proj, "craft_name")
-            completed_date = _safe_get(proj, "completed")
-            packs = _safe_get(proj, "packs") or []
+        for proj in normalized_projects:
+            proj_id = proj.id
+            proj_name = proj.name or f"Project #{proj_id}"
+            pattern_name = proj.pattern_name
+            status_name = proj.status_name or "Finished"
+            craft_name = proj.craft_name
+            completed_date = proj.completed
+            packs = proj.packs or []
 
             for pack in packs:
-                pack_stash_id = _safe_get(pack, "stash_id")
-                pack_yarn_id = _safe_get(pack, "yarn_id")
-                pack_colorway = _safe_get(pack, "colorway")
-                skeins = _safe_get(pack, "skeins") or 0.0
-                yards = _safe_get(pack, "total_yards") or 0.0
-                meters = _safe_get(pack, "total_meters") or (yards * 0.9144 if yards else 0.0)
-                grams = _safe_get(pack, "total_grams") or 0.0
-                yards_per_skein = _safe_get(pack, "yards_per_skein")
-                grams_per_skein = _safe_get(pack, "grams_per_skein")
+                pack_stash_id = pack.stash_id
+                pack_yarn_id = pack.yarn_id
+                pack_colorway = pack.colorway
+                skeins = pack.skeins or 0.0
+                yards = pack.total_yards or 0.0
+                meters = pack.total_meters or (yards * 0.9144 if yards else 0.0)
+                grams = pack.total_grams or 0.0
+                yards_per_skein = pack.yards_per_skein
+                grams_per_skein = pack.grams_per_skein
 
                 if yards == 0.0 and yards_per_skein and skeins:
                     yards = float(yards_per_skein) * float(skeins)
@@ -87,23 +116,23 @@ class StashProjectUsageCalculator:
                 if grams == 0.0 and grams_per_skein and skeins:
                     grams = float(grams_per_skein) * float(skeins)
 
-                matched_stash = None
+                matched_stash: StashItem | None = None
                 if pack_stash_id and pack_stash_id in stash_by_id:
                     matched_stash = stash_by_id[pack_stash_id]
                 elif pack_yarn_id and pack_yarn_id in stash_by_yarn:
                     candidates = stash_by_yarn[pack_yarn_id]
                     matched_stash = next(
-                        (c for c in candidates if _safe_get(c, "colorway_name") == pack_colorway),
+                        (c for c in candidates if c.colorway_name == pack_colorway),
                         candidates[0] if candidates else None,
                     )
 
                 if matched_stash or pack_stash_id or pack_yarn_id:
-                    stash_id = _safe_get(matched_stash, "id") if matched_stash else pack_stash_id
-                    matched_yarn = _safe_get(matched_stash, "yarn") if matched_stash else None
+                    stash_id = matched_stash.id if matched_stash else pack_stash_id
+                    matched_yarn = matched_stash.yarn if matched_stash else None
                     yarn_name = (
-                        _safe_get(matched_stash, "name")
-                        if matched_stash
-                        else (_safe_get(matched_yarn, "name") if matched_yarn else pack_colorway or "Project Yarn")
+                        matched_stash.name
+                        if matched_stash and matched_stash.name
+                        else (matched_yarn.name if matched_yarn else pack_colorway or "Project Yarn")
                     )
 
                     rec_key = (proj_id, stash_id, pack_colorway)
@@ -128,18 +157,18 @@ class StashProjectUsageCalculator:
                     )
 
         # 2. Correlate from StashItem packs
-        for item in stash_items:
-            item_id = _safe_get(item, "id")
-            item_yarn = _safe_get(item, "yarn")
-            item_name = _safe_get(item, "name") or (_safe_get(item_yarn, "name") if item_yarn else "Stash Yarn")
-            item_colorway = _safe_get(item, "colorway_name")
-            packs = _safe_get(item, "packs") or []
+        for item in normalized_stash:
+            item_id = item.id
+            item_yarn = item.yarn
+            item_name = item.name or (item_yarn.name if item_yarn else "Stash Yarn")
+            item_colorway = item.colorway_name
+            packs = item.packs or []
 
             for pack in packs:
                 if not pack:
                     continue
-                proj_id = _safe_get(pack, "project_id")
-                proj_name = _safe_get(pack, "project_name")
+                proj_id = pack.project_id
+                proj_name = pack.project_name
                 if proj_id:
                     try:
                         if int(proj_id) == 0:
@@ -149,20 +178,20 @@ class StashProjectUsageCalculator:
                 if proj_name and not str(proj_name).strip():
                     proj_name = None
 
-                pack_colorway = _safe_get(pack, "colorway") or item_colorway
+                pack_colorway = pack.colorway or item_colorway
 
                 # Only correlate if explicitly linked to a project
                 if proj_id or proj_name:
-                    skeins = _safe_get(pack, "skeins") or 0.0
-                    yards = _safe_get(pack, "total_yards") or 0.0
-                    grams = _safe_get(pack, "total_grams") or 0.0
-                    yards_per_skein = _safe_get(pack, "yards_per_skein")
-                    grams_per_skein = _safe_get(pack, "grams_per_skein")
+                    skeins = pack.skeins or 0.0
+                    yards = pack.total_yards or 0.0
+                    grams = pack.total_grams or 0.0
+                    yards_per_skein = pack.yards_per_skein
+                    grams_per_skein = pack.grams_per_skein
                     if yards == 0.0 and yards_per_skein and skeins:
                         yards = float(yards_per_skein) * float(skeins)
                     if grams == 0.0 and grams_per_skein and skeins:
                         grams = float(grams_per_skein) * float(skeins)
-                    meters = _safe_get(pack, "total_meters") or (yards * 0.9144 if yards else 0.0)
+                    meters = pack.total_meters or (yards * 0.9144 if yards else 0.0)
 
                     # Only if yarn was actually used
                     if float(skeins or 0.0) <= 0 and float(yards or 0.0) <= 0 and float(grams or 0.0) <= 0:
@@ -203,11 +232,11 @@ class StashProjectUsageCalculator:
 
             for sid, entries in hist_items:
                 matched_stash = stash_by_id.get(sid) if sid else None
-                matched_yarn = _safe_get(matched_stash, "yarn") if matched_stash else None
+                matched_yarn = matched_stash.yarn if matched_stash else None
                 yarn_display_name = (
-                    _safe_get(matched_stash, "name")
-                    if matched_stash
-                    else (_safe_get(matched_yarn, "name") if matched_yarn else "Stash Yarn")
+                    matched_stash.name
+                    if matched_stash and matched_stash.name
+                    else (matched_yarn.name if matched_yarn else "Stash Yarn")
                 )
 
                 for entry in entries:
@@ -261,23 +290,23 @@ class StashProjectUsageCalculator:
                         continue
 
                     proj_display_name = p_name or f"Project #{p_id}"
-                    effective_stash_id = sid or (_safe_get(matched_stash, "id") if matched_stash else None)
+                    effective_stash_id = sid or (matched_stash.id if matched_stash else None)
 
                     yards = used_yards
                     grams = used_grams
 
                     if yards == 0.0 and effective_skeins > 0:
-                        if matched_stash and _safe_get(matched_stash, "total_yards") and _safe_get(matched_stash, "skeins"):
-                            stash_yards = float(_safe_get(matched_stash, "total_yards") or 0.0)
-                            stash_skeins = float(_safe_get(matched_stash, "skeins") or 1.0)
+                        if matched_stash and matched_stash.total_yards and matched_stash.skeins:
+                            stash_yards = float(matched_stash.total_yards or 0.0)
+                            stash_skeins = float(matched_stash.skeins or 1.0)
                             yards = (stash_yards / stash_skeins) * effective_skeins
                         else:
                             yards = effective_skeins * 200.0
 
                     if grams == 0.0 and effective_skeins > 0:
-                        if matched_stash and _safe_get(matched_stash, "total_grams") and _safe_get(matched_stash, "skeins"):
-                            stash_grams = float(_safe_get(matched_stash, "total_grams") or 0.0)
-                            stash_skeins = float(_safe_get(matched_stash, "skeins") or 1.0)
+                        if matched_stash and matched_stash.total_grams and matched_stash.skeins:
+                            stash_grams = float(matched_stash.total_grams or 0.0)
+                            stash_skeins = float(matched_stash.skeins or 1.0)
                             grams = (stash_grams / stash_skeins) * effective_skeins
                         else:
                             grams = effective_skeins * 100.0
@@ -295,7 +324,7 @@ class StashProjectUsageCalculator:
                             completed_date=date_str,
                             stash_id=effective_stash_id,
                             yarn_name=yarn_display_name,
-                            colorway=_safe_get(matched_stash, "colorway_name") if matched_stash else None,
+                            colorway=matched_stash.colorway_name if matched_stash else None,
                             skeins_used=round(effective_skeins, 2),
                             yards_used=round(yards, 2),
                             meters_used=round(meters, 2),

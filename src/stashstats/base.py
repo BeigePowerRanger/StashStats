@@ -60,7 +60,6 @@ class BaseAPIClient(BaseModel):
             timeout=self.settings.timeout_seconds,
         )
 
-    def __enter__(self) -> Self:
 
         if self._client is not None and not self._client.is_closed:
             self._client.close()
