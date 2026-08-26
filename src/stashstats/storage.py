@@ -1,14 +1,36 @@
 """Multi-user data storage and isolated filesystem management."""
 
+import io
 import json
 import logging
+import os
 from pathlib import Path
 from typing import Any
+
+from minio import Minio
 
 logger = logging.getLogger("stashstats.storage")
 
 DEFAULT_DATA_DIR = Path("data")
+DEFAULT_MINIO_BUCKET = os.getenv("MINIO_BUCKET", "stashstats-pdfs")
 
+
+def get_minio_client() -> Minio:
+    """Initialize and return a MinIO client from environment variables.
+
+    Returns:
+        Configured Minio client instance.
+    """
+    endpoint = os.getenv("MINIO_ENDPOINT", "minio:9000")
+    access_key = os.getenv("MINIO_ACCESS_KEY", "stashstats")
+    secret_key = os.getenv("MINIO_SECRET_KEY", "stashstats123")
+    secure = os.getenv("MINIO_SECURE", "false").lower() in ("true", "1", "yes")
+    return Minio(
+        endpoint,
+        access_key=access_key,
+        secret_key=secret_key,
+        secure=secure,
+    )
 
 def get_user_data_dir(user_id: str | int, base_dir: Path | str = DEFAULT_DATA_DIR) -> Path:
     """Retrieve and ensure existence of user-isolated data directory.
@@ -172,33 +194,12 @@ def sanitise_pdf_filename(filename: str) -> str:
     Returns:
         Sanitised filename string safe for use as a filesystem basename.
     """
-    # Strip null bytes
     cleaned = filename.replace("\x00", "")
-    # Strip any path component (keep only basename portion)
-    cleaned = cleaned.replace("/", "").replace("\\", "")
-    # Replace spaces with underscores
-    cleaned = cleaned.replace(" ", "_")
-    return cleaned or "upload.pdf"
-
-
-def _get_project_pdf_dir(
-    user_id: str | int,
-    project_id: str | int,
-    base_dir: Path | str = DEFAULT_DATA_DIR,
-) -> Path:
-    """Return (and create) the user+project PDF directory.
-
-    Args:
-        user_id: Unique user identifier.
-        project_id: Unique project identifier.
-        base_dir: Root storage base directory.
-
-    Returns:
-        Path to `<base_dir>/<user_id>/projects/pdfs/<project_id>/`.
-    """
-    pdf_dir = Path(base_dir) / str(user_id) / "projects" / "pdfs" / str(project_id)
-    pdf_dir.mkdir(parents=True, exist_ok=True)
-    return pdf_dir
+    safe_name = Path(cleaned.replace("\\", "/")).name
+    safe_name = safe_name.replace(" ", "_")
+    if safe_name in ("", ".", ".."):
+        return "upload.pdf"
+    return safe_name
 
 
 def save_project_pdf(
@@ -206,11 +207,13 @@ def save_project_pdf(
     project_id: str | int,
     filename: str,
     content: bytes,
-    base_dir: Path | str = DEFAULT_DATA_DIR,
-) -> Path:
-    """Save PDF bytes to the user+project PDF directory.
+    base_dir: Path | str | None = None,
+    bucket: str = DEFAULT_MINIO_BUCKET,
+    client: Minio | None = None,
+) -> str:
+    """Save PDF bytes to MinIO object storage.
 
-    Sanitises the filename before writing.  Overwrites any existing file with
+    Sanitises the filename before writing. Overwrites any existing object with
     the same sanitised name.
 
     Args:
@@ -218,61 +221,145 @@ def save_project_pdf(
         project_id: Unique project identifier.
         filename: Original filename (will be sanitised).
         content: Raw PDF bytes.
-        base_dir: Root storage base directory.
+        base_dir: Unused legacy base directory argument for backwards compatibility.
+        bucket: MinIO bucket name (defaults to DEFAULT_MINIO_BUCKET).
+        client: Optional Minio client instance.
 
     Returns:
-        Path to the written file.
+        Object name / key in MinIO.
     """
     safe_name = sanitise_pdf_filename(filename)
-    pdf_dir = _get_project_pdf_dir(user_id, project_id, base_dir=base_dir)
-    filepath = pdf_dir / safe_name
-    filepath.write_bytes(content)
-    logger.debug(f"[PDF WRITE] user_id={user_id} project_id={project_id} file={filepath}")
-    return filepath
+    object_name = f"{user_id}/projects/pdfs/{project_id}/{safe_name}"
+    try:
+        if client is None:
+            client = get_minio_client()
+        if not client.bucket_exists(bucket):
+            client.make_bucket(bucket)
+        client.put_object(
+            bucket,
+            object_name,
+            io.BytesIO(content),
+            len(content),
+            content_type="application/pdf",
+        )
+        logger.debug(f"[PDF WRITE] user_id={user_id} project_id={project_id} object={object_name}")
+        return object_name
+    except Exception as e:
+        logger.error(f"[PDF WRITE ERROR] user_id={user_id} project_id={project_id} object={object_name}: {e}")
+        raise
 
 
 def list_project_pdfs(
     user_id: str | int,
     project_id: str | int,
-    base_dir: Path | str = DEFAULT_DATA_DIR,
+    base_dir: Path | str | None = None,
+    bucket: str = DEFAULT_MINIO_BUCKET,
+    client: Minio | None = None,
 ) -> list[str]:
     """List PDF filenames attached to a project, sorted alphabetically.
 
     Args:
         user_id: Unique user identifier.
         project_id: Unique project identifier.
-        base_dir: Root storage base directory.
+        base_dir: Unused legacy base directory argument for backwards compatibility.
+        bucket: MinIO bucket name (defaults to DEFAULT_MINIO_BUCKET).
+        client: Optional Minio client instance.
 
     Returns:
-        Sorted list of PDF filenames.  Empty list when no files exist.
+        Sorted list of PDF filenames. Empty list when no files exist or on error.
     """
-    pdf_dir = Path(base_dir) / str(user_id) / "projects" / "pdfs" / str(project_id)
-    if not pdf_dir.exists():
+    if client is None:
+        client = get_minio_client()
+    prefix = f"{user_id}/projects/pdfs/{project_id}/"
+    try:
+        if not client.bucket_exists(bucket):
+            return []
+        objects = client.list_objects(bucket, prefix=prefix, recursive=True)
+        filenames = [
+            os.path.basename(obj.object_name)
+            for obj in objects
+            if os.path.basename(obj.object_name)
+        ]
+        return sorted(filenames)
+    except Exception as e:
+        logger.warning(f"[PDF LIST ERROR] user_id={user_id} project_id={project_id}: {e}")
         return []
-    return sorted(p.name for p in pdf_dir.iterdir() if p.is_file())
 
 
 def delete_project_pdf(
     user_id: str | int,
     project_id: str | int,
     filename: str,
-    base_dir: Path | str = DEFAULT_DATA_DIR,
+    base_dir: Path | str | None = None,
+    bucket: str = DEFAULT_MINIO_BUCKET,
+    client: Minio | None = None,
 ) -> bool:
-    """Delete a named PDF from the user+project PDF directory.
+    """Delete a named PDF from the user+project MinIO storage.
 
     Args:
         user_id: Unique user identifier.
         project_id: Unique project identifier.
-        filename: Exact filename to delete (not re-sanitised).
-        base_dir: Root storage base directory.
+        filename: Exact filename to delete.
+        base_dir: Unused legacy base directory argument for backwards compatibility.
+        bucket: MinIO bucket name (defaults to DEFAULT_MINIO_BUCKET).
+        client: Optional Minio client instance.
 
     Returns:
-        True if the file was deleted, False if it did not exist.
+        True if the file was deleted, False if it did not exist or on error.
     """
-    pdf_dir = Path(base_dir) / str(user_id) / "projects" / "pdfs" / str(project_id)
-    filepath = pdf_dir / filename
-    if filepath.exists():
-        filepath.unlink()
-        logger.debug(f"[PDF DELETE] user_id={user_id} project_id={project_id} file={filepath}")
+    if client is None:
+        client = get_minio_client()
+    safe_name = sanitise_pdf_filename(filename)
+    object_name = f"{user_id}/projects/pdfs/{project_id}/{safe_name}"
+    try:
+        client.stat_object(bucket, object_name)
+        client.remove_object(bucket, object_name)
+        logger.debug(f"[PDF DELETE] user_id={user_id} project_id={project_id} object={object_name}")
         return True
-    return False
+    except Exception as e:
+        logger.warning(f"[PDF DELETE ERROR] user_id={user_id} project_id={project_id} object={object_name}: {e}")
+        return False
+
+
+def get_project_pdf_bytes(
+    user_id: str | int,
+    project_id: str | int,
+    filename: str,
+    base_dir: Path | str | None = None,
+    bucket: str = DEFAULT_MINIO_BUCKET,
+    client: Minio | None = None,
+) -> bytes | None:
+    """Retrieve raw PDF bytes from MinIO for a user and project.
+
+    Args:
+        user_id: Unique user identifier.
+        project_id: Unique project identifier.
+        filename: Exact filename to retrieve.
+        base_dir: Unused legacy base directory argument for backwards compatibility.
+        bucket: MinIO bucket name (defaults to DEFAULT_MINIO_BUCKET).
+        client: Optional Minio client instance.
+
+    Returns:
+        Raw bytes if object exists and was read successfully, otherwise None.
+    """
+    if client is None:
+        client = get_minio_client()
+    safe_name = sanitise_pdf_filename(filename)
+    object_name = f"{user_id}/projects/pdfs/{project_id}/{safe_name}"
+    response = None
+    try:
+        response = client.get_object(bucket, object_name)
+        return response.read()
+    except Exception as e:
+        logger.warning(f"[PDF GET ERROR] user_id={user_id} project_id={project_id} object={object_name}: {e}")
+        return None
+    finally:
+        if response is not None:
+            try:
+                response.close()
+            except Exception:
+                pass
+            try:
+                response.release_conn()
+            except Exception:
+                pass

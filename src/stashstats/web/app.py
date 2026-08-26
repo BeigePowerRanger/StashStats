@@ -5,7 +5,7 @@ from typing import Any
 
 import dash
 import dash_bootstrap_components as dbc
-from flask import abort, send_file
+from flask import Response, abort
 
 from stashstats.client import RavelryClient
 from stashstats.web.callbacks.analytics import register_analytics_callbacks
@@ -103,7 +103,7 @@ def create_app(
     # ---------------------------------------------------------------------------
     # PDF serve route: GET /projects/pdf/<user_id>/<project_id>/<filename>
     # ---------------------------------------------------------------------------
-    @app.server.route("/projects/pdf/<user_id>/<project_id>/<filename>")
+    @app.server.route("/projects/pdf/<user_id>/<project_id>/<path:filename>")
     def serve_project_pdf(user_id: str, project_id: str, filename: str):
         """Stream a stored project PDF to the browser.
 
@@ -115,23 +115,17 @@ def create_app(
         Returns:
             Flask response with Content-Type application/pdf, or 404/400 on error.
         """
-        from stashstats.storage import DEFAULT_DATA_DIR  # noqa: PLC0415
-
-        base_dir = Path(app.server.config.get("PDF_BASE_DIR", str(DEFAULT_DATA_DIR)))
-        pdf_dir = base_dir / user_id / "projects" / "pdfs" / project_id
-        # Resolve and guard against path traversal
-        try:
-            filepath = (pdf_dir / filename).resolve()
-            pdf_dir_resolved = pdf_dir.resolve()
-        except Exception:
+        if not user_id or not project_id or not filename:
+            abort(400)
+        if "/" in filename or "\\" in filename or ".." in filename or "\x00" in filename:
             abort(400)
 
-        if not str(filepath).startswith(str(pdf_dir_resolved)):
-            abort(400)
+        from stashstats.storage import get_project_pdf_bytes  # noqa: PLC0415
 
-        if not filepath.exists() or not filepath.is_file():
+        pdf_bytes = get_project_pdf_bytes(user_id, project_id, filename)
+        if pdf_bytes is None:
             abort(404)
 
-        return send_file(filepath, mimetype="application/pdf")
+        return Response(pdf_bytes, mimetype="application/pdf")
 
     return app

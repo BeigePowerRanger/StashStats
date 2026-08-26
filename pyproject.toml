@@ -21,6 +21,7 @@ dependencies = [
     "pandas>=2.0.0",
     "plotly>=5.18.0",
     "watchdog>=3.0.0",
+    "minio>=7.2.20",
 ]
 
 [project.optional-dependencies]

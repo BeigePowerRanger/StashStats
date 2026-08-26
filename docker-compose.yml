@@ -56,19 +56,6 @@ services:
       retries: 5
       start_period: 5s
 
-  minio-create-bucket:
-    image: minio/mc:latest
-    container_name: stashstats-minio-mc
-    depends_on:
-      minio:
-        condition: service_healthy
-    entrypoint: >
-      /bin/sh -c "
-      /usr/bin/mc alias set myminio http://minio:9000 $${MINIO_ACCESS_KEY:-stashstats} $${MINIO_SECRET_KEY:-stashstats123};
-      /usr/bin/mc mb myminio/$${MINIO_BUCKET:-stashstats-pdfs} --ignore-existing;
-      exit 0;
-      "
-
   stashstats-tailscale:
     image: tailscale/tailscale:latest
     container_name: stashstats-tailscale
