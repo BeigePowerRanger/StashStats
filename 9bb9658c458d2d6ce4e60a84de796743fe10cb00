@@ -1,0 +1,3 @@
+Task: Update docker-compose.yml and .env.example for MinIO
+Files: docker-compose.yml, .env.example
+Why: Consolidate web service and add object storage container for project PDFs
