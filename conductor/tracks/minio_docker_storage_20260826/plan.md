@@ -1,16 +1,16 @@
 # Plan: Docker Compose Consolidation & MinIO Storage
 
-## Phase 1: Infrastructure Cleanup & MinIO Integration
-- [ ] Task: Update `docker-compose.yml` to remove legacy web dev/prod containers
-    - [ ] Consolidate into a single `app` service
-    - [ ] Clean up outdated exposed ports and environment variables
-- [ ] Task: Add MinIO and MinIO setup (mc) services to `docker-compose.yml`
-    - [ ] Configure MinIO container on port 9000
-    - [ ] Add `minio-create-bucket` ephemeral container to auto-provision `stashstats-pdfs` bucket and configure policies
-- [ ] Task: Update `.env.example`
-    - [ ] Remove old dev/prod environment variables
-    - [ ] Add MinIO configuration variables (`MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 1: Infrastructure Cleanup & MinIO Integration [checkpoint: 711295d]
+- [x] Task: Update `docker-compose.yml` to remove legacy web dev/prod containers [9bb9658]
+    - [x] Consolidate into a single `app` service
+    - [x] Clean up outdated exposed ports and environment variables
+- [x] Task: Add MinIO and MinIO setup (mc) services to `docker-compose.yml` [9bb9658]
+    - [x] Configure MinIO container on port 9000
+    - [x] Add `minio-create-bucket` ephemeral container to auto-provision `stashstats-pdfs` bucket and configure policies
+- [x] Task: Update `.env.example` [9bb9658]
+    - [x] Remove old dev/prod environment variables
+    - [x] Add MinIO configuration variables (`MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Python Storage Backend Refactor (MinIO API)
 - [ ] Task: Update `requirements.txt` / dependencies (if applicable) to include `minio` or `boto3`
