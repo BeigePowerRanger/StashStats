@@ -1,0 +1,3 @@
+Task: Analytics & Callbacks Pydantic Integration
+Files: src/stashstats/analytics/projects.py, src/stashstats/web/callbacks/manual_yarn.py, src/stashstats/auth.py, scripts/
+Why: Replace loose dict access and synthetic dicts with typed Pydantic models
