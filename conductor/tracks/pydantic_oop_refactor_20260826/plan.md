@@ -14,8 +14,8 @@
 - [x] Task: Write unit tests verifying modular client mixins and method signatures [5dbdecb]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3: Analytics & Callbacks Pydantic Integration
-- [ ] Task: Refactor `analytics/projects.py` and `analytics/velocity.py` to enforce Pydantic model typing
-- [ ] Task: Refactor synthetic item dictionary literals in `web/callbacks/manual_yarn.py` and `search.py`
-- [ ] Task: Run full test suite and verify >80% coverage
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 3: Analytics & Callbacks Pydantic Integration [checkpoint: 4313230]
+- [x] Task: Refactor `analytics/projects.py` and `analytics/velocity.py` to enforce Pydantic model typing [4313230]
+- [x] Task: Refactor synthetic item dictionary literals in `web/callbacks/manual_yarn.py` and `search.py` [4313230]
+- [x] Task: Run full test suite and verify >80% coverage [4313230]
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
