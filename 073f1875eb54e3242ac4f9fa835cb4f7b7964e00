@@ -1,0 +1,3 @@
+Task: Pydantic Model Hardening
+Files: common.py, history.py, analytics.py, config.py, test_common.py
+Why: Enforce URL validation, timestamp validation, non-negative constraints, and computed_field
