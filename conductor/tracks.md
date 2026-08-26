@@ -88,3 +88,6 @@ This file tracks all major tracks for the project. Each track has its own detail
 - [ ] **Track: Project PDF Upload**
   *Link: [./tracks/project_pdf_upload_20260825/](./tracks/project_pdf_upload_20260825/)*
 
+
+- [ ] **Track: Docker Compose Consolidation & MinIO Storage**
+  *Link: [./tracks/minio_docker_storage_20260826/](./tracks/minio_docker_storage_20260826/)*
