@@ -58,6 +58,23 @@ class TestStashHistoryEntry:
         )
         assert entry.datetime is None
 
+    def test_entry_with_project_metadata(self):
+        entry = StashHistoryEntry(
+            timestamp="2026/08/24 12:00:00 +0000",
+            skeins=-1.5,
+            delta_skeins=-1.5,
+            yards=315.0,
+            grams=150.0,
+            project_id=501,
+            project_name="Winter Beanie",
+            pattern_name="Classic Ribbed Hat",
+            notes="Knitted with stash yarn",
+        )
+        assert entry.project_id == 501
+        assert entry.project_name == "Winter Beanie"
+        assert entry.pattern_name == "Classic Ribbed Hat"
+        assert entry.delta_skeins == -1.5
+
     def test_empty_timestamp(self):
         entry = StashHistoryEntry(
             timestamp="",

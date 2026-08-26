@@ -282,7 +282,7 @@ class YarnSearchResult(BaseModel):
     name: str
     """Commercial yarn line name."""
 
-    permalink: str
+    permalink: str = ""
     """URL-safe slug for the yarn."""
 
     yarn_company_name: str | None = None
@@ -330,16 +330,26 @@ class YarnSearchResult(BaseModel):
     yarn_weight: YarnWeight | None = None
     """Weight classification specifications."""
 
+    colorways: list[str] = Field(default_factory=list)
+    """Catalog colorway names if enriched."""
+
     personal_attributes: PersonalAttributes | None = None
     """Authenticated user interaction state if requested."""
 
-    @field_validator("name", "permalink")
+    @field_validator("name")
     @classmethod
     def validate_non_empty_str(cls, v: str) -> str:
-        v_stripped = v.strip()
+        v_stripped = str(v).strip()
         if not v_stripped:
             raise ValueError("Field cannot be empty")
         return v_stripped
+
+    @field_validator("permalink", mode="before")
+    @classmethod
+    def normalize_permalink(cls, v: Any) -> str:
+        if not v:
+            return ""
+        return str(v).strip()
 
     @field_validator(
         "grams",

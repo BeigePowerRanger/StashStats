@@ -25,6 +25,12 @@ class Pack(BaseModel):
     stash_id: int | None = None
     """Associated stash item ID."""
 
+    project_id: int | None = None
+    """Associated project ID if allocated to a project."""
+
+    project_name: str | None = None
+    """Associated project name if allocated to a project."""
+
     yarn_id: int | None = None
     """Associated catalog yarn ID."""
 
@@ -115,13 +121,13 @@ class StashItem(BaseModel):
     returned by GET /people/{username}/stash/list.json and /stash/search.json.
     """
 
-    id: int
+    id: int = 0
     """Stash item unique database ID."""
 
     name: str | None = None
     """User-added yarn title or label."""
 
-    permalink: str
+    permalink: str = ""
     """URL slug for this stash entry."""
 
     colorway_name: str | None = None

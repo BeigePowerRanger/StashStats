@@ -39,6 +39,16 @@ class StashHistoryEntry(BaseModel):
     notes: str | None = None
     """Optional project or usage event note."""
 
+    project_id: int | None = None
+    """Linked project ID if allocated to a project."""
+
+    project_name: str | None = None
+    """User-given project name."""
+
+    pattern_name: str | None = None
+    """Associated pattern name."""
+
+
     @property
     def datetime(self) -> datetime | None:
         """Parse the timestamp string into a datetime object."""

@@ -357,6 +357,24 @@ def create_stash_item_row(
             dbc.Badge(f"Lot: {dye_lot}", color="dark", className="border border-secondary me-2 text-light", pill=True)
         )
 
+    date_added = None
+    if item.created_at:
+        date_added = str(item.created_at).split("T")[0].split(" ")[0].replace("/", "-")
+    elif item.primary_pack and item.primary_pack.purchased_date:
+        date_added = str(item.primary_pack.purchased_date).split("T")[0].split(" ")[0].replace("/", "-")
+    elif item.purchased:
+        date_added = str(item.purchased).split("T")[0].split(" ")[0].replace("/", "-")
+
+    if date_added:
+        chips.append(
+            dbc.Badge(
+                [html.I(className="bi bi-calendar-event me-1"), f"Added: {date_added}"],
+                color="dark",
+                className="border border-secondary me-2 text-light",
+                pill=True,
+            )
+        )
+
     if item.location:
         chips.append(
             html.Small(f"Loc: {item.location}", className="text-info me-2 fw-semibold")

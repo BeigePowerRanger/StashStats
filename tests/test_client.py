@@ -264,6 +264,43 @@ class TestStashHistoryAndDeduplication:
         assert len(hist.entries) == 1
         assert hist.entries[0].skeins == 1.0
 
+    def test_get_all_my_stash_multi_page(self, mock_settings):
+        call_pages: list[int] = []
+
+        def handler(request: httpx.Request) -> httpx.Response:
+            assert request.method == "GET"
+            page = int(request.url.params.get("page", 1))
+            call_pages.append(page)
+            if page == 1:
+                return httpx.Response(
+                    200,
+                    json={
+                        "stash": [{"id": 1, "name": "Yarn 1"}, {"id": 2, "name": "Yarn 2"}],
+                        "paginator": {"page": 1, "page_size": 2, "page_count": 2, "last_page": 2, "results": 3},
+                    },
+                )
+            else:
+                return httpx.Response(
+                    200,
+                    json={
+                        "stash": [{"id": 3, "name": "Yarn 3"}],
+                        "paginator": {"page": 2, "page_size": 2, "page_count": 2, "last_page": 2, "results": 3},
+                    },
+                )
+
+        client = RavelryClient(settings=mock_settings)
+        client._cached_username = "testuser"
+        client._client = httpx.Client(
+            transport=MockTransport(handler),
+            base_url=client.base_url,
+            auth=client.auth,
+        )
+
+        all_items = client.get_all_my_stash()
+        assert len(all_items) == 3
+        assert [it.id for it in all_items] == [1, 2, 3]
+        assert call_pages == [1, 2]
+
 
 class TestYarnAPI:
     def test_search_yarns_default(self, mock_settings):

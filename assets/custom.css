@@ -1,41 +1,370 @@
+/* Global Typography Scale (+1pt) */
+html {
+    font-size: 17.33px !important;
+}
+
+body {
+    font-size: 1.05rem !important;
+}
+
 /* DARKLY accordion expanded state: active-bg=#ebeff2 (light), active-color=#325172 (dark) = invisible */
 .accordion-button:not(.collapsed) {
     color: #fff !important;
     background-color: #303030 !important;
 }
 
-/* Rounded UI Components (Original StashStats aesthetics) */
+/* ==========================================================================
+   Global Rounded Edges & Box Aesthetics (All 4 Corners)
+   ========================================================================== */
+
+/* 1. Cards, KPI Panels, Chart Wrappers & Containers */
 .card,
-.modal-content,
-.accordion-item,
-.accordion-header .accordion-button {
-    border-radius: 8px !important;
+.card-body,
+.card-header,
+.card-footer,
+.kpi-card,
+.chart-card,
+.tab-content-container,
+.tab-content,
+.tab-pane,
+.yarn-search-details,
+.dash-graph,
+.js-plotly-plot,
+.plot-container,
+.list-group-item,
+.dropdown-menu,
+.popover,
+.offcanvas {
+    border-radius: 12px !important;
 }
 
-.accordion-item {
-    margin-bottom: 0.5rem;
+.card {
     overflow: hidden;
 }
 
-.nav-tabs .nav-link {
-    border-top-left-radius: 8px !important;
-    border-top-right-radius: 8px !important;
+/* 2. Accordions & List Groups */
+.accordion,
+.accordion-item,
+.accordion-header,
+.accordion-button,
+.accordion-body {
+    border-radius: 10px !important;
 }
 
+.accordion-item {
+    margin-bottom: 0.6rem;
+    overflow: hidden;
+    border: 1px solid #444 !important;
+}
+
+/* 3. Buttons, Inputs, Form Selects & Input Groups */
 .btn,
 .form-control,
 .form-select,
-.input-group-text {
+.input-group-text,
+textarea,
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="search"],
+select {
+    border-radius: 8px !important;
+}
+
+.btn-sm {
     border-radius: 6px !important;
 }
 
-/* Modal dark theme adjustments */
+.btn-lg {
+    border-radius: 10px !important;
+}
+
+/* Input group seamless rounded edges */
+.input-group {
+    border-radius: 8px !important;
+}
+
+.input-group > :first-child {
+    border-radius: 8px !important;
+}
+
+.input-group > :last-child {
+    border-radius: 8px !important;
+}
+
+.btn-group > .btn {
+    border-radius: 8px !important;
+}
+
+/* 4. Modals & Dialogs */
 .modal-content {
     background-color: #222222 !important;
     border: 1px solid #444444 !important;
+    border-radius: 14px !important;
+    overflow: hidden;
 }
 
 .modal-header,
+.modal-body,
 .modal-footer {
+    border-radius: 14px !important;
     border-color: #333333 !important;
 }
+
+/* 5. Alerts, Badges, Toasts & Banners */
+.alert {
+    border-radius: 10px !important;
+}
+
+.badge {
+    border-radius: 6px !important;
+}
+
+.toast {
+    border-radius: 10px !important;
+    overflow: hidden;
+}
+
+/* 6. Tabs & Navigation (All 4 corners rounded) */
+.nav-tabs .nav-link,
+._tab,
+.tab,
+.custom-tab,
+.tab--selected {
+    border-radius: 8px !important;
+    margin-right: 4px;
+}
+
+.tab-container,
+.main-navigation-tabs {
+    border-radius: 8px !important;
+}
+
+/* 7. Tables & Responsive Wrappers */
+.table-responsive {
+    border-radius: 10px !important;
+    overflow: hidden;
+}
+
+table,
+.table {
+    border-radius: 10px !important;
+}
+
+.table thead th:first-child {
+    border-top-left-radius: 10px !important;
+}
+
+.table thead th:last-child {
+    border-top-right-radius: 10px !important;
+}
+
+.table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 10px !important;
+}
+
+.table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 10px !important;
+}
+
+/* 8. Pagination */
+.pagination {
+    border-radius: 8px !important;
+}
+
+.page-item .page-link {
+    border-radius: 6px !important;
+    margin: 0 2px;
+}
+
+/* 9. Images, Banners & Thumbnails */
+img,
+.img-thumbnail,
+.rounded {
+    border-radius: 10px !important;
+}
+
+#header-logo {
+    border-radius: 16px !important;
+}
+
+/* ==========================================================================
+   Purple, Blue & Pink Color Theme (Muted / Soft Palette)
+   ========================================================================== */
+
+:root {
+    --stash-purple: #8e6bb3;
+    --stash-purple-dark: #6d597a;
+    --stash-blue: #5c92d1;
+    --stash-blue-dark: #4f86c6;
+    --stash-pink: #d8839e;
+    --stash-pink-dark: #b56576;
+    --stash-lavender: #a78bfa;
+}
+
+/* Primary buttons -> Soft Purple */
+.btn-primary {
+    background-color: var(--stash-purple-dark) !important;
+    border-color: var(--stash-purple) !important;
+    color: #ffffff !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: var(--stash-purple) !important;
+    border-color: var(--stash-lavender) !important;
+    box-shadow: 0 0 8px rgba(142, 107, 179, 0.35) !important;
+}
+
+.btn-outline-primary {
+    color: var(--stash-purple) !important;
+    border-color: var(--stash-purple) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus,
+.btn-outline-primary:active {
+    background-color: var(--stash-purple-dark) !important;
+    color: #ffffff !important;
+    border-color: var(--stash-lavender) !important;
+    box-shadow: 0 0 8px rgba(142, 107, 179, 0.25) !important;
+}
+
+/* Info buttons & badges -> Slate Blue */
+.btn-info {
+    background-color: var(--stash-blue-dark) !important;
+    border-color: var(--stash-blue) !important;
+    color: #ffffff !important;
+}
+
+.btn-info:hover {
+    background-color: var(--stash-blue) !important;
+    color: #ffffff !important;
+}
+
+/* Warning badges & alerts -> Dusty Rose (replaces orange) */
+.badge.bg-warning,
+.badge-warning,
+.bg-warning {
+    background-color: var(--stash-pink) !important;
+    color: #ffffff !important;
+}
+
+.text-warning {
+    color: var(--stash-pink) !important;
+}
+
+.text-info {
+    color: var(--stash-blue) !important;
+}
+
+.text-primary {
+    color: var(--stash-lavender) !important;
+}
+
+/* Radio buttons & Checkboxes -> Soft Purple/Pink accents */
+.form-check-input:checked {
+    background-color: var(--stash-purple) !important;
+    border-color: var(--stash-purple) !important;
+    box-shadow: 0 0 6px rgba(142, 107, 179, 0.35) !important;
+}
+
+.form-check-input:focus {
+    border-color: var(--stash-pink) !important;
+    box-shadow: 0 0 0 0.25rem rgba(216, 131, 158, 0.2) !important;
+}
+
+/* Navigation tabs active state -> Soft Pink/Blue */
+.nav-tabs .nav-link.active,
+.tab--selected,
+.custom-tab--selected {
+    border-bottom: 3px solid var(--stash-pink) !important;
+    color: var(--stash-blue) !important;
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--stash-lavender) !important;
+}
+
+/* Pagination active link */
+.page-item.active .page-link {
+    background-color: var(--stash-purple-dark) !important;
+    border-color: var(--stash-purple) !important;
+    color: #ffffff !important;
+}
+
+/* ==========================================================================
+   Sleek Futuristic Unit Toggle Bar (Soft Glassmorphism)
+   ========================================================================== */
+
+.unit-selector-card {
+    background: linear-gradient(135deg, rgba(28, 25, 38, 0.95), rgba(20, 24, 38, 0.9)) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(142, 107, 179, 0.25) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35) !important;
+    border-radius: 14px !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.unit-selector-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #5c92d1, #8e6bb3, #d8839e);
+}
+
+.unit-segmented-pill-box {
+    background: rgba(15, 15, 25, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px !important;
+    padding: 4px;
+    display: inline-flex;
+    gap: 6px;
+}
+
+.btn-unit-toggle {
+    font-weight: 600;
+    font-size: 0.9rem;
+    letter-spacing: 0.3px;
+    padding: 7px 18px !important;
+    border-radius: 8px !important;
+    border: 1px solid transparent !important;
+    color: #94a3b8 !important;
+    background: transparent !important;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    cursor: pointer;
+}
+
+.btn-unit-toggle:hover {
+    color: #ffffff !important;
+    background: rgba(142, 107, 179, 0.15) !important;
+    border-color: rgba(142, 107, 179, 0.3) !important;
+    transform: translateY(-1px);
+}
+
+.btn-unit-toggle.active,
+.btn-check:checked + .btn-unit-toggle {
+    background: linear-gradient(135deg, #6d597a 0%, #8e6bb3 50%, #d8839e 100%) !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    box-shadow: 0 4px 12px rgba(142, 107, 179, 0.3) !important;
+    transform: scale(1.02);
+}
+
+.unit-label-pill {
+    background: linear-gradient(135deg, #5c92d1, #8e6bb3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    font-weight: 800;
+}
+
+

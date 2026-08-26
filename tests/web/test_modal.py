@@ -6,6 +6,7 @@ from unittest.mock import MagicMock, patch
 import dash
 import dash_bootstrap_components as dbc
 import pytest
+from dash import html
 from dash.development.base_component import Component
 
 from stashstats.web.app import create_app
@@ -193,6 +194,34 @@ def test_apply_usage_to_stash() -> None:
     assert ledger_entry["notes"] == "Beanie project"
 
 
+def test_apply_usage_to_stash_with_project_details() -> None:
+    """Verify apply_usage_to_stash records project_name, project_id, and pattern_name in ledger."""
+    stash = {
+        "id": 123,
+        "name": "Rios",
+        "skeins": 4.0,
+        "total_yards": 840.0,
+        "total_grams": 400.0,
+        "yards_per_skein": 210.0,
+        "grams_per_skein": 100.0,
+        "stash_status": {"id": 1, "name": "In stash"},
+    }
+
+    updated_stash, ledger_entry = apply_usage_to_stash(
+        stash_item=stash,
+        used_skeins=1.5,
+        date_used="2026-08-16",
+        notes="Knitted with stash yarn",
+        project_name="Winter Beanie",
+        project_id=501,
+        pattern_name="Classic Ribbed Hat",
+    )
+
+    assert ledger_entry["project_name"] == "Winter Beanie"
+    assert ledger_entry["project_id"] == 501
+    assert ledger_entry["pattern_name"] == "Classic Ribbed Hat"
+
+
 def test_apply_usage_to_stash_exhaustion_updates_status() -> None:
     """Verify applying usage that reduces inventory to 0 changes status to 'Used up'."""
     stash = {
@@ -320,6 +349,8 @@ def test_create_stash_modal_structure() -> None:
     assert find_component_by_id(modal, "modal-usage-baseline") is not None
     assert find_component_by_id(modal, "modal-input-skeins-used") is not None
     assert find_component_by_id(modal, "modal-input-date-used") is not None
+    assert find_component_by_id(modal, "modal-input-project-name") is not None
+    assert find_component_by_id(modal, "modal-input-pattern-name") is not None
     assert find_component_by_id(modal, "modal-usage-preview") is not None
     assert find_component_by_id(modal, "modal-usage-history-table") is not None
 
@@ -494,6 +525,32 @@ def test_handle_save_modal_calls_client_update_and_app_data() -> None:
     mock_client.set_app_data.assert_called_once()
 
 
+def test_handle_save_modal_with_project_metadata() -> None:
+    """Verify handle_save_modal preserves project_name and pattern_name in new history entry."""
+    is_open, updated_stash, updated_history = handle_save_modal(
+        n_clicks=1,
+        active_tab="tab-log-usage",
+        colorway=None,
+        dye_lot=None,
+        location=None,
+        skeins=None,
+        status=None,
+        notes="Hat project",
+        used_skeins=1.5,
+        date_used="2026-08-20",
+        stash_data={"id": 123, "skeins": 4.0},
+        history_data=[],
+        project_name="Winter Beanie",
+        pattern_name="Classic Ribbed Hat",
+    )
+
+    assert is_open is False
+    assert len(updated_history) == 1
+    assert updated_history[0]["project_name"] == "Winter Beanie"
+    assert updated_history[0]["pattern_name"] == "Classic Ribbed Hat"
+    assert updated_history[0]["skeins"] == -1.5
+
+
 def test_handle_history_rollback_calls_client_update_and_app_data() -> None:
     """Verify handle_history_rollback invokes client.update_stash_item and client.set_app_data."""
     mock_client = MagicMock()
@@ -538,6 +595,76 @@ def test_handle_save_modal_tab_log_usage_zero_skeins_prevents_update() -> None:
             stash_data={"id": 123, "skeins": 5.0},
             history_data=[],
         )
+
+
+def test_create_linked_projects_table_empty():
+    from stashstats.web.components.modal import create_linked_projects_table
+    res = create_linked_projects_table([])
+    assert isinstance(res, (html.Div, Component))
+
+
+def test_create_linked_projects_table_with_records():
+    from stashstats.models.analytics import ProjectUsageRecord
+    from stashstats.web.components.modal import create_linked_projects_table
+
+    records = [
+        ProjectUsageRecord(
+            project_id=101,
+            project_name="Winter Hat",
+            pattern_name="Classic Ribbed Hat",
+            status_name="Finished",
+            completed_date="2026-02-14",
+            skeins_used=1.5,
+            yards_used=315.0,
+            grams_used=150.0,
+        )
+    ]
+    table = create_linked_projects_table(records)
+    assert isinstance(table, dbc.Table)
+
+
+def test_create_stash_modal_with_linked_projects():
+    from stashstats.models.analytics import ProjectUsageRecord
+    records = [
+        ProjectUsageRecord(
+            project_id=101,
+            project_name="Winter Hat",
+            pattern_name="Classic Ribbed Hat",
+            status_name="Finished",
+            completed_date="2026-02-14",
+            skeins_used=1.5,
+            yards_used=315.0,
+            grams_used=150.0,
+        )
+    ]
+    modal = create_stash_modal(
+        stash_item={"id": 123, "skeins": 5.0},
+        linked_projects=records,
+        is_open=True,
+    )
+    assert isinstance(modal, dbc.Modal)
+    tbl = find_component_by_id(modal, "modal-linked-projects-table")
+    assert tbl is not None
+
+
+def test_create_usage_history_table_with_project():
+    history = [
+        {
+            "id": "entry-1",
+            "date": "2026-05-12",
+            "skeins": -1.5,
+            "yards": -315.0,
+            "grams": -150.0,
+            "project_name": "Winter Beanie",
+            "pattern_name": "Classic Ribbed Hat",
+        }
+    ]
+    table = create_usage_history_table(history)
+    assert isinstance(table, dbc.Table)
+    table_str = str(table.to_plotly_json())
+    assert "Winter Beanie" in table_str
+
+
 
 
 

@@ -5,7 +5,13 @@ from typing import Any
 import dash_bootstrap_components as dbc
 from dash import dcc, html
 
+from stashstats.analytics.distributions import StashDistributionCalculator
+from stashstats.analytics.projects import StashProjectUsageCalculator
+from stashstats.analytics.velocity import StashVelocityCalculator
+from stashstats.models.stash import StashItem
 from stashstats.web.components.header import create_header
+from stashstats.web.components.manual_yarn_modal import create_manual_yarn_modal
+from stashstats.web.layouts.analytics import create_analytics_layout
 from stashstats.web.layouts.projects import create_projects_layout
 from stashstats.web.layouts.search import create_yarn_search_layout
 from stashstats.web.layouts.stash import create_stash_layout
@@ -50,9 +56,32 @@ def create_navigation_tabs(
         sync_status=sync_status,
         pending_count=pending_count,
         last_synced=last_synced,
+        include_stores=False,
     )
     search_layout = create_yarn_search_layout()
     projects_layout = create_projects_layout(projects=projects, user_id=user_id)
+
+    report = None
+    distribution = None
+    project_usages = None
+    if items:
+        try:
+            stash_items = [
+                it if isinstance(it, StashItem) else StashItem.model_validate(it)
+                for it in items
+            ]
+            distribution = StashDistributionCalculator.aggregate_all(stash_items)
+            report = StashVelocityCalculator.generate_report(stash_items)
+            project_usages = StashProjectUsageCalculator.correlate_projects_and_stash(stash_items)
+        except Exception:
+            pass
+
+    analytics_layout = create_analytics_layout(
+        report=report,
+        distribution=distribution,
+        project_usages=project_usages,
+        unit="yards",
+    )
 
     return dcc.Tabs(
         id="main-tabs",
@@ -85,11 +114,7 @@ def create_navigation_tabs(
                 children=[
                     html.Div(style={"height": "15px"}),
                     dbc.Container(
-                        dbc.Alert(
-                            "Stash Analytics coming soon.",
-                            color="info",
-                            className="text-center my-4",
-                        ),
+                        analytics_layout,
                         id="analytics-tab-content",
                         fluid=True,
                         className="p-0",
@@ -142,11 +167,11 @@ def create_main_layout(
     items: Any = None,
     projects: Any = None,
 ) -> dbc.Container:
-    """Create root application layout shell with header and navigation tabs.
+    """Create the full top-level application layout with header, tabs, and content.
 
     Args:
-        username: Authenticated Ravelry username.
-        active_tab: Tab ID of active tab.
+        username: Authenticated username.
+        active_tab: ID of the currently active tab.
         sync_status: Sync state indicator string.
         pending_count: Number of uncommitted local mutations.
         last_synced: Timestamp string for last sync.
@@ -157,6 +182,17 @@ def create_main_layout(
     Returns:
         Root dbc.Container component.
     """
+    raw_items = items or []
+    serialized_items = [
+        item.model_dump() if hasattr(item, "model_dump") else item
+        for item in raw_items
+    ]
+
+    global_stores = [
+        dcc.Store(id="stash-raw-store", data=serialized_items),
+        dcc.Store(id="stash-dirty-store", data=[]),
+    ]
+
     header = create_header(
         username=username,
         sync_status=sync_status,
@@ -194,7 +230,9 @@ def create_main_layout(
         fluid=True,
         className="p-0 bg-dark text-light min-vh-100",
         children=[
+            *global_stores,
             header,
             body_container,
+            create_manual_yarn_modal(),
         ],
     )

@@ -60,6 +60,31 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
+- [x] **Track: Stash Consumption Velocity & Analytics Engine**
+  *Link: [./tracks/stash_analytics_20260824/index.md](./tracks/stash_analytics_20260824/index.md)*
+
+---
+
+- [x] **Track: Track Projects Made from Stash Yarn & Analytics Breakdown**
+  *Link: [./tracks/project_yarn_tracking_20260824/index.md](./tracks/project_yarn_tracking_20260824/index.md)*
+
+---
+
+- [x] **Track: Log Project Details on Stash Usage Logging**
+  *Link: [./tracks/log_project_usage_20260824/index.md](./tracks/log_project_usage_20260824/index.md)*
+
+---
+
+- [x] **Track: Fix Live Updates for Projects Made and Monthly Flow**
+  *Link: [./tracks/fix_analytics_live_updates_20260824/index.md](./tracks/fix_analytics_live_updates_20260824/index.md)*
+
+---
+
+- [x] **Track: Fix Add to Stash Reflection in Personal Stash**
+  *Link: [./tracks/fix_add_to_stash_reflection_20260824/index.md](./tracks/fix_add_to_stash_reflection_20260824/index.md)*
+
+---
+
 - [ ] **Track: Project PDF Upload**
   *Link: [./tracks/project_pdf_upload_20260825/](./tracks/project_pdf_upload_20260825/)*
 

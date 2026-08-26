@@ -68,7 +68,6 @@ def create_yarn_search_form(
                 type="search",
                 placeholder="Flux Capacitor",
                 value=query,
-                debounce=True,
                 style=DARK_INPUT_STYLE,
             ),
         ],
@@ -83,7 +82,6 @@ def create_yarn_search_form(
                 type="search",
                 placeholder="Filter by brand...",
                 value=brand,
-                debounce=True,
                 style=DARK_INPUT_STYLE,
             ),
         ],
@@ -111,6 +109,14 @@ def create_yarn_search_form(
         className="w-100 w-sm-auto fw-semibold",
     )
 
+    manual_yarn_btn = dbc.Button(
+        [html.I(className="bi bi-plus-circle me-1"), "Add Yarn Manually"],
+        id="btn-open-manual-yarn-search",
+        color="success",
+        outline=True,
+        className="w-100 w-sm-auto fw-semibold",
+    )
+
     return dbc.Row(
         [
             dbc.Col(category_input, xs=12, sm="auto"),
@@ -118,7 +124,8 @@ def create_yarn_search_form(
             dbc.Col(brand_input, xs=12, sm="auto"),
             dbc.Col(sort_input, xs=12, sm="auto"),
             dbc.Col(search_btn, xs=12, sm="auto"),
-            html.Hr(style={"margin": "20px 0"}),
+            dbc.Col(manual_yarn_btn, xs=12, sm="auto"),
+            dbc.Col(html.Hr(style={"margin": "15px 0"}), xs=12),
         ],
         className="mb-3 g-2 align-items-center",
     )
@@ -226,28 +233,37 @@ def create_yarn_search_details(
                             ),
                         ],
                         xs=12,
-                        sm=4,
+                        sm=3,
                         className="mb-2 mb-sm-0",
                     ),
                     dbc.Col(
                         [
-                            dbc.Label("Colorway"),
+                            dbc.Label("Colorway (API)"),
                             dbc.Select(
                                 id={"type": "stash-colorway", "index": yarn_id},
-                                options=colorway_options,
-                                placeholder="Select or leave blank",
-                                style=DARK_INPUT_STYLE,
-                            )
-                            if colorways
-                            else dbc.Input(
-                                type="text",
-                                id={"type": "stash-colorway", "index": yarn_id},
-                                placeholder="Colorway name",
+                                options=[{"label": "-- Select API Colorway --", "value": ""}] + colorway_options
+                                if colorways
+                                else [{"label": "No API colorways", "value": ""}],
+                                value=colorways[0] if colorways else "",
                                 style=DARK_INPUT_STYLE,
                             ),
                         ],
                         xs=12,
-                        sm=4,
+                        sm=3,
+                        className="mb-2 mb-sm-0",
+                    ),
+                    dbc.Col(
+                        [
+                            dbc.Label("Custom Colorway"),
+                            dbc.Input(
+                                type="text",
+                                id={"type": "stash-colorway-manual", "index": yarn_id},
+                                placeholder="Or enter custom colorway...",
+                                style=DARK_INPUT_STYLE,
+                            ),
+                        ],
+                        xs=12,
+                        sm=3,
                         className="mb-2 mb-sm-0",
                     ),
                     dbc.Col(
@@ -261,7 +277,7 @@ def create_yarn_search_details(
                             ),
                         ],
                         xs=12,
-                        sm=4,
+                        sm=3,
                     ),
                 ],
                 className="mb-2",
@@ -303,12 +319,11 @@ def create_yarn_search_details(
                     dbc.Col(
                         [
                             dbc.Label("Date Added"),
-                            html.Br(),
-                            dcc.DatePickerSingle(
+                            dbc.Input(
+                                type="date",
                                 id={"type": "stash-date-added", "index": yarn_id},
-                                date=datetime.now(tz=UTC).date().isoformat(),
-                                display_format="YYYY-MM-DD",
-                                className="w-100",
+                                value=datetime.now(tz=UTC).date().isoformat(),
+                                style=DARK_INPUT_STYLE,
                             ),
                         ],
                         xs=12,

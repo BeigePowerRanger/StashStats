@@ -77,6 +77,8 @@ def handle_history_rollback(
         usage_index=triggered_index,
         history=history,
     )
+    updated_stash["history"] = updated_history
+    updated_stash["usage_history"] = updated_history
 
     # Sync with Ravelry if client is present
     if client and updated_stash.get("id"):
@@ -129,6 +131,8 @@ def handle_save_modal(
     date_used: str | None,
     stash_data: dict[str, Any] | None,
     history_data: list[dict[str, Any]] | None,
+    project_name: str | None = None,
+    pattern_name: str | None = None,
     client: Any = None,
 ) -> tuple[bool, dict[str, Any], list[dict[str, Any]]]:
     """Process modal save action across Edit Details or Log Usage tabs."""
@@ -148,8 +152,12 @@ def handle_save_modal(
             used_skeins=float(used_skeins),
             date_used=date_used,
             notes=notes,
+            project_name=project_name,
+            pattern_name=pattern_name,
         )
         history.insert(0, entry)
+        stash["history"] = history
+        stash["usage_history"] = history
 
         if client and stash.get("id"):
             try:
@@ -331,14 +339,20 @@ def register_modal_callbacks(app: dash.Dash) -> None:
 
         baseline_text = f"Baseline inventory: {skeins_val:g} skeins"
 
-        history: list[dict[str, Any]] = []
-        client = getattr(app, "client", None)
-        if client:
-            try:
-                hist_obj = client.get_stash_history(stash_id)
-                history = [e.model_dump() for e in hist_obj.entries]
-            except Exception:
-                pass
+        history: list[dict[str, Any]] = list(
+            target_item.get("history")
+            or target_item.get("usage_history")
+            or []
+        )
+        if not history:
+            client = getattr(app, "client", None)
+            if client:
+                try:
+                    hist_obj = client.get_stash_history(stash_id)
+                    if hist_obj and hist_obj.entries:
+                        history = [e.model_dump() for e in hist_obj.entries]
+                except Exception:
+                    pass
 
         preview = create_usage_preview(
             current_skeins=skeins_val,
@@ -456,6 +470,8 @@ def register_modal_callbacks(app: dash.Dash) -> None:
         State("modal-input-notes", "value"),
         State("modal-input-skeins-used", "value"),
         State("modal-input-date-used", "value"),
+        State("modal-input-project-name", "value"),
+        State("modal-input-pattern-name", "value"),
         State("modal-store-stash-item", "data"),
         State("modal-store-history", "data"),
         State("stash-raw-store", "data"),
@@ -472,6 +488,8 @@ def register_modal_callbacks(app: dash.Dash) -> None:
         notes: str | None,
         used_skeins: float | None,
         date_used: str | None,
+        project_name: str | None,
+        pattern_name: str | None,
         stash_data: dict[str, Any] | None,
         history_data: list[dict[str, Any]] | None,
         raw_stash_items: list[dict[str, Any]] | None,
@@ -490,6 +508,8 @@ def register_modal_callbacks(app: dash.Dash) -> None:
             date_used,
             stash_data,
             history_data,
+            project_name=project_name,
+            pattern_name=pattern_name,
             client=client,
         )
 

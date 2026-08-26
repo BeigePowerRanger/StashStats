@@ -60,11 +60,16 @@ def handle_stash_sync_logic(
     fresh_items = raw_data or []
     if client:
         try:
-            logger.info("Executing manual stash sync with Ravelry API...")
-            stash_resp = client.get_my_stash()
+            logger.info("Executing manual stash sync with Ravelry API across all pages...")
+            if hasattr(client, "get_all_my_stash"):
+                raw_items = client.get_all_my_stash()
+            else:
+                stash_resp = client.get_my_stash()
+                raw_items = stash_resp.stash
+
             fresh_items = [
                 it.model_dump() if hasattr(it, "model_dump") else it
-                for it in stash_resp.stash
+                for it in raw_items
             ]
             logger.info(f"Manual sync complete: {len(fresh_items)} items retrieved")
             now_str = datetime.now(UTC).strftime("Today %H:%M")

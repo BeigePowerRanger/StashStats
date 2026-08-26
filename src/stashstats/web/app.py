@@ -8,6 +8,8 @@ import dash_bootstrap_components as dbc
 from flask import abort, send_file
 
 from stashstats.client import RavelryClient
+from stashstats.web.callbacks.analytics import register_analytics_callbacks
+from stashstats.web.callbacks.manual_yarn import register_manual_yarn_callbacks
 from stashstats.web.callbacks.modal import register_modal_callbacks
 from stashstats.web.callbacks.search import register_search_callbacks
 from stashstats.web.callbacks.stash import register_stash_callbacks
@@ -67,8 +69,11 @@ def create_app(
     if client is not None:
         if resolved_items is None:
             try:
-                stash_resp = client.get_my_stash()
-                resolved_items = stash_resp.stash
+                if hasattr(client, "get_all_my_stash"):
+                    resolved_items = client.get_all_my_stash()
+                else:
+                    stash_resp = client.get_my_stash()
+                    resolved_items = stash_resp.stash
             except Exception:
                 resolved_items = []
         try:
@@ -87,7 +92,9 @@ def create_app(
     # Register reactive callbacks
     register_stash_callbacks(app)
     register_modal_callbacks(app)
+    register_manual_yarn_callbacks(app)
     register_search_callbacks(app)
+    register_analytics_callbacks(app)
 
     # Register Projects tab callbacks
     from stashstats.web.callbacks.projects import register_projects_callbacks  # noqa: PLC0415
