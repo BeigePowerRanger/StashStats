@@ -1,0 +1,3 @@
+Task: MinIO PDF Storage Refactor and Web Route Integration
+Files: src/stashstats/storage.py, src/stashstats/web/app.py, tests/test_project_pdf_storage.py, docker-compose.yml, pyproject.toml
+Why: Persist project PDFs in isolated MinIO S3 bucket and stream via Dash route
