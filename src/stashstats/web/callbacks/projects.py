@@ -156,6 +156,7 @@ def register_projects_callbacks(app: dash.Dash) -> None:
 
     @app.callback(
         Output({"type": "project-pdf-viewer", "index": dash.MATCH}, "src"),
+        Output({"type": "project-pdf-viewer", "index": dash.MATCH}, "style"),
         Input({"type": "project-pdf-view-btn", "index": dash.MATCH, "filename": dash.ALL}, "n_clicks"),
         State({"type": "project-pdf-view-btn", "index": dash.MATCH, "filename": dash.ALL}, "id"),
         State("projects-user-store", "data"),
@@ -165,8 +166,8 @@ def register_projects_callbacks(app: dash.Dash) -> None:
         n_clicks_list: list[int | None],
         ids_list: list[dict],
         user_data: dict | None,
-    ) -> str:
-        """Set iframe src to serve-route URL when a filename is clicked.
+    ) -> tuple[str, dict[str, str]]:
+        """Set iframe src to serve-route URL and display block when a filename is clicked.
 
         Args:
             n_clicks_list: Click counts from view buttons.
@@ -174,7 +175,7 @@ def register_projects_callbacks(app: dash.Dash) -> None:
             user_data: Store dict with ``user_id`` key.
 
         Returns:
-            URL string for the PDF serve route.
+            Tuple of (URL string for the PDF serve route, visible style dict).
         """
         if not any(n_clicks_list):
             raise dash.exceptions.PreventUpdate
@@ -187,7 +188,15 @@ def register_projects_callbacks(app: dash.Dash) -> None:
         project_id = str(triggered.get("index", "unknown"))
         filename = triggered.get("filename", "")
 
-        return f"/projects/pdf/{user_id}/{project_id}/{filename}"
+        viewer_style = {
+            "width": "100%",
+            "height": "600px",
+            "border": "1px solid #444",
+            "borderRadius": "4px",
+            "backgroundColor": "#1a1a1a",
+            "display": "block",
+        }
+        return f"/projects/pdf/{user_id}/{project_id}/{filename}", viewer_style
 
     @app.callback(
         Output("projects-sync-badge", "children"),
