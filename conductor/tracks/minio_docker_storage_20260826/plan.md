@@ -12,22 +12,22 @@
     - [x] Add MinIO configuration variables (`MINIO_ENDPOINT`, `MINIO_ACCESS_KEY`, `MINIO_SECRET_KEY`)
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2: Python Storage Backend Refactor (MinIO API)
-- [ ] Task: Update `requirements.txt` / dependencies (if applicable) to include `minio` or `boto3`
-- [ ] Task: Write tests for MinIO storage backend (TDD)
-    - [ ] Test uploading a PDF to MinIO with `<user_id>` object key structure
-    - [ ] Test listing PDFs for a project from MinIO
-    - [ ] Test deleting a PDF from MinIO
-- [ ] Task: Refactor `src/stashstats/storage.py`
-    - [ ] Initialize MinIO client using `.env` credentials
-    - [ ] Rewrite `save_project_pdf` to put object to MinIO
-    - [ ] Rewrite `list_project_pdfs` to list objects from MinIO with prefix
-    - [ ] Rewrite `delete_project_pdf` to remove object from MinIO
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 2: Python Storage Backend Refactor (MinIO API) [checkpoint: a9bfc1f]
+- [x] Task: Update `requirements.txt` / dependencies (if applicable) to include `minio` or `boto3` [f0f02c9]
+- [x] Task: Write tests for MinIO storage backend (TDD) [f0f02c9]
+    - [x] Test uploading a PDF to MinIO with `<user_id>` object key structure
+    - [x] Test listing PDFs for a project from MinIO
+    - [x] Test deleting a PDF from MinIO
+- [x] Task: Refactor `src/stashstats/storage.py` [f0f02c9]
+    - [x] Initialize MinIO client using `.env` credentials
+    - [x] Rewrite `save_project_pdf` to put object to MinIO
+    - [x] Rewrite `list_project_pdfs` to list objects from MinIO with prefix
+    - [x] Rewrite `delete_project_pdf` to remove object from MinIO
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 3: Web App Routing & Integration
-- [ ] Task: Write tests for PDF streaming route
-    - [ ] Test that `/projects/pdf/<user_id>/<project_id>/<filename>` returns PDF bytes from MinIO
-- [ ] Task: Refactor `src/stashstats/web/app.py`
-    - [ ] Update the PDF serving route to fetch the object from MinIO and stream it back via Flask/Dash response
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 3: Web App Routing & Integration [checkpoint: a9bfc1f]
+- [x] Task: Write tests for PDF streaming route [f0f02c9]
+    - [x] Test that `/projects/pdf/<user_id>/<project_id>/<filename>` returns PDF bytes from MinIO
+- [x] Task: Refactor `src/stashstats/web/app.py` [f0f02c9]
+    - [x] Update the PDF serving route to fetch the object from MinIO and stream it back via Flask/Dash response
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
