@@ -1,0 +1,4 @@
+Phase 2 & 3 Verification:
+Command: uv run pytest tests/
+Result: 339 passed, 0 failures.
+All MinIO storage and PDF serve route unit/integration tests verified.
