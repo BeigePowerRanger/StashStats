@@ -91,3 +91,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Docker Compose Consolidation & MinIO Storage**
   *Link: [./tracks/minio_docker_storage_20260826/](./tracks/minio_docker_storage_20260826/)*
+
+---
+
+- [~] **Track: Pydantic Models & OOP Architecture Refactoring**
+  *Link: [./tracks/pydantic_oop_refactor_20260826/](./tracks/pydantic_oop_refactor_20260826/)*
