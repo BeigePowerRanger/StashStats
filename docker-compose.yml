@@ -1,9 +1,9 @@
 services:
-  web_dev:
+  app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: stashstats-web-dev
+    container_name: stashstats-app
     restart: unless-stopped
     command: python app.py
     ports:
@@ -18,6 +18,11 @@ services:
       - PORT=8050
       - APP_DEBUG=true
       - REDIS_URL=redis://cache:6379/0
+      - MINIO_ENDPOINT=${MINIO_ENDPOINT:-minio:9000}
+      - MINIO_ACCESS_KEY=${MINIO_ACCESS_KEY:-stashstats}
+      - MINIO_SECRET_KEY=${MINIO_SECRET_KEY:-stashstats123}
+      - MINIO_BUCKET=${MINIO_BUCKET:-stashstats-pdfs}
+      - MINIO_SECURE=${MINIO_SECURE:-false}
       - API_USERNAME=${DEV_USERNAME}
       - API_KEY=${DEV_API_KEY}
       - PYTHONUNBUFFERED=1
@@ -25,6 +30,44 @@ services:
     depends_on:
       cache:
         condition: service_healthy
+      minio:
+        condition: service_healthy
+
+  minio:
+    image: minio/minio:latest
+    container_name: stashstats-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ACCESS_KEY:-stashstats}
+      - MINIO_ROOT_PASSWORD=${MINIO_SECRET_KEY:-stashstats123}
+    expose:
+      - "9000"
+      - "9001"
+    ports:
+      - "${MINIO_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    volumes:
+      - miniodata:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+
+  minio-create-bucket:
+    image: minio/mc:latest
+    container_name: stashstats-minio-mc
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc alias set myminio http://minio:9000 $${MINIO_ACCESS_KEY:-stashstats} $${MINIO_SECRET_KEY:-stashstats123};
+      /usr/bin/mc mb myminio/$${MINIO_BUCKET:-stashstats-pdfs} --ignore-existing;
+      exit 0;
+      "
 
   stashstats-tailscale:
     image: tailscale/tailscale:latest
@@ -40,29 +83,6 @@ services:
       - net_admin
       - sys_module
     restart: unless-stopped
-
-  web_prod:
-    build: https://github.com/BeigePowerRanger/StashStats.git#main
-    container_name: stashstats-web-prod
-    restart: unless-stopped
-    command: python app.py
-    network_mode: service:stashstats-tailscale
-    env_file:
-      - .env
-    environment:
-      - HOST=0.0.0.0
-      - PORT=8050
-      - APP_DEBUG=false
-      - REDIS_URL=redis://cache:6379/0
-      - API_USERNAME=${PROD_USERNAME}
-      - API_KEY=${PROD_API_KEY}
-      - PYTHONUNBUFFERED=1
-      - PYTHONDONTWRITEBYTECODE=1
-    depends_on:
-      cache:
-        condition: service_healthy
-      stashstats-tailscale:
-        condition: service_started
 
   cache:
     image: redis:7-alpine
@@ -82,3 +102,4 @@ services:
 volumes:
   redisdata:
   tailscale-data:
+  miniodata:
