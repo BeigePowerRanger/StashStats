@@ -8,11 +8,11 @@
 - [x] Task: Write tests for new model validators and computed fields [073f187]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
-## Phase 2: Client Modularization & Domain Mixins
-- [ ] Task: Create domain mixins for `RavelryClient` (`YarnClientMixin`, `StashClientMixin`, `ProjectClientMixin`, `AppDataClientMixin`, `ReferenceClientMixin`)
-- [ ] Task: Update `RavelryClient` to inherit from domain mixins with `Literal` sort types
-- [ ] Task: Write unit tests verifying modular client mixins and method signatures
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 2: Client Modularization & Domain Mixins [checkpoint: 8601ff9]
+- [x] Task: Create domain mixins for `RavelryClient` (`YarnClientMixin`, `StashClientMixin`, `ProjectClientMixin`, `AppDataClientMixin`, `ReferenceClientMixin`) [5dbdecb]
+- [x] Task: Update `RavelryClient` to inherit from domain mixins with `Literal` sort types [5dbdecb]
+- [x] Task: Write unit tests verifying modular client mixins and method signatures [5dbdecb]
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 3: Analytics & Callbacks Pydantic Integration
 - [ ] Task: Refactor `analytics/projects.py` and `analytics/velocity.py` to enforce Pydantic model typing
