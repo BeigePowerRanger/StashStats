@@ -10,18 +10,18 @@
   - [x] Add explicit `dev_username`, `dev_api_key`, `prod_username`, `prod_api_key` fields
   - [x] Add `auth_tuple_for(label: str) -> tuple[str, str]` method
   - [x] Keep existing `access_key` / `personal_key` for backward compatibility
-- [~] Task: Write failing unit tests for `AccountManager`
-  - [ ] Test default active label is `'dev'` on init
-  - [ ] Test `get_active_label()` returns `'dev'` or `'prod'`
-  - [ ] Test `switch()` toggles the active label
-  - [ ] Test `get_client()` returns a `RavelryClient` instance
-  - [ ] Test `get_active_username()` returns the resolved display name
-  - [ ] Test error handling when credentials are missing/invalid
-- [ ] Task: Implement `AccountManager` in `src/stashstats/auth.py`
-  - [ ] Module-level singleton pattern (instance created at import time with `'dev'` default)
-  - [ ] `switch()`: re-creates `RavelryClient` with new credential pair, calls `get_current_user()` to resolve display name
-  - [ ] `get_client()`, `get_active_label()`, `get_active_username()` accessors
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write failing unit tests for `AccountManager` [4d0a936]
+  - [x] Test default active label is `'dev'` on init
+  - [x] Test `get_active_label()` returns `'dev'` or `'prod'`
+  - [x] Test `switch()` toggles the active label
+  - [x] Test `get_client()` returns a `RavelryClient` instance
+  - [x] Test `get_active_username()` returns the resolved display name
+  - [x] Test error handling when credentials are missing/invalid
+- [x] Task: Implement `AccountManager` in `src/stashstats/auth.py` [4d0a936]
+  - [x] Module-level singleton pattern (instance created at import time with `'dev'` default)
+  - [x] `switch()`: re-creates `RavelryClient` with new credential pair, calls `get_current_user()` to resolve display name
+  - [x] `get_client()`, `get_active_label()`, `get_active_username()` accessors
+- [~] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Header Badge & Account Switch Modal UI (TDD)
 
