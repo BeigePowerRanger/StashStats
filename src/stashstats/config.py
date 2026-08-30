@@ -82,4 +82,3 @@ class Settings(BaseSettings):
 
 # Loaded once at startup from .env
 settings = Settings()
-

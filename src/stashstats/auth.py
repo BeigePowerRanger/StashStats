@@ -127,6 +127,9 @@ class AccountManager:
         client = self.get_client()
         if getattr(client, "_cached_username", None):
             return client._cached_username
+        cached = getattr(client, "_cached_username", None)
+        if isinstance(cached, str) and cached:
+            return cached
         try:
             user_resp = client.get_current_user()
             return user_resp.user.username
