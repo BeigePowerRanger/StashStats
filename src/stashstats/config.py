@@ -61,9 +61,6 @@ class Settings(BaseSettings):
     @property
     def auth_tuple(self) -> tuple[str, str]:
         """Returns (username, password) for HTTP Basic Auth."""
-        u = self.dev_username or self.access_key
-        p = self.dev_api_key.get_secret_value() or self.personal_key.get_secret_value()
-        return (u, p)
         return (self.access_key, self.personal_key.get_secret_value())
 
     def auth_tuple_for(self, label: str) -> tuple[str, str]:

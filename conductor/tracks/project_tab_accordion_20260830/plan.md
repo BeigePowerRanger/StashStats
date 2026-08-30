@@ -9,6 +9,14 @@
   - [ ] Implement `filter_projects` in `src/stashstats/web/components/projects.py`
   - [ ] Implement `sort_projects` in `src/stashstats/web/components/projects.py`
   - [ ] Implement `paginate_projects` in `src/stashstats/web/components/projects.py`
+- [x] Task: Write unit tests for project filtering, sorting, and pagination [e5c41f2]
+  - [x] Write unit tests for `filter_projects` with search queries matching name, pattern, craft, status, and tags in `tests/web/test_projects.py`
+  - [x] Write unit tests for `sort_projects` with `date_desc`, `name_asc`, `progress_desc`, and `status_asc`
+  - [x] Write unit tests for `paginate_projects` validating page bounds and empty states
+- [x] Task: Implement project filtering, sorting, and pagination logic [e5c41f2]
+  - [x] Implement `filter_projects` in `src/stashstats/web/components/projects.py`
+  - [x] Implement `sort_projects` in `src/stashstats/web/components/projects.py`
+  - [x] Implement `paginate_projects` in `src/stashstats/web/components/projects.py`
 - [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
 
 ## Phase 2: Project Accordion UI Components & Layout Construction (TDD)
