@@ -1,0 +1,3 @@
+Phase: Phase 3: Upload & Delete Callbacks
+Verification: Automated tests passing (test_projects.py callback tests).
+Status: Verified upload callback validation (<=25MB, PDF MIME), list-load callback, delete callback, and viewer callback.
