@@ -1,5 +1,4 @@
-"""UI components for the StashStats Dash web interface."""
-
+from stashstats.web.components.account_modal import create_account_switch_modal
 from stashstats.web.components.analytics import (
     create_kpi_summary_cards,
     create_unit_selector_bar,
@@ -33,6 +32,7 @@ from stashstats.web.components.stash import (
 
 __all__ = [
     "ParentYarnGroup",
+    "create_account_switch_modal",
     "create_fiber_donut_chart",
     "create_grouped_stash_accordion",
     "create_header",

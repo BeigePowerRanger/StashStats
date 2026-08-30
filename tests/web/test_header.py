@@ -48,19 +48,26 @@ def test_header_branding() -> None:
 
 
 def test_header_user_badge_default() -> None:
-    """Verify header displays default guest/offline badge when username is None."""
+    """Verify header displays default guest/offline badge with DEV env pill."""
     header = create_header()
     badge = find_component_by_id(header, "header-user-badge")
     assert badge is not None
     assert "@Guest" in str(badge.to_plotly_json()) or "@Offline" in str(badge.to_plotly_json())
+    env_pill = find_component_by_id(header, "header-env-pill")
+    assert env_pill is not None
+    assert "DEV" in str(env_pill.to_plotly_json())
 
 
-def test_header_user_badge_authenticated() -> None:
-    """Verify header displays @username badge and greeting when authenticated."""
-    header = create_header(username="Thotsky")
+def test_header_user_badge_authenticated_and_env_pill() -> None:
+    """Verify header displays @username badge, PROD pill, and greeting."""
+    header = create_header(username="Thotsky", active_label="prod")
     badge = find_component_by_id(header, "header-user-badge")
     assert badge is not None
     assert "@Thotsky" in str(badge.to_plotly_json())
+
+    env_pill = find_component_by_id(header, "header-env-pill")
+    assert env_pill is not None
+    assert "PROD" in str(env_pill.to_plotly_json())
 
     greeting = find_component_by_id(header, "header-greeting")
     assert greeting is not None

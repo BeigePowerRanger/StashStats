@@ -9,6 +9,7 @@ from stashstats.analytics.distributions import StashDistributionCalculator
 from stashstats.analytics.projects import StashProjectUsageCalculator
 from stashstats.analytics.velocity import StashVelocityCalculator
 from stashstats.models.stash import StashItem
+from stashstats.web.components.account_modal import create_account_switch_modal
 from stashstats.web.components.header import create_header
 from stashstats.web.components.manual_yarn_modal import create_manual_yarn_modal
 from stashstats.web.layouts.analytics import create_analytics_layout
@@ -164,8 +165,9 @@ def create_main_layout(
     pending_count: int = 0,
     last_synced: str | None = None,
     tab_content: Any = None,
-    items: Any = None,
-    projects: Any = None,
+    items: list[StashItem] | list[dict[str, Any]] | None = None,
+    projects: list[dict[str, Any]] | None = None,
+    active_label: str = "dev",
 ) -> dbc.Container:
     """Create the full top-level application layout with header, tabs, and content.
 
@@ -178,6 +180,7 @@ def create_main_layout(
         tab_content: Optional custom content for the tab container.
         items: Optional initial list of stash items.
         projects: Optional initial list of project items.
+        active_label: Active account environment ('dev' or 'prod').
 
     Returns:
         Root dbc.Container component.
@@ -198,6 +201,7 @@ def create_main_layout(
         sync_status=sync_status,
         pending_count=pending_count,
         last_synced=last_synced,
+        active_label=active_label,
     )
 
     tabs = create_navigation_tabs(
@@ -225,6 +229,8 @@ def create_main_layout(
         className="px-2 py-2",
     )
 
+    target_env = "prod" if active_label == "dev" else "dev"
+
     return dbc.Container(
         id="app-root",
         fluid=True,
@@ -234,5 +240,6 @@ def create_main_layout(
             header,
             body_container,
             create_manual_yarn_modal(),
+            create_account_switch_modal(target_label=target_env),
         ],
     )

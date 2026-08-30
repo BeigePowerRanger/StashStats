@@ -9,6 +9,7 @@ def create_header(
     sync_status: str = "Synced",
     pending_count: int = 0,
     last_synced: str | None = None,
+    active_label: str = "dev",
 ) -> html.Div:
     """Create global header for StashStats with logo, greeting, and meta chips.
 
@@ -17,17 +18,33 @@ def create_header(
         sync_status: Text status for sync state (e.g. 'Synced', 'Offline').
         pending_count: Count of pending local mutations to sync.
         last_synced: Optional timestamp string of last successful sync.
+        active_label: Active account environment ('dev' or 'prod').
 
     Returns:
         Configured header component.
     """
-    user_label = f"@{username}" if username else "@Guest"
-    user_badge = dbc.Badge(
-        user_label,
-        color="info",
+    env_label = (active_label or "dev").upper()
+    env_color = "warning" if env_label == "DEV" else "danger"
+    env_pill = dbc.Badge(
+        env_label,
+        color=env_color,
         pill=True,
-        className="ms-2 px-2 py-1 fs-6 align-self-center",
+        className="ms-1 px-2 py-0 fs-7",
+        id="header-env-pill",
+    )
+
+    user_label = f"@{username}" if username else "@Guest"
+    user_badge = dbc.Button(
+        [
+            html.Span(user_label, className="me-1 fw-bold"),
+            env_pill,
+        ],
         id="header-user-badge",
+        color="info",
+        outline=True,
+        size="sm",
+        className="ms-2 px-2 py-1 align-self-center d-flex align-items-center rounded-pill",
+        title="Click to switch Ravelry account",
     )
 
     if pending_count > 0:
