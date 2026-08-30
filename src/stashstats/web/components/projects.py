@@ -113,3 +113,64 @@ def create_pdf_upload_zone(project_id: str | int) -> dcc.Upload:
             "cursor": "pointer",
         },
     )
+
+import math
+
+def filter_projects(projects: list[dict[str, Any]], search_query: str) -> list[dict[str, Any]]:
+    """Filter projects based on a case-insensitive text search.
+    
+    Matches against project name, pattern name, craft name, status name, and tags.
+    """
+    if not search_query:
+        return projects
+        
+    query = search_query.lower().strip()
+    filtered = []
+    for proj in projects:
+        name = str(proj.get("name") or "").lower()
+        pattern = str(proj.get("pattern_name") or "").lower()
+        craft = str(proj.get("craft_name") or "").lower()
+        status = str(proj.get("status_name") or "").lower()
+        tags = [str(t).lower() for t in proj.get("tag_names") or []]
+        
+        if (query in name or 
+            query in pattern or 
+            query in craft or 
+            query in status or 
+            any(query in t for t in tags)):
+            filtered.append(proj)
+            
+    return filtered
+
+def sort_projects(projects: list[dict[str, Any]], sort_by: str) -> list[dict[str, Any]]:
+    """Sort projects based on the selected option."""
+    if sort_by == "name_asc":
+        return sorted(projects, key=lambda p: str(p.get("name") or "").lower())
+    elif sort_by == "progress_desc":
+        return sorted(projects, key=lambda p: float(p.get("progress") or 0.0), reverse=True)
+    elif sort_by == "status_asc":
+        return sorted(projects, key=lambda p: str(p.get("status_name") or "").lower())
+    else:
+        # Default to date_desc (started or created_at)
+        def _get_date(p: dict[str, Any]) -> str:
+            started = p.get("started")
+            if started:
+                return str(started)
+            return str(p.get("created_at") or "")
+            
+        return sorted(projects, key=_get_date, reverse=True)
+
+def paginate_projects(projects: list[dict[str, Any]], page: int, page_size: int = 10) -> tuple[int, list[dict[str, Any]]]:
+    """Paginate a list of projects, ensuring the active page is clamped to valid bounds."""
+    if not projects:
+        return 1, []
+        
+    total_pages = math.ceil(len(projects) / page_size)
+    
+    # Clamp page to [1, total_pages]
+    active_page = max(1, min(page, total_pages))
+    
+    start_idx = (active_page - 1) * page_size
+    end_idx = start_idx + page_size
+    
+    return active_page, projects[start_idx:end_idx]

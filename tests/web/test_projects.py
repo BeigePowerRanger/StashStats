@@ -301,3 +301,116 @@ def _find_components(root, component_type):
         if hasattr(child, "children") or isinstance(child, component_type):
             found.extend(_find_components(child, component_type))
     return found
+
+# ---------------------------------------------------------------------------
+# Logic: filter_projects, sort_projects, paginate_projects
+# ---------------------------------------------------------------------------
+
+class TestFilterProjects:
+    @pytest.fixture
+    def sample_projects(self):
+        return [
+            {"id": 1, "name": "Blue Sweater", "pattern_name": "Basic Raglan", "craft_name": "Knitting", "status_name": "In progress", "tag_names": ["winter", "blue"]},
+            {"id": 2, "name": "Red Scarf", "pattern_name": "Lace Scarf", "craft_name": "Crochet", "status_name": "Finished", "tag_names": ["gift"]},
+            {"id": 3, "name": "Green Socks", "pattern_name": "Vanilla Socks", "craft_name": "Knitting", "status_name": "Hibernating", "tag_names": []},
+        ]
+
+    def test_filter_empty_query(self, sample_projects):
+        from stashstats.web.components.projects import filter_projects
+        res = filter_projects(sample_projects, "")
+        assert len(res) == 3
+
+    def test_filter_by_name(self, sample_projects):
+        from stashstats.web.components.projects import filter_projects
+        res = filter_projects(sample_projects, "blue")
+        assert len(res) == 1
+        assert res[0]["id"] == 1
+
+    def test_filter_by_pattern_name(self, sample_projects):
+        from stashstats.web.components.projects import filter_projects
+        res = filter_projects(sample_projects, "lace")
+        assert len(res) == 1
+        assert res[0]["id"] == 2
+
+    def test_filter_by_craft_name(self, sample_projects):
+        from stashstats.web.components.projects import filter_projects
+        res = filter_projects(sample_projects, "crochet")
+        assert len(res) == 1
+        assert res[0]["id"] == 2
+
+    def test_filter_by_status_name(self, sample_projects):
+        from stashstats.web.components.projects import filter_projects
+        res = filter_projects(sample_projects, "hibernating")
+        assert len(res) == 1
+        assert res[0]["id"] == 3
+
+    def test_filter_by_tags(self, sample_projects):
+        from stashstats.web.components.projects import filter_projects
+        res = filter_projects(sample_projects, "gift")
+        assert len(res) == 1
+        assert res[0]["id"] == 2
+
+    def test_filter_no_matches(self, sample_projects):
+        from stashstats.web.components.projects import filter_projects
+        res = filter_projects(sample_projects, "xyz")
+        assert len(res) == 0
+
+
+class TestSortProjects:
+    @pytest.fixture
+    def sample_projects(self):
+        return [
+            {"id": 1, "name": "C", "started": "2023-01-01", "created_at": "2023-01-01", "progress": 50, "status_name": "In progress"},
+            {"id": 2, "name": "A", "started": "2023-02-01", "created_at": "2023-02-01", "progress": 100, "status_name": "Finished"},
+            {"id": 3, "name": "B", "started": None, "created_at": "2023-01-15", "progress": 0, "status_name": "Hibernating"},
+        ]
+
+    def test_sort_date_desc_uses_started_or_created(self, sample_projects):
+        from stashstats.web.components.projects import sort_projects
+        res = sort_projects(sample_projects, "date_desc")
+        assert [p["id"] for p in res] == [2, 3, 1]
+
+    def test_sort_name_asc(self, sample_projects):
+        from stashstats.web.components.projects import sort_projects
+        res = sort_projects(sample_projects, "name_asc")
+        assert [p["id"] for p in res] == [2, 3, 1]
+
+    def test_sort_progress_desc(self, sample_projects):
+        from stashstats.web.components.projects import sort_projects
+        res = sort_projects(sample_projects, "progress_desc")
+        assert [p["id"] for p in res] == [2, 1, 3]
+
+    def test_sort_status_asc(self, sample_projects):
+        from stashstats.web.components.projects import sort_projects
+        res = sort_projects(sample_projects, "status_asc")
+        assert [p["id"] for p in res] == [2, 3, 1]
+
+
+class TestPaginateProjects:
+    def test_paginate_valid_page(self):
+        from stashstats.web.components.projects import paginate_projects
+        items = list(range(25))
+        page, paginated = paginate_projects(items, page=2, page_size=10)
+        assert page == 2
+        assert len(paginated) == 10
+        assert paginated[0] == 10
+
+    def test_paginate_page_too_high_clamps(self):
+        from stashstats.web.components.projects import paginate_projects
+        items = list(range(25))
+        page, paginated = paginate_projects(items, page=5, page_size=10)
+        assert page == 3
+        assert len(paginated) == 5
+
+    def test_paginate_page_too_low_clamps(self):
+        from stashstats.web.components.projects import paginate_projects
+        items = list(range(25))
+        page, paginated = paginate_projects(items, page=0, page_size=10)
+        assert page == 1
+        assert len(paginated) == 10
+
+    def test_paginate_empty(self):
+        from stashstats.web.components.projects import paginate_projects
+        page, paginated = paginate_projects([], page=1, page_size=10)
+        assert page == 1
+        assert paginated == []
