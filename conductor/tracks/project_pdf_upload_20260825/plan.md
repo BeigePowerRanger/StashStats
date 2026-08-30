@@ -10,13 +10,13 @@
 - [x] Task: Write integration test for the serve route (mock filesystem, verify response headers) [d2e494b]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [8394b4a]
 
-## Phase 2: Projects Tab Layout
+## Phase 2: Projects Tab Layout [checkpoint: 2c4f7d4]
 
 - [x] Task: Replace "Projects coming soon." stub in `layouts/main.py` with a real Projects tab layout component in `layouts/projects.py` [d2e494b]
 - [x] Task: `layouts/projects.py` — `create_projects_layout()` renders a placeholder grid/list; each project row includes `dcc.Upload` zone (accept=`application/pdf`) and a file list container [d2e494b]
 - [x] Task: Add `dcc.Store` (`projects-user-store`) for client-side file list state per project [d2e494b]
 - [x] Task: Write unit/render tests for `create_projects_layout()` (snapshot-style: verify key component IDs exist) [d2e494b]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [2c4f7d4]
 
 ## Phase 3: Upload & Delete Callbacks
 
