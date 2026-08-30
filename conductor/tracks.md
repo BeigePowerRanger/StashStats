@@ -104,5 +104,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Dev/Prod Account Toggle (Runtime Auth Switcher)**
+- [x] **Track: Dev/Prod Account Toggle (Runtime Auth Switcher)**
   *Link: [./tracks/dev_prod_auth_toggle_20260830/index.md](./tracks/dev_prod_auth_toggle_20260830/index.md)*
