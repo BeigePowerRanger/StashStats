@@ -3,13 +3,14 @@
 ## Phase 1: Settings & AccountManager (TDD)
 
 - [ ] Task: Write failing unit tests for Settings credential pair fields
-  - [ ] Test `Settings` exposes `dev_username`, `dev_api_key`, `prod_username`, `prod_api_key` from env vars
-  - [ ] Test `Settings.auth_tuple_for(label)` returns correct (username, key) pair for `'dev'` and `'prod'`
-- [ ] Task: Update `Settings` in `src/stashstats/config.py`
-  - [ ] Add explicit `dev_username`, `dev_api_key`, `prod_username`, `prod_api_key` fields
-  - [ ] Add `auth_tuple_for(label: str) -> tuple[str, str]` method
-  - [ ] Keep existing `access_key` / `personal_key` for backward compatibility
-- [ ] Task: Write failing unit tests for `AccountManager`
+- [x] Task: Write failing unit tests for Settings credential pair fields [eb5ba25]
+  - [x] Test `Settings` exposes `dev_username`, `dev_api_key`, `prod_username`, `prod_api_key` from env vars
+  - [x] Test `Settings.auth_tuple_for(label)` returns correct (username, key) pair for `'dev'` and `'prod'`
+- [x] Task: Update `Settings` in `src/stashstats/config.py` [eb5ba25]
+  - [x] Add explicit `dev_username`, `dev_api_key`, `prod_username`, `prod_api_key` fields
+  - [x] Add `auth_tuple_for(label: str) -> tuple[str, str]` method
+  - [x] Keep existing `access_key` / `personal_key` for backward compatibility
+- [~] Task: Write failing unit tests for `AccountManager`
   - [ ] Test default active label is `'dev'` on init
   - [ ] Test `get_active_label()` returns `'dev'` or `'prod'`
   - [ ] Test `switch()` toggles the active label
