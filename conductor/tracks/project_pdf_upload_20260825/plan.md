@@ -32,10 +32,10 @@
 - [x] Task: Write unit tests for viewer callback [d2e494b]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [5230629]
 
-## Phase 4: Components & Styling
+## Phase 4: Components & Styling [checkpoint: 7e96a09]
 
 - [x] Task: Add `components/projects.py` — `create_pdf_file_list(filenames, project_id, user_id)` renders filename buttons + delete buttons per file [d2e494b]
 - [x] Task: Add `components/projects.py` — `create_pdf_viewer(src_url)` renders `html.Iframe` with correct styles (height 600px, width 100%) [d2e494b]
 - [x] Task: Wire file list component into layout and callbacks [d2e494b]
 - [x] Task: Write render tests for both new component functions [d2e494b]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [7e96a09]
