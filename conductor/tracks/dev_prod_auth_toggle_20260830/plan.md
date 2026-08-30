@@ -41,18 +41,18 @@
 - [x] Task: Update `src/stashstats/web/app.py` to pass `active_label` and `username` from `AccountManager` to `create_main_layout()` [c196340]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [32ea3f7]
 
-## Phase 3: Switch Callback & Full Data Reload (TDD)
+## Phase 3: Switch Callback & Full Data Reload (TDD) [checkpoint: 6cce20f]
 
-- [~] Task: Write failing unit tests for account switch callback logic
-  - [ ] Test confirm button triggers account switch via `AccountManager.switch()`
-  - [ ] Test data stores are updated with new account's stash and projects
-  - [ ] Test header badge and env pill text update after switch
-  - [ ] Test cancel button closes modal without switching
-  - [ ] Test error case: switch fails → error badge shown, stores unchanged
-- [ ] Task: Implement `register_auth_callbacks()` in `src/stashstats/web/callbacks/auth.py`
-  - [ ] Callback: `account-switch-confirm-btn` click → `AccountManager.switch()`, re-fetch stash + projects, update stores, update header outputs, close modal
-  - [ ] Callback: `account-switch-cancel-btn` click → close modal, no state change
-  - [ ] Add `Output` for `header-user-badge` children, `header-env-pill` children, modal `is_open`
-- [ ] Task: Register `register_auth_callbacks()` in `src/stashstats/web/app.py`
-- [ ] Task: Full test run + coverage verification (>80%)
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write failing unit tests for account switch callback logic [8155eb5]
+  - [x] Test confirm button triggers account switch via `AccountManager.switch()`
+  - [x] Test data stores are updated with new account's stash and projects
+  - [x] Test header badge and env pill text update after switch
+  - [x] Test cancel button closes modal without switching
+  - [x] Test error case: switch fails → error badge shown, stores unchanged
+- [x] Task: Implement `register_auth_callbacks()` in `src/stashstats/web/callbacks/auth.py` [8155eb5]
+  - [x] Callback: `account-switch-confirm-btn` click → `AccountManager.switch()`, re-fetch stash + projects, update stores, update header outputs, close modal
+  - [x] Callback: `account-switch-cancel-btn` click → close modal, no state change
+  - [x] Add `Output` for `header-user-badge` children, `header-env-pill` children, modal `is_open`
+- [x] Task: Register `register_auth_callbacks()` in `src/stashstats/web/app.py` [8155eb5]
+- [x] Task: Full test run + coverage verification (>80%) [8155eb5]
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [6cce20f]
