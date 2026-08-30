@@ -7,8 +7,6 @@ from stashstats.models import YarnSearchResponse, YarnDetailResponse
 
 logger = logging.getLogger("stashstats.cache")
 
-# NOTE: explain how the redis cache works
-
 def get_redis_client():
     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
     return redis.Redis.from_url(redis_url, decode_responses=True, socket_connect_timeout=1)

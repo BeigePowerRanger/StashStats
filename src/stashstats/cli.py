@@ -13,7 +13,6 @@ from stashstats.config import settings
 from stashstats.exceptions import RavelryAPIError, RavelryAuthError
 from stashstats.web.app import create_app
 
-# NOTE: is this cli stuff doing anything right now? if its not being used for the web app I think it should be moved to a new subdirectory. 
 
 def build_parser() -> argparse.ArgumentParser:
     """Build the command-line argument parser for StashStats CLI.

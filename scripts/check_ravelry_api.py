@@ -16,7 +16,7 @@ import time
 from typing import Any, Callable, Tuple
 
 from dotenv import load_dotenv
-from stashstats.client.ravelry_client import Client
+from stashstats.client import RavelryClient as Client
 
 
 # ---------------------------------------------------------------------------

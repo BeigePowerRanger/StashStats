@@ -18,7 +18,7 @@ app = create_app(client=client, title="StashStats")
 server = app.server
 
 if __name__ == "__main__":
-    debug_mode = os.getenv("APP_DEBUG", "true").lower() in ("true", "1", "t", "yes") # WTF does this do? 
+    debug_mode = os.getenv("APP_DEBUG", "true").lower() in ("true", "1", "t", "yes")
     app.run(
         host=os.getenv("HOST", "0.0.0.0"),
         port=int(os.getenv("PORT", "8050")),

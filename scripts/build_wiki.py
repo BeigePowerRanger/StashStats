@@ -4,7 +4,7 @@ import re
 import hashlib
 from pathlib import Path
 
-BASE_DIR = Path("/home/thotsky/Projects/2Stash2Stats")
+BASE_DIR = Path(__file__).resolve().parents[1] / "docs"
 WIKI_DIR = BASE_DIR / "wiki"
 RAW_ARTICLES_DIR = WIKI_DIR / "raw" / "articles"
 RAW_PAPERS_DIR = WIKI_DIR / "raw" / "papers"
