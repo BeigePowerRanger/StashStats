@@ -106,6 +106,7 @@ def create_projects_layout(
     user_id: str | int = "default",
     sync_status: str = "Synced",
     last_synced: str | None = None,
+    include_stores: bool = True,
 ) -> dbc.Container:
     """Create the Projects tab content layout.
 
@@ -133,6 +134,12 @@ def create_projects_layout(
                 raw_projects.append(p)
 
     projects_store = dcc.Store(id="projects-raw-store", data=raw_projects)
+    stores: list[Any] = []
+    if include_stores:
+        stores = [
+            dcc.Store(id="projects-user-store", data={"user_id": str(user_id)}),
+            dcc.Store(id="projects-raw-store", data=raw_projects),
+        ]
 
     sync_btn = dbc.Button(
         [html.I(className="bi bi-arrow-repeat me-1"), "Sync Now"],
@@ -195,6 +202,7 @@ def create_projects_layout(
 
     return dbc.Container(
         [user_store, projects_store, sync_row, cards_container],
+        [*stores, sync_row, cards_container],
         fluid=True,
         className="p-0",
     )

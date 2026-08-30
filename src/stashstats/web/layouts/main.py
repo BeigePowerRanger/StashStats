@@ -61,6 +61,7 @@ def create_navigation_tabs(
     )
     search_layout = create_yarn_search_layout()
     projects_layout = create_projects_layout(projects=projects, user_id=user_id)
+    projects_layout = create_projects_layout(projects=projects, user_id=user_id, include_stores=False)
 
     report = None
     distribution = None
@@ -191,9 +192,18 @@ def create_main_layout(
         for item in raw_items
     ]
 
+    raw_projects = projects or []
+    serialized_projects = [
+        p.model_dump() if hasattr(p, "model_dump") else p
+        for p in raw_projects
+    ]
+    user_id = username or "default"
+
     global_stores = [
         dcc.Store(id="stash-raw-store", data=serialized_items),
         dcc.Store(id="stash-dirty-store", data=[]),
+        dcc.Store(id="projects-raw-store", data=serialized_projects),
+        dcc.Store(id="projects-user-store", data={"user_id": str(user_id)}),
     ]
 
     header = create_header(
@@ -211,6 +221,7 @@ def create_main_layout(
         pending_count=pending_count,
         last_synced=last_synced,
         user_id=username or "default",
+        user_id=user_id,
         projects=projects,
     )
 
