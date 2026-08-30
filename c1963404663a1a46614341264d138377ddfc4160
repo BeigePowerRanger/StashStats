@@ -1,0 +1,3 @@
+Task: Header Badge & Account Switch Modal UI
+Files: src/stashstats/web/components/header.py, src/stashstats/web/components/account_modal.py, src/stashstats/web/components/__init__.py, src/stashstats/web/layouts/main.py, src/stashstats/web/app.py, tests/web/test_header.py, tests/web/test_account_modal.py
+Why: Provide interactive UI button badge with DEV/PROD environment pill and confirmation modal for toggling active account.
