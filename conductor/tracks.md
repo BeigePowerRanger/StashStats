@@ -99,7 +99,7 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Projects Tab Accordion Layout Refactor**
+- [~] **Track: Projects Tab Accordion Layout Refactor**
   *Link: [./tracks/project_tab_accordion_20260830/index.md](./tracks/project_tab_accordion_20260830/index.md)*
 
 ---
