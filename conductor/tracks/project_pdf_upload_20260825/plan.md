@@ -1,6 +1,6 @@
 # Plan: Project PDF Upload
 
-## Phase 1: Storage & Serving Layer
+## Phase 1: Storage & Serving Layer [checkpoint: 8394b4a]
 
 - [x] Task: Add `save_project_pdf` utility to `storage.py` — writes PDF bytes to `data/<user_id>/projects/pdfs/<project_id>/` [d2e494b]
 - [x] Task: Add `list_project_pdfs` utility — returns list of filenames for a given user+project [d2e494b]
@@ -8,7 +8,7 @@
 - [x] Task: Register Dash server route `/projects/pdf/<user_id>/<project_id>/<filename>` in `web/app.py` that streams PDF bytes [d2e494b]
 - [x] Task: Write unit tests for all three storage utilities (save, list, delete) [d2e494b]
 - [x] Task: Write integration test for the serve route (mock filesystem, verify response headers) [d2e494b]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [8394b4a]
 
 ## Phase 2: Projects Tab Layout
 
