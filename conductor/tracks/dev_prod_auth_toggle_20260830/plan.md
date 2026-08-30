@@ -22,28 +22,28 @@
   - [x] `get_client()`, `get_active_label()`, `get_active_username()` accessors
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [98668ab]
 
-## Phase 2: Header Badge & Account Switch Modal UI (TDD)
+## Phase 2: Header Badge & Account Switch Modal UI (TDD) [checkpoint: 32ea3f7]
 
-- [~] Task: Write failing unit tests for updated header component
-  - [ ] Test `create_header()` renders a `dbc.Button` for the user badge (not just a `dbc.Badge`)
-  - [ ] Test header renders a `DEV` or `PROD` env pill based on `active_label` param
-  - [ ] Test badge text shows `@<username>` from active account
-- [ ] Task: Update `src/stashstats/web/components/header.py`
-  - [ ] Add `active_label: str = 'dev'` parameter to `create_header()`
-  - [ ] Render `header-user-badge` as `dbc.Button` wrapping badge + env pill
-  - [ ] Add `header-env-pill` span (`DEV` in warning color, `PROD` in danger color)
-- [ ] Task: Write failing unit tests for `create_account_switch_modal()`
-  - [ ] Test modal renders with correct id `account-switch-modal`
-  - [ ] Test modal contains confirm and cancel buttons with correct ids
-- [ ] Task: Implement `create_account_switch_modal()` in `src/stashstats/web/components/account_modal.py`
-  - [ ] `dbc.Modal` with dynamic body message, Confirm and Cancel buttons
-- [ ] Task: Update `src/stashstats/web/layouts/main.py` to include the account switch modal
-- [ ] Task: Update `src/stashstats/web/app.py` to pass `active_label` and `username` from `AccountManager` to `create_main_layout()`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Write failing unit tests for updated header component [c196340]
+  - [x] Test `create_header()` renders a `dbc.Button` for the user badge (not just a `dbc.Badge`)
+  - [x] Test header renders a `DEV` or `PROD` env pill based on `active_label` param
+  - [x] Test badge text shows `@<username>` from active account
+- [x] Task: Update `src/stashstats/web/components/header.py` [c196340]
+  - [x] Add `active_label: str = 'dev'` parameter to `create_header()`
+  - [x] Render `header-user-badge` as `dbc.Button` wrapping badge + env pill
+  - [x] Add `header-env-pill` span (`DEV` in warning color, `PROD` in danger color)
+- [x] Task: Write failing unit tests for `create_account_switch_modal()` [c196340]
+  - [x] Test modal renders with correct id `account-switch-modal`
+  - [x] Test modal contains confirm and cancel buttons with correct ids
+- [x] Task: Implement `create_account_switch_modal()` in `src/stashstats/web/components/account_modal.py` [c196340]
+  - [x] `dbc.Modal` with dynamic body message, Confirm and Cancel buttons
+- [x] Task: Update `src/stashstats/web/layouts/main.py` to include the account switch modal [c196340]
+- [x] Task: Update `src/stashstats/web/app.py` to pass `active_label` and `username` from `AccountManager` to `create_main_layout()` [c196340]
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [32ea3f7]
 
 ## Phase 3: Switch Callback & Full Data Reload (TDD)
 
-- [ ] Task: Write failing unit tests for account switch callback logic
+- [~] Task: Write failing unit tests for account switch callback logic
   - [ ] Test confirm button triggers account switch via `AccountManager.switch()`
   - [ ] Test data stores are updated with new account's stash and projects
   - [ ] Test header badge and env pill text update after switch
