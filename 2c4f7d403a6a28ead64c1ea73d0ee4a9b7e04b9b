@@ -1,0 +1,3 @@
+Phase: Phase 2: Projects Tab Layout
+Verification: Automated tests passing (30/30 in tests/web/test_projects.py).
+Status: Verified create_projects_layout, create_project_card, PDF upload zone, file list and iframe viewer rendering.
