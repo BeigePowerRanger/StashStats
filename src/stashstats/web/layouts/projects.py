@@ -1,4 +1,4 @@
-"""Projects tab layout with optional PDF attachment per project."""
+"""Projects tab layout with accordion view and search/sort/pagination."""
 
 from typing import Any
 
@@ -6,99 +6,8 @@ import dash_bootstrap_components as dbc
 from dash import dcc, html
 
 from stashstats.web.components.projects import (
-    create_pdf_file_list,
-    create_pdf_upload_zone,
-    create_pdf_viewer,
+    create_grouped_projects_accordion,
 )
-
-
-def create_project_card(
-    project: dict[str, Any],
-    user_id: str | int = "default",
-    existing_pdfs: list[str] | None = None,
-) -> dbc.Card:
-    """Render a single project entry card with PDF upload zone and viewer.
-
-    Args:
-        project: Dict of project data (expects at minimum 'id' and 'name').
-        user_id: Current user identifier for scoping PDF storage.
-        existing_pdfs: Pre-loaded list of PDF filenames for this project.
-
-    Returns:
-        Configured dbc.Card component.
-    """
-    project_id = str(project.get("id", "unknown"))
-    name = project.get("name") or project.get("pattern_name") or "Untitled Project"
-    status = project.get("status_name") or ""
-    progress = project.get("progress") or 0
-
-    pdfs = existing_pdfs or []
-
-    return dbc.Card(
-        [
-            dbc.CardHeader(
-                dbc.Row(
-                    [
-                        dbc.Col(html.Strong(name), width=True),
-                        dbc.Col(
-                            dbc.Badge(status, color="secondary", className="ms-2") if status else "",
-                            width="auto",
-                        ),
-                    ],
-                    className="align-items-center g-1",
-                ),
-                className="py-2",
-            ),
-            dbc.CardBody(
-                [
-                    # Progress bar (non-zero progress only)
-                    (
-                        dbc.Progress(
-                            value=progress,
-                            label=f"{progress}%",
-                            className="mb-3",
-                            style={"height": "8px"},
-                        )
-                        if progress
-                        else html.Div()
-                    ),
-                    # PDF section
-                    html.Hr(className="my-2"),
-                    html.P("Attached PDFs", className="small fw-semibold mb-1"),
-                    create_pdf_upload_zone(project_id),
-                    html.Div(
-                        id={"type": "project-pdf-error", "index": project_id},
-                        className="text-danger small mt-1",
-                        children="",
-                    ),
-                    html.Div(
-                        id={"type": "project-pdf-list", "index": project_id},
-                        className="mt-2",
-                        children=create_pdf_file_list(pdfs, project_id, user_id),
-                    ),
-                    # Inline viewer — initially hidden (empty src)
-                    html.Div(
-                        html.Iframe(
-                            id={"type": "project-pdf-viewer", "index": project_id},
-                            src="",
-                            style={
-                                "width": "100%",
-                                "height": "600px",
-                                "border": "1px solid #444",
-                                "borderRadius": "4px",
-                                "backgroundColor": "#1a1a1a",
-                                "display": "none",
-                            },
-                        ),
-                        id={"type": "project-pdf-viewer-container", "index": project_id},
-                        className="mt-2",
-                    ),
-                ],
-                className="pb-2",
-            ),
-        ],
-        className="mb-3 bg-dark text-light border-secondary",
-    )
 
 
 def create_projects_layout(
@@ -110,15 +19,14 @@ def create_projects_layout(
 ) -> dbc.Container:
     """Create the Projects tab content layout.
 
-    Renders a sync control bar and a card grid of project entries, each with
-    an optional PDF upload zone and inline viewer. When no projects are loaded,
-    shows a placeholder alert.
+    Renders a sync control bar, search/sort controls, and an accordion of projects.
 
     Args:
         projects: Optional list of project dicts fetched from Ravelry.
         user_id: Current user identifier for scoping PDF storage.
         sync_status: Initial sync status string.
         last_synced: Timestamp string for last sync.
+        include_stores: Whether to include the dcc.Store components in the layout.
 
     Returns:
         Configured dbc.Container layout.
@@ -177,28 +85,62 @@ def create_projects_layout(
         ]
     )
 
-    if not raw_projects:
-        cards_content = dbc.Alert(
-            [
-                html.I(className="bi bi-folder2-open me-2"),
-                "No projects loaded. Sync with Ravelry to see your projects.",
-            ],
-            color="info",
-            className="text-center my-4",
-            id="projects-empty-alert",
-        )
-    else:
-        cards_content = html.Div(
-            [create_project_card(project, user_id=user_id) for project in raw_projects]
-        )
+    # Controls Row
+    controls_row = dbc.Row(
+        [
+            dbc.Col(
+                dbc.Input(
+                    id="projects-search-input",
+                    placeholder="Search projects...",
+                    type="text",
+                    debounce=True,
+                ),
+                md=8,
+                className="mb-2 mb-md-0",
+            ),
+            dbc.Col(
+                dbc.Select(
+                    id="projects-sort-dropdown",
+                    options=[
+                        {"label": "Date (Newest First)", "value": "date_desc"},
+                        {"label": "Name (A-Z)", "value": "name_asc"},
+                        {"label": "Progress (Highest First)", "value": "progress_desc"},
+                        {"label": "Status", "value": "status_asc"},
+                    ],
+                    value="date_desc",
+                ),
+                md=4,
+            ),
+        ],
+        className="mb-3",
+    )
 
-    cards_container = html.Div(
-        cards_content,
-        id="projects-cards-container",
+    # Main container for the accordion
+    # Initially we pass the raw projects, but the callback will manage filtering/pagination
+    accordion_container = html.Div(
+        create_grouped_projects_accordion(raw_projects[:10] if raw_projects else []),
+        id="projects-accordion-container",
+    )
+    
+    # Pagination
+    pagination_row = dbc.Row(
+        [
+            dbc.Col(
+                dbc.Pagination(
+                    id="projects-pagination",
+                    active_page=1,
+                    max_value=max(1, (len(raw_projects) + 9) // 10) if raw_projects else 1,
+                    fully_expanded=False,
+                    first_last=True,
+                    previous_next=True,
+                    className="mt-3 justify-content-center",
+                ),
+            )
+        ]
     )
 
     return dbc.Container(
-        [*stores, sync_row, cards_container],
+        [*stores, sync_row, controls_row, accordion_container, pagination_row],
         fluid=True,
         className="p-0",
     )

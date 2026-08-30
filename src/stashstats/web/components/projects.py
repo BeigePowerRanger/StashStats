@@ -174,3 +174,107 @@ def paginate_projects(projects: list[dict[str, Any]], page: int, page_size: int 
     end_idx = start_idx + page_size
     
     return active_page, projects[start_idx:end_idx]
+
+def create_project_accordion_item(project: dict[str, Any]) -> dbc.AccordionItem:
+    """Render a single project as an accordion item."""
+    project_id = project.get("id") or "0"
+    name = project.get("name") or "Unnamed Project"
+    pattern = project.get("pattern_name") or ""
+    
+    # Title building
+    title_text = f"{name} — {pattern}" if pattern else name
+    
+    # Badges
+    badges = []
+    status_name = project.get("status_name")
+    if status_name:
+        status_color = "secondary"
+        if status_name.lower() == "finished":
+            status_color = "success"
+        elif status_name.lower() == "in progress":
+            status_color = "primary"
+        elif status_name.lower() == "frogged":
+            status_color = "danger"
+            
+        badges.append(
+            dbc.Badge(status_name, color=status_color, className="ms-2")
+        )
+        
+    progress = project.get("progress")
+    if progress is not None:
+        badges.append(
+            dbc.Badge(f"{progress}%", color="info", className="ms-1")
+        )
+        
+    # Header
+    header_content = html.Div(
+        [
+            html.Span(title_text, className="fw-semibold"),
+            html.Div(badges, className="d-inline-block"),
+        ],
+        className="d-flex align-items-center justify-content-between w-100"
+    )
+    
+    # Body
+    craft_name = project.get("craft_name") or "Unknown"
+    started = project.get("started")
+    completed = project.get("completed")
+    
+    metadata = html.Div(
+        [
+            html.Span(f"Craft: {craft_name}", className="me-3 text-muted small"),
+            html.Span(f"Started: {started}" if started else "", className="me-3 text-muted small"),
+            html.Span(f"Finished: {completed}" if completed else "", className="me-3 text-muted small"),
+        ],
+        className="mb-3"
+    )
+    
+    progress_bar = dbc.Progress(
+        value=progress or 0, 
+        color="info", 
+        striped=True, 
+        className="mb-3"
+    )
+    
+    existing_pdfs = project.get("existing_pdfs", [])
+    user_id = project.get("user_id", "default")
+    
+    pdf_section = html.Div(
+        [
+            html.H6("PDF Attachments", className="mb-2"),
+            create_pdf_upload_zone(project_id),
+            html.Div(className="mt-2 mb-3"),
+            html.Div(create_pdf_file_list(existing_pdfs, project_id, user_id)),
+            create_pdf_viewer(),
+        ]
+    )
+    
+    return dbc.AccordionItem(
+        children=[metadata, progress_bar, pdf_section],
+        title=header_content,
+        item_id=f"project-{project_id}",
+    )
+
+
+def create_grouped_projects_accordion(projects: list[dict[str, Any]]) -> Any:
+    """Wrap a list of projects into an accordion layout."""
+    if not projects:
+        return html.Div(
+            dbc.Alert(
+                "No projects found matching the criteria.",
+                color="info",
+                className="mt-3 text-center",
+            )
+        )
+        
+    items = []
+    for p in projects:
+        items.append(create_project_accordion_item(p))
+        
+    return dbc.Accordion(
+        items,
+        start_collapsed=True,
+        always_open=True,
+        id="projects-accordion",
+        className="mt-3",
+    )

@@ -10,7 +10,7 @@ from stashstats.web.components.projects import (
     create_pdf_upload_zone,
     create_pdf_viewer,
 )
-from stashstats.web.layouts.projects import create_project_card, create_projects_layout
+from stashstats.web.layouts.projects import create_projects_layout
 
 
 # ---------------------------------------------------------------------------
@@ -117,44 +117,37 @@ class TestCreatePdfUploadZone:
 
 
 class TestCreateProjectsLayout:
-    def test_no_projects_shows_empty_state(self):
+    def test_contains_controls(self):
+        from dash import dcc
         import dash_bootstrap_components as dbc
         result = create_projects_layout()
-        # Should contain an Alert for empty state
-        alerts = _find_components(result, dbc.Alert)
-        assert alerts, "Expected an Alert for empty projects state"
-
-    def test_with_projects_renders_cards(self):
-        import dash_bootstrap_components as dbc
-        projects = [
-            {"id": 1, "name": "Sweater", "status_name": "In progress", "progress": 50},
-            {"id": 2, "name": "Scarf", "status_name": "Finished", "progress": 100},
-        ]
-        result = create_projects_layout(projects=projects, user_id="alice")
-        cards = _find_components(result, dbc.Card)
-        assert len(cards) >= 2
+        
+        # Check for inputs
+        inputs = _find_components(result, dbc.Input)
+        search_inputs = [i for i in inputs if getattr(i, "id", None) == "projects-search-input"]
+        assert search_inputs, "Expected search input"
+        
+        selects = _find_components(result, dbc.Select)
+        sort_dropdowns = [s for s in selects if getattr(s, "id", None) == "projects-sort-dropdown"]
+        assert sort_dropdowns, "Expected sort dropdown"
+        
+        paginations = _find_components(result, dbc.Pagination)
+        assert paginations, "Expected pagination component"
+        
+    def test_contains_accordion_container(self):
+        from dash import html
+        result = create_projects_layout()
+        divs = _find_components(result, html.Div)
+        containers = [d for d in divs if getattr(d, "id", None) == "projects-accordion-container"]
+        assert containers, "Expected accordion container div"
 
     def test_contains_user_store(self):
         from dash import dcc
-        result = create_projects_layout(user_id="testuser")
+        result = create_projects_layout(user_id="testuser", include_stores=True)
         stores = _find_components(result, dcc.Store)
         user_stores = [s for s in stores if getattr(s, "id", None) == "projects-user-store"]
         assert user_stores, "Expected a dcc.Store with id='projects-user-store'"
         assert user_stores[0].data["user_id"] == "testuser"
-
-    def test_project_card_contains_upload_zone(self):
-        from dash import dcc
-        projects = [{"id": 42, "name": "Hat"}]
-        result = create_projects_layout(projects=projects)
-        uploads = _find_components(result, dcc.Upload)
-        assert uploads, "Expected at least one dcc.Upload per project"
-
-    def test_project_card_has_pdf_viewer_iframe(self):
-        from dash import html
-        projects = [{"id": 42, "name": "Hat"}]
-        result = create_projects_layout(projects=projects)
-        iframes = _find_components(result, html.Iframe)
-        assert iframes, "Expected at least one iframe for PDF viewer"
 
 
 # ---------------------------------------------------------------------------
@@ -162,45 +155,6 @@ class TestCreateProjectsLayout:
 # ---------------------------------------------------------------------------
 
 
-class TestCreateProjectCard:
-    def test_shows_project_name(self):
-        import dash_bootstrap_components as dbc
-        card = create_project_card({"id": "1", "name": "My Mittens"})
-        assert isinstance(card, dbc.Card)
-
-    def test_shows_status_badge_when_present(self):
-        import dash_bootstrap_components as dbc
-        card = create_project_card({"id": "1", "name": "X", "status_name": "Frogged"})
-        badges = _find_components(card, dbc.Badge)
-        assert any("Frogged" in str(b.children) for b in badges)
-
-    def test_no_badge_when_no_status(self):
-        import dash_bootstrap_components as dbc
-        card = create_project_card({"id": "1", "name": "X"})
-        badges = _find_components(card, dbc.Badge)
-        assert not badges
-
-    def test_has_upload_zone(self):
-        from dash import dcc
-        card = create_project_card({"id": "77", "name": "Y"})
-        uploads = _find_components(card, dcc.Upload)
-        assert uploads
-
-    def test_has_pdf_viewer_iframe(self):
-        from dash import html
-        card = create_project_card({"id": "77", "name": "Y"})
-        iframes = _find_components(card, html.Iframe)
-        assert iframes
-
-    def test_existing_pdfs_rendered_in_file_list(self):
-        import dash_bootstrap_components as dbc
-        card = create_project_card({"id": "7", "name": "Z"}, existing_pdfs=["file.pdf"])
-        buttons = _find_components(card, dbc.Button)
-        view_btns = [b for b in buttons if isinstance(b.id, dict) and b.id.get("type") == "project-pdf-view-btn"]
-        assert view_btns
-
-
-# ---------------------------------------------------------------------------
 # Callback unit tests: _decode_upload and upload validation
 # ---------------------------------------------------------------------------
 
@@ -264,25 +218,6 @@ class TestProjectsSyncLogic:
         assert items == [{"id": 1}]
 
 
-class TestUpdateProjectsCardsLogic:
-    def test_empty_renders_alert(self):
-        import dash_bootstrap_components as dbc
-        from stashstats.web.callbacks.projects import update_projects_cards_logic
-
-        res = update_projects_cards_logic([])
-        assert isinstance(res, dbc.Alert)
-
-    def test_projects_render_cards(self):
-        import dash_bootstrap_components as dbc
-        from stashstats.web.callbacks.projects import update_projects_cards_logic
-
-        res = update_projects_cards_logic([{"id": 1, "name": "Beanie"}], user_id="alice")
-        assert isinstance(res, list)
-        assert len(res) == 1
-        assert isinstance(res[0], dbc.Card)
-
-
-# ---------------------------------------------------------------------------
 # Helper: recursive component finder
 # ---------------------------------------------------------------------------
 
@@ -414,3 +349,67 @@ class TestPaginateProjects:
         page, paginated = paginate_projects([], page=1, page_size=10)
         assert page == 1
         assert paginated == []
+
+# ---------------------------------------------------------------------------
+# Components: create_project_accordion_item
+# ---------------------------------------------------------------------------
+
+class TestCreateProjectAccordionItem:
+    def test_shows_project_name_and_pattern(self):
+        import dash_bootstrap_components as dbc
+        from stashstats.web.components.projects import create_project_accordion_item
+        item = create_project_accordion_item({"id": 1, "name": "My Mittens", "pattern_name": "Cozy Mittens"})
+        assert isinstance(item, dbc.AccordionItem)
+        title_text = str(item.title)
+        assert "My Mittens" in title_text
+
+    def test_shows_status_badge_when_present(self):
+        import dash_bootstrap_components as dbc
+        from stashstats.web.components.projects import create_project_accordion_item
+        item = create_project_accordion_item({"id": 1, "name": "X", "status_name": "Frogged"})
+        title_components = _find_components(item.title, dbc.Badge)
+        assert any("Frogged" in str(b.children) for b in title_components)
+
+    def test_has_upload_zone_in_body(self):
+        from dash import dcc
+        from stashstats.web.components.projects import create_project_accordion_item
+        item = create_project_accordion_item({"id": 77, "name": "Y"})
+        uploads = _find_components(item, dcc.Upload)
+        assert uploads
+
+    def test_has_pdf_viewer_iframe(self):
+        from dash import html
+        from stashstats.web.components.projects import create_project_accordion_item
+        item = create_project_accordion_item({"id": 77, "name": "Y"})
+        iframes = _find_components(item, html.Iframe)
+        assert iframes
+
+    def test_existing_pdfs_rendered_in_file_list(self):
+        import dash_bootstrap_components as dbc
+        from stashstats.web.components.projects import create_project_accordion_item
+        item = create_project_accordion_item({"id": 7, "name": "Z", "existing_pdfs": ["file.pdf"]})
+        buttons = _find_components(item, dbc.Button)
+        view_btns = [b for b in buttons if isinstance(b.id, dict) and b.id.get("type") == "project-pdf-view-btn"]
+        assert view_btns
+
+# ---------------------------------------------------------------------------
+# Components: create_grouped_projects_accordion
+# ---------------------------------------------------------------------------
+
+class TestCreateGroupedProjectsAccordion:
+    def test_populated_projects_returns_accordion(self):
+        import dash_bootstrap_components as dbc
+        from stashstats.web.components.projects import create_grouped_projects_accordion
+        projects = [{"id": 1, "name": "A"}, {"id": 2, "name": "B"}]
+        accordion = create_grouped_projects_accordion(projects)
+        assert isinstance(accordion, dbc.Accordion)
+        assert len(accordion.children) == 2
+
+    def test_empty_projects_returns_alert(self):
+        import dash_bootstrap_components as dbc
+        from dash import html
+        from stashstats.web.components.projects import create_grouped_projects_accordion
+        result = create_grouped_projects_accordion([])
+        # It should return an empty state component (like a Div containing text or alert)
+        assert not isinstance(result, dbc.Accordion)
+
