@@ -1,0 +1,3 @@
+Phase: Phase 1: Storage & Serving Layer
+Verification: Automated test suite passing (39/39 tests in test_project_pdf_storage.py, test_storage.py, test_app.py).
+Status: Verified storage, listing, deletion, sanitisation, and streaming routes for project PDFs.
