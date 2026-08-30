@@ -60,7 +60,6 @@ def create_navigation_tabs(
         include_stores=False,
     )
     search_layout = create_yarn_search_layout()
-    projects_layout = create_projects_layout(projects=projects, user_id=user_id)
     projects_layout = create_projects_layout(projects=projects, user_id=user_id, include_stores=False)
 
     report = None
@@ -220,7 +219,6 @@ def create_main_layout(
         sync_status=sync_status,
         pending_count=pending_count,
         last_synced=last_synced,
-        user_id=username or "default",
         user_id=user_id,
         projects=projects,
     )

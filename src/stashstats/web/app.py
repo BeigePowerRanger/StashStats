@@ -62,17 +62,14 @@ def create_app(
     from stashstats.auth import account_manager  # noqa: PLC0415
 
     # Attach client reference for component access
-    app.client = client  # type: ignore[attr-defined]
     active_client = client if client is not None else account_manager.get_client()
     app.client = active_client  # type: ignore[attr-defined]
 
     # Resolve username and initial items/projects if client is available
-    username = getattr(client, "_cached_username", None) if client is not None else None
     active_label = account_manager.get_active_label()
     username = getattr(active_client, "_cached_username", None) if active_client is not None else None
     resolved_items = items
     resolved_projects = None
-    if client is not None:
     if active_client is not None:
         if username is None:
             try:
@@ -82,18 +79,14 @@ def create_app(
 
         if resolved_items is None:
             try:
-                if hasattr(client, "get_all_my_stash"):
-                    resolved_items = client.get_all_my_stash()
                 if hasattr(active_client, "get_all_my_stash"):
                     resolved_items = active_client.get_all_my_stash()
                 else:
-                    stash_resp = client.get_my_stash()
                     stash_resp = active_client.get_my_stash()
                     resolved_items = stash_resp.stash
             except Exception:
                 resolved_items = []
         try:
-            proj_resp = client.get_my_projects()
             proj_resp = active_client.get_my_projects()
             resolved_projects = proj_resp.projects
         except Exception:

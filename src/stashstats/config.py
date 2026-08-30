@@ -1,4 +1,3 @@
-from pydantic import AliasChoices, Field, SecretStr
 from pydantic import AliasChoices, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -62,7 +61,6 @@ class Settings(BaseSettings):
     @property
     def auth_tuple(self) -> tuple[str, str]:
         """Returns (username, password) for HTTP Basic Auth."""
-        return (self.access_key, self.personal_key.get_secret_value())
         u = self.dev_username or self.access_key
         p = self.dev_api_key.get_secret_value() or self.personal_key.get_secret_value()
         return (u, p)

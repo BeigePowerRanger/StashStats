@@ -123,8 +123,6 @@ def create_projects_layout(
     Returns:
         Configured dbc.Container layout.
     """
-    user_store = dcc.Store(id="projects-user-store", data={"user_id": str(user_id)})
-
     raw_projects: list[dict[str, Any]] = []
     if projects:
         for p in projects:
@@ -133,7 +131,6 @@ def create_projects_layout(
             elif isinstance(p, dict):
                 raw_projects.append(p)
 
-    projects_store = dcc.Store(id="projects-raw-store", data=raw_projects)
     stores: list[Any] = []
     if include_stores:
         stores = [
@@ -201,7 +198,6 @@ def create_projects_layout(
     )
 
     return dbc.Container(
-        [user_store, projects_store, sync_row, cards_container],
         [*stores, sync_row, cards_container],
         fluid=True,
         className="p-0",

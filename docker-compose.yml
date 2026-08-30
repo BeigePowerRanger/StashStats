@@ -56,21 +56,6 @@ services:
       retries: 5
       start_period: 5s
 
-  stashstats-tailscale:
-    image: tailscale/tailscale:latest
-    container_name: stashstats-tailscale
-    hostname: stash-stats
-    environment:
-      - TS_AUTHKEY=${TS_AUTHKEY}
-      - TS_STATE_DIR=/var/lib/tailscale
-    volumes:
-      - tailscale-data:/var/lib/tailscale
-      - /dev/net/tun:/dev/net/tun
-    cap_add:
-      - net_admin
-      - sys_module
-    restart: unless-stopped
-
   cache:
     image: redis:7-alpine
     container_name: stashstats-redis
@@ -88,5 +73,4 @@ services:
 
 volumes:
   redisdata:
-  tailscale-data:
   miniodata:

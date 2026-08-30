@@ -111,20 +111,23 @@ def create_header(
         logo_row,
     ]
 
-    if username:
-        greeting_row = dbc.Row(
-            dbc.Col(
-                html.H5(
-                    f"Hello {username}!",
-                    className="text-info text-center mt-2",
-                    id="header-greeting",
-                ),
-                width=12,
+    greeting_text = f"Hello {username}!" if username else ""
+    greeting_style = {} if username else {"display": "none"}
+    greeting_row = dbc.Row(
+        dbc.Col(
+            html.H5(
+                greeting_text,
+                className="text-info text-center mt-2",
+                id="header-greeting",
+                style=greeting_style,
             ),
-            justify="center",
-            className="justify-content-center align-items-center",
-        )
-        children.append(greeting_row)
+            width=12,
+        ),
+        justify="center",
+        className="justify-content-center align-items-center",
+        id="header-greeting-row",
+    )
+    children.append(greeting_row)
 
     children.append(html.Hr(style={"margin": "20px 0"}))
 
