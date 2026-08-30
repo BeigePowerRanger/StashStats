@@ -10,6 +10,7 @@
 - [x] Task: Write integration test for the serve route (mock filesystem, verify response headers) [d2e494b]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [8394b4a]
 
+## Phase 2: Projects Tab Layout
 ## Phase 2: Projects Tab Layout [checkpoint: 2c4f7d4]
 
 - [x] Task: Replace "Projects coming soon." stub in `layouts/main.py` with a real Projects tab layout component in `layouts/projects.py` [d2e494b]
@@ -18,7 +19,7 @@
 - [x] Task: Write unit/render tests for `create_projects_layout()` (snapshot-style: verify key component IDs exist) [d2e494b]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [2c4f7d4]
 
-## Phase 3: Upload & Delete Callbacks
+## Phase 3: Upload & Delete Callbacks [checkpoint: 5230629]
 
 - [x] Task: Add `callbacks/projects.py` with `register_projects_callbacks(app)` [d2e494b]
 - [x] Task: Implement upload callback — decode base64 dcc.Upload payload, validate MIME type (PDF only) and size (≤25 MB), call `save_project_pdf`, update file list store, display error on rejection [d2e494b]
@@ -29,7 +30,7 @@
 - [x] Task: Write unit tests for upload callback (valid PDF, oversized PDF, non-PDF, successful save) [d2e494b]
 - [x] Task: Write unit tests for delete callback [d2e494b]
 - [x] Task: Write unit tests for viewer callback [d2e494b]
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [5230629]
 
 ## Phase 4: Components & Styling
 
