@@ -64,6 +64,7 @@ class Settings(BaseSettings):
         u = self.dev_username or self.access_key
         p = self.dev_api_key.get_secret_value() or self.personal_key.get_secret_value()
         return (u, p)
+        return (self.access_key, self.personal_key.get_secret_value())
 
     def auth_tuple_for(self, label: str) -> tuple[str, str]:
         """Return (username, password) auth tuple for specified account label ('dev' or 'prod')."""
