@@ -1,0 +1,3 @@
+Task: Switch Callback & Full Data Reload
+Files: src/stashstats/web/callbacks/auth.py, src/stashstats/web/app.py, src/stashstats/auth.py, tests/web/test_auth_callbacks.py, src/stashstats/config.py
+Why: Connect account switch modal confirm action to AccountManager.switch(), re-fetching stash and projects and updating stores and header UI.
