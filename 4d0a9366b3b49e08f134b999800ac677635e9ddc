@@ -1,0 +1,3 @@
+Task: Write failing unit tests for AccountManager & Implement AccountManager in src/stashstats/auth.py
+Files: src/stashstats/auth.py, tests/test_auth.py
+Why: Provide centralized runtime auth state, active client retrieval, and dev/prod switching logic.
