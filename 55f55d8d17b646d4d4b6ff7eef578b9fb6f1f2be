@@ -1,0 +1,3 @@
+Task: Implement accordion components and updated layout
+Files: src/stashstats/web/components/projects.py, src/stashstats/web/layouts/projects.py, tests/web/test_projects.py, src/stashstats/web/callbacks/projects.py
+Why: Transformed the Projects tab layout from a flat card list into a dense, grouped accordion structure with searching, sorting, and pagination controls.
