@@ -49,18 +49,18 @@ deletion without leaving the Projects tab.
 
 ## Acceptance Criteria
 
-- [ ] Projects tab shows a `dcc.Upload` zone per project; uploading a PDF saves
+- [x] Projects tab shows a `dcc.Upload` zone per project; uploading a PDF saves
       the file and renders it in the file list.
-- [ ] Uploading a second PDF to the same project adds it to the list without
+- [x] Uploading a second PDF to the same project adds it to the list without
       removing the first.
-- [ ] Clicking the delete button for a file removes it from the list and from
+- [x] Clicking the delete button for a file removes it from the list and from
       disk.
-- [ ] Selecting a filename in the list opens an inline iframe displaying the
+- [x] Selecting a filename in the list opens an inline iframe displaying the
       PDF.
-- [ ] Page refresh retains the file list derived from the filesystem.
-- [ ] Non-PDF uploads are rejected with a user-visible error message.
-- [ ] Files > 25 MB are rejected with a user-visible error message.
-- [ ] No upload is required to display/interact with a project entry.
+- [x] Page refresh retains the file list derived from the filesystem.
+- [x] Non-PDF uploads are rejected with a user-visible error message.
+- [x] Files > 25 MB are rejected with a user-visible error message.
+- [x] No upload is required to display/interact with a project entry.
 
 ## Out of Scope
 

@@ -10,7 +10,6 @@
 - [x] Task: Write integration test for the serve route (mock filesystem, verify response headers) [d2e494b]
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [8394b4a]
 
-## Phase 2: Projects Tab Layout
 ## Phase 2: Projects Tab Layout [checkpoint: 2c4f7d4]
 
 - [x] Task: Replace "Projects coming soon." stub in `layouts/main.py` with a real Projects tab layout component in `layouts/projects.py` [d2e494b]
