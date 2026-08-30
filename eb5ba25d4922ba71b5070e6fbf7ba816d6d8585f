@@ -1,0 +1,3 @@
+Task: Write failing unit tests for Settings credential pair fields & Update Settings in src/stashstats/config.py
+Files: src/stashstats/config.py, tests/test_config.py
+Why: Support explicit DEV and PROD credential pairs and dynamic auth tuple retrieval.
