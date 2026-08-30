@@ -1,0 +1,3 @@
+Task: Implement project filtering, sorting, and pagination logic
+Files: src/stashstats/web/components/projects.py, tests/web/test_projects.py
+Why: Core engine for refactoring Projects tab into an accordion with sorting, searching, and pagination capabilities.
