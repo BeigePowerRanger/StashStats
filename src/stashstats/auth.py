@@ -1,3 +1,4 @@
+import logging
 from typing import Any
 
 import httpx
@@ -77,3 +78,81 @@ class RavelryAuthVerifier(BaseModel):
                 valid=False,
                 error=f"Network error: {e}",
             )
+
+
+logger = logging.getLogger("stashstats.auth")
+
+
+class AccountManager:
+    """Manages active Ravelry account environment (dev vs prod) and client instances."""
+
+    def __init__(self, settings: Settings | None = None, auto_init: bool = True):
+        self.settings = settings or default_settings
+        self._active_label: str = "dev"
+        self._client: Any | None = None
+        if auto_init:
+            self._init_client()
+
+    def _init_client(self) -> Any:
+        """Create and initialize a RavelryClient for the active account."""
+        from stashstats.client.ravelry_client import RavelryClient
+        from pydantic import SecretStr
+
+        access_key, personal_key = self.settings.auth_tuple_for(self._active_label)
+        account_settings = self.settings.model_copy(
+            update={
+                "access_key": access_key,
+                "personal_key": SecretStr(personal_key),
+            }
+        )
+        self._client = RavelryClient(settings=account_settings)
+        return self._client
+
+    def get_active_label(self) -> str:
+        """Return currently active account label ('dev' or 'prod')."""
+        return self._active_label
+
+    def get_target_label(self) -> str:
+        """Return the alternate account label ('prod' if active is 'dev', else 'dev')."""
+        return "prod" if self._active_label == "dev" else "dev"
+
+    def get_client(self) -> Any:
+        """Get active RavelryClient instance, initializing if needed."""
+        if self._client is None:
+            self._init_client()
+        return self._client
+
+    def get_active_username(self) -> str:
+        """Get the authenticated Ravelry display name."""
+        client = self.get_client()
+        if getattr(client, "_cached_username", None):
+            return client._cached_username
+        try:
+            user_resp = client.get_current_user()
+            return user_resp.user.username
+        except Exception as e:
+            logger.warning(f"Failed to fetch current user username: {e}")
+            return self._active_label.upper()
+
+    def switch(self, target_label: str | None = None) -> tuple[str, str]:
+        """Switch active account to target_label (or toggle if None).
+
+        Returns:
+            Tuple of (new_active_label, resolved_username).
+        """
+        if target_label is not None:
+            norm = target_label.strip().lower()
+            if norm not in ("dev", "prod"):
+                raise ValueError(f"Unknown account label: {target_label!r}")
+            self._active_label = norm
+        else:
+            self._active_label = "prod" if self._active_label == "dev" else "dev"
+
+        self._init_client()
+        username = self.get_active_username()
+        logger.info(f"Switched account to {self._active_label.upper()} (@{username})")
+        return self._active_label, username
+
+
+account_manager = AccountManager()
+
