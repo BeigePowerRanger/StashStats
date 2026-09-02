@@ -1,0 +1,2 @@
+Task: Phase 1 & 2 Checkpoint
+Verification: Automated tests passed via docker compose exec -e CI=true -T app pytest tests/web/test_projects.py. Manual verification of the UI accordion and filtering confirmed by user.
