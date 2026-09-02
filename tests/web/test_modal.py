@@ -11,6 +11,7 @@ from dash.development.base_component import Component
 
 from stashstats.web.app import create_app
 from stashstats.web.callbacks.modal import (
+    handle_delete_entry,
     handle_history_rollback,
     handle_save_modal,
     handle_usage_preview_update,
@@ -666,5 +667,29 @@ def test_create_usage_history_table_with_project():
 
 
 
+
+def test_handle_delete_entry_callback(monkeypatch: Any) -> None:
+    from stashstats.web.callbacks.modal import handle_delete_entry
+
+    # Setup mocks
+    app_mock = MagicMock()
+    client_mock = MagicMock()
+    app_mock.client = client_mock
+    monkeypatch.setattr("stashstats.web.callbacks.modal.app", app_mock, raising=False)
+
+    # Mock data
+    stash_data = {"id": 123, "name": "Test Yarn"}
+    raw_stash = [{"id": 123, "name": "Test Yarn"}, {"id": 456, "name": "Other Yarn"}]
+
+    is_open, updated_stash = handle_delete_entry(
+        n_clicks=1,
+        stash_data=stash_data,
+        raw_stash_items=raw_stash
+    )
+
+    client_mock.delete_stash_item.assert_called_once_with(123)
+    assert is_open is False
+    assert len(updated_stash) == 1
+    assert updated_stash[0]["id"] == 456
 
 

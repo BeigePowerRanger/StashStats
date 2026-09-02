@@ -231,6 +231,39 @@ def handle_save_modal(
     return False, stash, history
 
 
+def handle_delete_entry(
+    n_clicks: int | None,
+    stash_data: dict[str, Any] | None,
+    raw_stash_items: list[dict[str, Any]] | None,
+    client: Any = None,
+) -> tuple[bool, list[dict[str, Any]]]:
+    """Handle stash item deletion from modal dialog."""
+    if not n_clicks or not stash_data:
+        raise dash.exceptions.PreventUpdate
+
+    if client is None:
+        try:
+            client = getattr(app, "client", None)
+        except NameError:
+            client = None
+
+    if not client:
+        raise dash.exceptions.PreventUpdate
+
+    stash_id = stash_data.get("id")
+    if not stash_id:
+        raise dash.exceptions.PreventUpdate
+
+    client.delete_stash_item(stash_id)
+
+    updated_stash = [
+        item for item in (raw_stash_items or [])
+        if item.get("id") != stash_id
+    ]
+
+    return False, updated_stash
+
+
 def register_modal_callbacks(app: dash.Dash) -> None:
     """Register reactive Dash callbacks for Stash Edit & Usage modal dialog.
 
@@ -240,6 +273,27 @@ def register_modal_callbacks(app: dash.Dash) -> None:
     if getattr(app, "_modal_callbacks_registered", False):
         return
     app._modal_callbacks_registered = True  # type: ignore[attr-defined]
+
+    @app.callback(
+        Output("stash-modal", "is_open", allow_duplicate=True),
+        Output("stash-raw-store", "data", allow_duplicate=True),
+        Input("modal-btn-delete", "n_clicks"),
+        State("modal-store-stash-item", "data"),
+        State("stash-raw-store", "data"),
+        prevent_initial_call=True,
+    )
+    def delete_entry_callback(
+        n_clicks: int | None,
+        stash_data: dict[str, Any] | None,
+        raw_stash_items: list[dict[str, Any]] | None,
+    ) -> tuple[bool, list[dict[str, Any]]]:
+        client = getattr(app, "client", None)
+        return handle_delete_entry(
+            n_clicks=n_clicks,
+            stash_data=stash_data,
+            raw_stash_items=raw_stash_items,
+            client=client,
+        )
 
     @app.callback(
         Output("stash-modal", "is_open"),
@@ -531,3 +585,4 @@ def register_modal_callbacks(app: dash.Dash) -> None:
         if not n_clicks:
             raise dash.exceptions.PreventUpdate
         return False
+
