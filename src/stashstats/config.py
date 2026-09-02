@@ -2,6 +2,7 @@ from pydantic import AliasChoices, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+# start snippet settings-model
 class Settings(BaseSettings):
     """Application settings and API credentials loaded from environment."""
 
@@ -74,6 +75,7 @@ class Settings(BaseSettings):
             return (self.prod_username.strip(), self.prod_api_key.get_secret_value().strip())
         else:
             raise ValueError(f"Unknown account label: {label!r}")
+# end snippet settings-model
 
 
 # Loaded once at startup from .env

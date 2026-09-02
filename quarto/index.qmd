@@ -1,0 +1,63 @@
+---
+title: StashStats
+created: 2026-09-01
+updated: 2026-09-01
+type: project
+tags:
+  - stashstats
+aliases:
+  - StashStats
+  - StashStats Project
+---
+
+# StashStats
+
+StashStats is a local analytics dashboard and inventory management platform for Ravelry yarn stash, project tracking, and fiber consumption analytics. Built with Python, Dash, Bootstrap, PostgreSQL, Redis, and Docker Compose.
+
+## Core Capabilities
+
+- **Stash Analytics & Distributions**: Analyzes yarn weight, fiber content, brand distribution, and yardage histograms across active inventory. See [[analytics-overview|Analytics Overview]].
+- **Consumption Velocity**: Calculates stash burn-rate, rolling utilization, and lifespan horizons. See [[analytics-velocity|Consumption Velocity]].
+- **Ravelry API Integration**: Synchronous client layer supporting multi-account authentication, automated pagination, and caching. See [[client-overview|Client Architecture]].
+- **Interactive UI**: Dash web application featuring responsive dark-mode styling, live search filtering, and fast local caching. See [[web-app|Web Application]].
+
+## Quick Start
+
+```bash
+# Clone and enter repo
+git clone https://github.com/BeigePowerRanger/StashStats.git
+cd StashStats
+
+# Start core services with Docker Compose
+docker compose up -d
+
+# Run application locally with virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+python app.py
+```
+
+## Documentation Index
+
+- **Architecture & System Design**: [[architecture|System Architecture]]
+- **Authentication & Configuration**: [[auth|Authentication & Accounts]]
+- **API Client Suite**:
+  - [[client-overview|Client Architecture]]
+  - [[client-stash|Stash Operations]]
+  - [[client-yarn|Yarn Database Operations]]
+  - [[client-projects|Projects & Queue Operations]]
+- **Domain Models**:
+  - [[models-overview|Models Overview]]
+  - [[models-stash|Stash Models]]
+  - [[models-yarn|Yarn Models]]
+  - [[models-project|Project Models]]
+- **Analytics Engine**:
+  - [[analytics-overview|Analytics Overview]]
+  - [[analytics-distributions|Categorical Distributions]]
+  - [[analytics-velocity|Consumption Velocity]]
+  - [[analytics-projects|Project Analytics]]
+- **Web Application**:
+  - [[web-app|App Factory & Structure]]
+  - [[web-callbacks|Dash Callbacks]]
+  - [[web-components|UI Components]]

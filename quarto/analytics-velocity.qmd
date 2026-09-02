@@ -1,0 +1,41 @@
+---
+title: Consumption Velocity & Horizon
+created: 2026-09-01
+updated: 2026-09-01
+type: analytics
+tags:
+  - stashstats
+aliases:
+  - Consumption Velocity
+  - Stash Horizon
+  - Velocity Calculator
+  - StashVelocityCalculator
+---
+
+# Consumption Velocity & Horizon
+
+*Navigation: [[index|← StashStats Index]] / [[analytics-overview|Analytics Engine]] / Consumption Velocity & Horizon*
+*Siblings: [[analytics-distributions|Categorical Distributions]] · [[analytics-projects|Project Analytics]]*
+
+Consumption velocity calculates historical fiber usage rates and projects how long current inventory will last (the "Stash Horizon").
+
+## Velocity Calculation Engine
+
+`StashVelocityCalculator` extracts chronological delta events (additions, usage, sales, and discards) from item update logs:
+
+```{.python include="../src/stashstats/analytics/velocity.py" snippet="velocity-calculator"}
+```
+
+## Velocity Metrics
+
+- **Gross Inflow**: Total yards/grams acquired within rolling time windows (30d, 90d, 365d).
+- **Net Consumption**: Yards/grams incorporated into finished projects.
+- **Burn Rate**: Average daily consumption velocity.
+- **Stash Lifespan Horizon**: Projected exhaustion date calculated by dividing remaining active inventory by 90-day rolling consumption velocity.
+
+## Related Topics & Subsystems
+
+- **Client Operations**: [[client-stash|Stash Client Operations]]
+- **Domain Models**: [[models-stash|Stash Domain Models]]
+- **Analytics Overview**: [[analytics-overview|Analytics Engine Overview]]
+- **UI Visualizations**: [[web-components|Analytics Charts Component]]

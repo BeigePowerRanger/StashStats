@@ -1,0 +1,32 @@
+---
+title: Project Analytics
+created: 2026-09-01
+updated: 2026-09-01
+type: analytics
+tags:
+  - stashstats
+aliases:
+  - Project Analytics
+  - WIP Analytics
+  - Project Productivity
+---
+
+# Project Analytics
+
+*Navigation: [[index|← StashStats Index]] / [[analytics-overview|Analytics Engine]] / Project Analytics*
+*Siblings: [[analytics-distributions|Categorical Distributions]] · [[analytics-velocity|Consumption Velocity]]*
+
+Project analytics computes productivity metrics, WIP ratios, and project duration statistics across a user's craft portfolio.
+
+## Metrics Tracked
+
+- **Completion Velocity**: Number of projects finished per quarter/year.
+- **Craft Distribution**: Percentage breakdown between Knitting, Crochet, Weaving, and Spinning.
+- **WIP Stagnation**: Identification of stalled or hibernating projects and associated tied-up stash yardage.
+
+## Cross-References & Related
+
+- **Domain Models**: [[models-project|Project Domain Models]]
+- **Client Operations**: [[client-projects|Project Client Operations]]
+- **Engine Overview**: [[analytics-overview|Analytics Engine Overview]]
+- **UI Components**: [[web-components|Reusable UI Components]]

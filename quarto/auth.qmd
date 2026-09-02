@@ -1,0 +1,56 @@
+---
+title: Authentication & Accounts
+created: 2026-09-01
+updated: 2026-09-01
+type: module
+tags:
+  - stashstats
+aliases:
+  - Authentication
+  - Auth
+  - Account Switching
+  - Credential Verification
+---
+
+# Authentication & Accounts
+
+*Navigation: [[index|← StashStats Index]] / [[architecture|System Architecture]] / Authentication & Accounts*
+
+StashStats authenticates with the Ravelry API using HTTP Basic Auth over HTTPS with user-scoped API keys (Access Key and Personal Key).
+
+## Authentication Methods
+
+Ravelry provides two authentication modes:
+
+- **HTTP Basic Auth**: Personal API keys tied directly to a user account. Used for personal tools and single-tenant analytics like StashStats.
+- **OAuth 2.0**: Three-legged authorization for multi-tenant commercial applications.
+
+StashStats leverages HTTP Basic Auth with dual-account switching support (`dev` vs `prod`).
+
+## Credential Settings
+
+Application settings and credentials load from environment variables (`.env`) via `pydantic-settings`:
+
+```{.python include="../src/stashstats/config.py" snippet="settings-model"}
+```
+
+## Credential Verification
+
+Before dispatching expensive sync jobs, `RavelryAuthVerifier` probes the `/current_user.json` endpoint to validate keys:
+
+```{.python include="../src/stashstats/auth.py" snippet="auth-verifier"}
+```
+
+## Account Switching
+
+The `AccountManager` maintains active and alternate account profiles, enabling instant toggling between developer sandbox and production accounts:
+
+```{.python include="../src/stashstats/auth.py" snippet="account-manager"}
+```
+
+## Related Topics & Integration
+
+- **Client Layer**: [[client-overview|API Client Architecture]]
+- **UI Interaction**: [[web-callbacks|Dash Callbacks]] (Account modal and switch callbacks)
+- **UI Components**: [[web-components|Header & Modal Components]]
+- **Architecture**: [[architecture|System Architecture]]

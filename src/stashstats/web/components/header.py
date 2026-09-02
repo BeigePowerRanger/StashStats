@@ -4,6 +4,7 @@ import dash_bootstrap_components as dbc
 from dash import html
 
 
+# start snippet header-component
 def create_header(
     username: str | None = None,
     sync_status: str = "Synced",
@@ -46,6 +47,7 @@ def create_header(
         className="ms-2 px-2 py-1 align-self-center d-flex align-items-center rounded-pill",
         title="Click to switch Ravelry account",
     )
+# end snippet header-component
 
     if pending_count > 0:
         sync_badge_text = f"{pending_count} pending"

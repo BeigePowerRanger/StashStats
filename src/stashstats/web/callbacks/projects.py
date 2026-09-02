@@ -214,17 +214,54 @@ def register_projects_callbacks(app: dash.Dash) -> None:
         return handle_projects_sync_logic(n_clicks, raw_data, client=client)
 
     @app.callback(
-        Output("projects-cards-container", "children"),
+        Output("projects-accordion-container", "children"),
+        Output("projects-pagination", "max_value"),
+        Output("projects-pagination", "active_page"),
         Input("projects-raw-store", "data"),
+        Input("projects-search-input", "value"),
+        Input("projects-sort-dropdown", "value"),
+        Input("projects-pagination", "active_page"),
         State("projects-user-store", "data"),
         prevent_initial_call=True,
     )
-    def render_project_cards(
+    def render_projects_accordion(
         raw_projects: list[dict[str, Any]] | None,
+        search_query: str | None,
+        sort_by: str | None,
+        active_page: int | None,
         user_data: dict | None,
-    ) -> Any:
+    ) -> tuple[Any, int, int]:
         user_id = (user_data or {}).get("user_id", "default")
-        return update_projects_cards_logic(raw_projects, user_id=user_id)
+        from stashstats.web.components.projects import (
+            filter_projects,
+            sort_projects,
+            paginate_projects,
+            create_grouped_projects_accordion
+        )
+        import math
+        
+        projects = raw_projects or []
+        
+        # Filter
+        if search_query:
+            projects = filter_projects(projects, search_query)
+        
+        # Sort
+        projects = sort_projects(projects, sort_by or "date_desc")
+        
+        # Paginate
+        page = active_page or 1
+        page_size = 10
+        total_pages = max(1, math.ceil(len(projects) / page_size))
+        
+        # Clamp active page
+        page = max(1, min(page, total_pages))
+        
+        _, paged_projects = paginate_projects(projects, page, page_size)
+        
+        accordion = create_grouped_projects_accordion(paged_projects, user_id=user_id)
+        
+        return accordion, total_pages, page
 
 
 def handle_projects_sync_logic(
@@ -254,31 +291,3 @@ def handle_projects_sync_logic(
 
     now_str = datetime.now(UTC).strftime("Today %H:%M")
     return "Synced", "success", f"Last synced: {now_str}", fresh_items
-
-
-def update_projects_cards_logic(
-    raw_projects: list[dict[str, Any]] | None,
-    user_id: str | int = "default",
-) -> Any:
-    """Render project cards or empty alert based on projects store."""
-    import dash_bootstrap_components as dbc
-    from dash import html
-    from stashstats.web.layouts.projects import create_project_card
-
-    if not raw_projects:
-        return dbc.Alert(
-            [
-                html.I(className="bi bi-folder2-open me-2"),
-                "No projects loaded. Sync with Ravelry to see your projects.",
-            ],
-            color="info",
-            className="text-center my-4",
-            id="projects-empty-alert",
-        )
-
-    cards = []
-    for project in raw_projects:
-        pid = str(project.get("id", "unknown"))
-        pdfs = list_project_pdfs(user_id, pid, base_dir=DEFAULT_DATA_DIR)
-        cards.append(create_project_card(project, user_id=user_id, existing_pdfs=pdfs))
-    return cards

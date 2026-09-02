@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from stashstats.models.common import Paginator, PersonalAttributes, Photo, YarnCompany
 
 
+# start snippet yarn-weight-model
 class YarnWeight(BaseModel):
     """Standardized yarn weight classification."""
 
@@ -31,6 +32,7 @@ class YarnWeight(BaseModel):
 
     max_gauge: float | None = None
     """Maximum gauge value."""
+# end snippet yarn-weight-model
 
     @field_validator("name")
     @classmethod
@@ -169,6 +171,7 @@ class Colorway(BaseModel):
         return v
 
 
+# start snippet yarn-model
 class Yarn(BaseModel):
     """Full yarn profile and catalog specifications."""
 
@@ -222,6 +225,7 @@ class Yarn(BaseModel):
 
     colorways: list[Colorway] = Field(default_factory=list)
     """Colorway options and catalog colorways for the commercial yarn."""
+# end snippet yarn-model
 
     @field_validator("name", "permalink")
     @classmethod

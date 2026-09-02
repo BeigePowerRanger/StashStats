@@ -25,6 +25,7 @@ YarnSort = Literal["best", "rating", "projects"]
 class YarnClientMixin:
     """Mixin providing yarn search, yarn details, and yarn reference endpoints."""
 
+    # start snippet yarn-search
     @cached_yarn_search
     def search_yarns(
         self: BaseAPIClient | Any,
@@ -56,6 +57,7 @@ class YarnClientMixin:
         }
         data = self.get("/yarns/search.json", params=params)
         return YarnSearchResponse.model_validate(data)
+    # end snippet yarn-search
 
     search_yarn = search_yarns
 

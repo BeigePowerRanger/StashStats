@@ -1,0 +1,46 @@
+---
+title: API Client Architecture
+created: 2026-09-01
+updated: 2026-09-01
+type: module
+tags:
+  - stashstats
+aliases:
+  - Client Overview
+  - API Client Architecture
+  - Ravelry Client
+  - BaseAPIClient
+---
+
+# API Client Architecture
+
+*Navigation: [[index|← StashStats Index]] / [[architecture|System Architecture]] / API Client Architecture*
+
+The StashStats client architecture uses a layered mixin pattern built atop `httpx.Client` to communicate with the Ravelry REST API.
+
+## Base HTTP Client
+
+`BaseAPIClient` manages connection lifecycles, authentication headers, query normalization, and JSON error handling:
+
+```{.python include="../src/stashstats/base.py" snippet="base-client"}
+```
+
+## Ravelry Composite Client
+
+The high-level `RavelryClient` inherits from `BaseAPIClient` and composes domain-specific mixins:
+
+```{.python include="../src/stashstats/client/ravelry_client.py" snippet="client-init"}
+```
+
+## Domain Mixin Suite
+
+- **Stash Operations**: [[client-stash|Stash Client Operations]] — Inventory pagination, search, and pack allocation.
+- **Yarn Database**: [[client-yarn|Yarn Client Operations]] — Commercial yarn search, fiber specs, and colorway catalogs.
+- **Projects & Queue**: [[client-projects|Project Client Operations]] — User projects, progress tracking, and queue records.
+- **Authentication**: [[auth|Authentication & Accounts]] — Credentials, verifier, and account switching.
+
+## Related Modules
+
+- **Domain Models**: [[models-overview|Domain Models Overview]]
+- **Analytics Engine**: [[analytics-overview|Analytics Engine Overview]]
+- **Architecture**: [[architecture|System Architecture]]

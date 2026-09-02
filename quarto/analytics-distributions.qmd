@@ -1,0 +1,43 @@
+---
+title: Categorical Distributions
+created: 2026-09-01
+updated: 2026-09-01
+type: analytics
+tags:
+  - stashstats
+aliases:
+  - Categorical Distributions
+  - Stash Distributions
+  - Distribution Calculator
+  - CategoryDistribution
+---
+
+# Categorical Distributions
+
+*Navigation: [[index|← StashStats Index]] / [[analytics-overview|Analytics Engine]] / Categorical Distributions*
+*Siblings: [[analytics-velocity|Consumption Velocity]] · [[analytics-projects|Project Analytics]]*
+
+The distributions engine breaks down active stash inventories across multiple dimensions (weight classification, fiber composition, colorway family, and manufacturer).
+
+## Category Distribution Model
+
+Each distribution bucket tracks item counts, physical metrics (yards, meters, grams, skeins), and percentage shares:
+
+```{.python include="../src/stashstats/analytics/distributions.py" snippet="category-distribution"}
+```
+
+## Calculation & Aggregation Logic
+
+`StashDistributionCalculator` iterates through items and groups measurements:
+
+- **Yarn Weight Distribution**: Groups items by `yarn_weight.name` (e.g., Worsted, Sport, Fingering).
+- **Fiber Distribution**: Extracts component percentages from `yarn_fibers` to determine raw fiber weight.
+- **Brand Distribution**: Aggregates volume by yarn company name.
+- **Color Family Distribution**: Categorizes items into standard Ravelry color palettes.
+
+## Cross-References & Related
+
+- **Domain Models**: [[models-stash|Stash Domain Models]] · [[models-yarn|Yarn Domain Models]]
+- **Analytics Siblings**: [[analytics-velocity|Consumption Velocity]] · [[analytics-projects|Project Analytics]]
+- **Engine Overview**: [[analytics-overview|Analytics Engine Overview]]
+- **UI Visualizations**: [[web-components|Analytics Charts Component]] · [[web-callbacks|Dash Callbacks]]

@@ -1,0 +1,17 @@
+project:
+  type: default
+  output-dir: /mnt/ssd/Projects/BrainVault/Projects/StashStats
+
+format:
+  gfm:
+    toc: false
+    wrap: none
+    prefer-html: false
+    template: template.gfm
+
+filters:
+  - include-code-files
+  - filters/wikilinks.lua
+
+execute:
+  enabled: false

@@ -20,6 +20,7 @@ logger = logging.getLogger("stashstats.client.projects")
 class ProjectClientMixin:
     """Mixin providing project management, listing, detail, and photo endpoints."""
 
+    # start snippet project-list
     def list_projects(
         self: BaseAPIClient | Any,
         username: str | None = None,
@@ -60,6 +61,7 @@ class ProjectClientMixin:
         }
         data = self.get(f"/people/{target_username}/projects/list.json", params=params)
         return ProjectListResponse.model_validate(data)
+    # end snippet project-list
 
     get_project_list = list_projects
     get_my_projects = list_projects

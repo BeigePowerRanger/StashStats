@@ -1,0 +1,40 @@
+---
+title: Analytics Engine Overview
+created: 2026-09-01
+updated: 2026-09-01
+type: module
+tags:
+  - stashstats
+aliases:
+  - Analytics Overview
+  - Analytics Engine
+  - Stash Analytics
+---
+
+# Analytics Engine Overview
+
+*Navigation: [[index|← StashStats Index]] / [[architecture|System Architecture]] / Analytics Engine Overview*
+
+The analytics engine processes raw inventory data and chronological logs into structured metric summaries, charts, and forecasts.
+
+## Analytical Domains
+
+1. **Categorical Distributions**: Aggregates inventory volume across yarn weights, fiber types, color families, and brands. See [[analytics-distributions|Categorical Distributions]].
+2. **Consumption Velocity**: Tracks net inventory inflow vs. outflow, calculating monthly burn rates and estimated stash lifespan. See [[analytics-velocity|Consumption Velocity & Horizon]].
+3. **Project Metrics**: Computes project completion cadence, queue depth, and fiber usage rates. See [[analytics-projects|Project Analytics]].
+
+## Performance & Caching
+
+Calculations are memoized in memory and backed by Redis caches to ensure sub-100ms dashboard re-renders upon user filtering.
+
+## Submodule Navigation
+
+- **Distributions**: [[analytics-distributions|Categorical Distributions]]
+- **Velocity & Horizon**: [[analytics-velocity|Consumption Velocity & Horizon]]
+- **Projects**: [[analytics-projects|Project Analytics]]
+
+## Integration & UI
+
+- **Domain Models**: [[models-overview|Domain Models Overview]] · [[models-stash|Stash Models]]
+- **UI Visualizations**: [[web-components|Analytics Charts Component]] · [[web-callbacks|Analytics Callbacks]]
+- **System Architecture**: [[architecture|System Architecture]]

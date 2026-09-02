@@ -1,0 +1,46 @@
+---
+title: Web Application Factory
+created: 2026-09-01
+updated: 2026-09-01
+type: module
+tags:
+  - stashstats
+aliases:
+  - Web Application
+  - App Factory
+  - Dash App
+  - UI Architecture
+---
+
+# Web Application Factory
+
+*Navigation: [[index|← StashStats Index]] / [[architecture|System Architecture]] / Web Application Factory*
+
+StashStats provides an interactive web user interface built with Plotly Dash and Dash Bootstrap Components (`dbc`).
+
+## Application Factory
+
+`create_app` constructs the Dash instance, binds the client reference, and configures dark-mode styling:
+
+```{.python include="../src/stashstats/web/app.py" snippet="app-factory"}
+```
+
+## Layout Structure
+
+The main dashboard layout is organized into responsive tabs:
+
+- **Stash Inventory**: Filterable accordion list of yarns with photo thumbnails, pack details, and search bars.
+- **Analytics Charts**: Interactive Plotly visualizations for weight, fiber, brand, and velocity metrics.
+- **Projects**: Portfolio gallery and WIP tracker.
+
+## Submodules & Components
+
+- **Callbacks**: [[web-callbacks|Dash UI Callbacks]]
+- **UI Components**: [[web-components|Reusable UI Components]]
+- **Authentication**: [[auth|Authentication & Accounts]]
+
+## Integration Links
+
+- **System Architecture**: [[architecture|System Architecture]]
+- **Analytics Engine**: [[analytics-overview|Analytics Engine Overview]]
+- **Stash Models**: [[models-stash|Stash Domain Models]]

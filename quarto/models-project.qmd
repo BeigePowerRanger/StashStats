@@ -1,0 +1,33 @@
+---
+title: Project Domain Models
+created: 2026-09-01
+updated: 2026-09-01
+type: model
+tags:
+  - stashstats
+aliases:
+  - Project Models
+  - Project Model
+  - ProjectListResult Model
+---
+
+# Project Domain Models
+
+*Navigation: [[index|← StashStats Index]] / [[models-overview|Domain Models]] / Project Domain Models*
+*Siblings: [[models-stash|Stash Models]] · [[models-yarn|Yarn Models]]*
+
+The project models represent Ravelry craft project entries, completion statuses, and pattern associations.
+
+## Project List Result
+
+`ProjectListResult` encapsulates summary project data returned from list endpoints:
+
+```{.python include="../src/stashstats/models/project.py" snippet="project-model"}
+```
+
+## Related Models & Analytics
+
+- **Client Operations**: [[client-projects|Project Client Operations]]
+- **Analytics**: [[analytics-projects|Project Analytics]] — Completion metrics and WIP tracking.
+- **Domain Overview**: [[models-overview|Domain Models Overview]]
+- **Stash Models**: [[models-stash|Stash Domain Models]]

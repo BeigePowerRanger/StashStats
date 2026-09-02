@@ -62,16 +62,18 @@ def create_pdf_file_list(
     return rows
 
 
-def create_pdf_viewer(src_url: str = "") -> html.Iframe:
+def create_pdf_viewer(project_id: str | int, src_url: str = "") -> html.Iframe:
     """Render an inline PDF viewer iframe.
 
     Args:
+        project_id: Project identifier used to scope the component ID.
         src_url: Initial src URL for the iframe (empty string = blank).
 
     Returns:
         ``html.Iframe`` configured for PDF display.
     """
     return html.Iframe(
+        id={"type": "project-pdf-viewer", "index": str(project_id)},
         src=src_url,
         style={
             "width": "100%",
@@ -79,6 +81,7 @@ def create_pdf_viewer(src_url: str = "") -> html.Iframe:
             "border": "1px solid #444",
             "borderRadius": "4px",
             "backgroundColor": "#1a1a1a",
+            "display": "block" if src_url else "none",
         },
     )
 
@@ -175,7 +178,7 @@ def paginate_projects(projects: list[dict[str, Any]], page: int, page_size: int 
     
     return active_page, projects[start_idx:end_idx]
 
-def create_project_accordion_item(project: dict[str, Any]) -> dbc.AccordionItem:
+def create_project_accordion_item(project: dict[str, Any], user_id: str | int = "default") -> dbc.AccordionItem:
     """Render a single project as an accordion item."""
     project_id = project.get("id") or "0"
     name = project.get("name") or "Unnamed Project"
@@ -236,16 +239,19 @@ def create_project_accordion_item(project: dict[str, Any]) -> dbc.AccordionItem:
         className="mb-3"
     )
     
-    existing_pdfs = project.get("existing_pdfs", [])
-    user_id = project.get("user_id", "default")
+    existing_pdfs = project.get("existing_pdfs")
+    if existing_pdfs is None:
+        user_id = project.get("user_id", user_id)
+        from stashstats.storage import list_project_pdfs, DEFAULT_DATA_DIR
+        existing_pdfs = list_project_pdfs(user_id, str(project_id), base_dir=DEFAULT_DATA_DIR)
     
     pdf_section = html.Div(
         [
             html.H6("PDF Attachments", className="mb-2"),
             create_pdf_upload_zone(project_id),
-            html.Div(className="mt-2 mb-3"),
-            html.Div(create_pdf_file_list(existing_pdfs, project_id, user_id)),
-            create_pdf_viewer(),
+            html.Div(id={"type": "project-pdf-error", "index": str(project_id)}, className="text-danger small mt-1"),
+            html.Div(create_pdf_file_list(existing_pdfs, project_id, user_id), id={"type": "project-pdf-list", "index": str(project_id)}),
+            create_pdf_viewer(project_id),
         ]
     )
     
@@ -256,7 +262,7 @@ def create_project_accordion_item(project: dict[str, Any]) -> dbc.AccordionItem:
     )
 
 
-def create_grouped_projects_accordion(projects: list[dict[str, Any]]) -> Any:
+def create_grouped_projects_accordion(projects: list[dict[str, Any]], user_id: str | int = "default") -> Any:
     """Wrap a list of projects into an accordion layout."""
     if not projects:
         return html.Div(
@@ -269,7 +275,7 @@ def create_grouped_projects_accordion(projects: list[dict[str, Any]]) -> Any:
         
     items = []
     for p in projects:
-        items.append(create_project_accordion_item(p))
+        items.append(create_project_accordion_item(p, user_id=user_id))
         
     return dbc.Accordion(
         items,

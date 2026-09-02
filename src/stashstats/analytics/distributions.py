@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 from stashstats.models.stash import StashItem
 
 
+# start snippet category-distribution
 class CategoryDistribution(BaseModel):
     """Aggregation metrics for a category dimension (yarn weight, fiber, brand, color)."""
 
@@ -32,6 +33,7 @@ class CategoryDistribution(BaseModel):
 
     percentage_count: float = 0.0
     """Share of overall stash item count (0.0 - 100.0)."""
+# end snippet category-distribution
 
 
 class StashDistributionSummary(BaseModel):

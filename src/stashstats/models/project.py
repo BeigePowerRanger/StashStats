@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from stashstats.models.common import Paginator, Photo
 from stashstats.models.stash import Pack
 
+# start snippet project-model
 class ProjectListResult(BaseModel):
     """Summary project record returned in GET /people/{username}/projects/list.json."""
 
@@ -50,6 +51,7 @@ class ProjectListResult(BaseModel):
             return int(v)
         except (ValueError, TypeError):
             return 0
+# end snippet project-model
 
 
 class Project(ProjectListResult):

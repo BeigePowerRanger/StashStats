@@ -20,6 +20,7 @@ PROJECT_ROOT = Path(__file__).resolve().parents[3]
 DEFAULT_ASSETS_FOLDER = str(PROJECT_ROOT / "assets")
 
 
+# start snippet app-factory
 def create_app(
     client: RavelryClient | None = None,
     title: str = "StashStats",
@@ -58,6 +59,7 @@ def create_app(
         suppress_callback_exceptions=suppress_callback_exceptions,
         **dash_kwargs,
     )
+# end snippet app-factory
 
     from stashstats.auth import account_manager  # noqa: PLC0415
 

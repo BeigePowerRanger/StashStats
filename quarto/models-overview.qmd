@@ -1,0 +1,82 @@
+---
+title: Domain Models Overview
+created: 2026-09-01
+updated: 2026-09-01
+type: module
+tags:
+  - stashstats
+aliases:
+  - Domain Models
+  - Models Overview
+  - StashStats Models
+---
+
+# Domain Models Overview
+
+*Navigation: [[index|← StashStats Index]] / [[architecture|System Architecture]] / Domain Models Overview*
+
+StashStats implements a comprehensive schema of Pydantic V2 models to validate incoming JSON structures, coerce data types, and normalize nested Ravelry entities.
+
+## Model Hierarchy
+
+```mermaid
+classDiagram
+    class StashItem {
+        +int id
+        +str name
+        +str colorway_name
+        +Pack primary_pack
+        +list~Pack~ packs
+        +float total_yards
+        +float total_grams
+    }
+
+    class Pack {
+        +int id
+        +int stash_id
+        +str colorway
+        +float skeins
+        +float total_yards
+    }
+
+    class Yarn {
+        +int id
+        +str name
+        +YarnWeight yarn_weight
+        +list~Colorway~ colorways
+    }
+
+    class YarnWeight {
+        +int id
+        +str name
+        +str ply
+        +str wpi
+    }
+
+    class ProjectListResult {
+        +int id
+        +str name
+        +str status_name
+        +int progress
+    }
+
+    StashItem "1" *-- "*" Pack : contains
+    StashItem "1" o-- "1" Yarn : references
+    Yarn "1" o-- "1" YarnWeight : classified by
+```
+
+## Validation & Normalization
+
+All models enforce strict non-negative constraints on measurements (grams, yards, meters, skeins) and use `@model_validator(mode="after")` to backfill aggregated fields from underlying packs.
+
+## Domain Model Submodules
+
+- **Stash Models**: [[models-stash|Stash Domain Models]] — `StashItem`, `Pack`, `StashStatus`.
+- **Yarn Models**: [[models-yarn|Yarn Domain Models]] — `Yarn`, `YarnWeight`, `Colorway`.
+- **Project Models**: [[models-project|Project Domain Models]] — `ProjectListResult`, `Project`.
+
+## Integration Links
+
+- **Client Suite**: [[client-overview|API Client Architecture]]
+- **Analytics Engine**: [[analytics-overview|Analytics Engine Overview]]
+- **Architecture**: [[architecture|System Architecture]]

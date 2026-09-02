@@ -9,6 +9,7 @@ Dash-based web app. Search, track, manage personal [[Yarn Stash|yarn stash]] via
 
 ---
 
+- [ ] #TODO delete entry doesn't work 
 ## TODOs
 
 - [ ] #TODO the typing library is deprecated now :( we're supposed to use dict and list mostly normal built in objects instead of special objects

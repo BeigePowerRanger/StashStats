@@ -16,6 +16,7 @@ from stashstats.models import CurrentUserResponse
 logger = logging.getLogger("stashstats.client")
 
 
+# start snippet client-init
 class RavelryClient(
     BaseAPIClient,
     YarnClientMixin,
@@ -43,6 +44,7 @@ class RavelryClient(
         self._cached_username = res.user.username
         logger.info(f"Authenticated as @{res.user.username}")
         return res
+# end snippet client-init
 
     # Extra pattern, favorite, queue helpers for scripts/testing compatibility
     def search_patterns(self, query: str = "", **kwargs: Any) -> Any:

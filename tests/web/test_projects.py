@@ -69,22 +69,22 @@ class TestCreatePdfFileList:
 class TestCreatePdfViewer:
     def test_returns_iframe(self):
         from dash import html
-        result = create_pdf_viewer()
+        result = create_pdf_viewer("proj1")
         assert isinstance(result, html.Iframe)
 
     def test_default_src_is_empty(self):
         from dash import html
-        result = create_pdf_viewer()
+        result = create_pdf_viewer("proj1")
         assert result.src == ""
 
     def test_custom_src_set(self):
         from dash import html
-        result = create_pdf_viewer("/projects/pdf/alice/proj1/file.pdf")
+        result = create_pdf_viewer("proj1", "/projects/pdf/alice/proj1/file.pdf")
         assert result.src == "/projects/pdf/alice/proj1/file.pdf"
 
     def test_has_width_100_percent(self):
         from dash import html
-        result = create_pdf_viewer()
+        result = create_pdf_viewer("proj1")
         assert result.style.get("width") == "100%"
 
 

@@ -1,0 +1,40 @@
+---
+title: Yarn Domain Models
+created: 2026-09-01
+updated: 2026-09-01
+type: model
+tags:
+  - stashstats
+aliases:
+  - Yarn Models
+  - Yarn Model
+  - YarnWeight Model
+---
+
+# Yarn Domain Models
+
+*Navigation: [[index|← StashStats Index]] / [[models-overview|Domain Models]] / Yarn Domain Models*
+*Siblings: [[models-stash|Stash Models]] · [[models-project|Project Models]]*
+
+The yarn models describe standard taxonomy classifications and catalog product profiles.
+
+## Standard Yarn Weight Classification
+
+`YarnWeight` standardizes gauge, ply, and thickness categories (e.g., Fingering, DK, Worsted):
+
+```{.python include="../src/stashstats/models/yarn.py" snippet="yarn-weight-model"}
+```
+
+## Catalog Yarn Profile
+
+`Yarn` captures complete manufacturer details, rating statistics, fiber breakdowns, and photo galleries:
+
+```{.python include="../src/stashstats/models/yarn.py" snippet="yarn-model"}
+```
+
+## Related Models & Modules
+
+- **Client Layer**: [[client-yarn|Yarn Client Operations]]
+- **Domain Inventory**: [[models-stash|Stash Domain Models]]
+- **Analytics**: [[analytics-distributions|Categorical Distributions]] (Weight and fiber grouping)
+- **Domain Overview**: [[models-overview|Domain Models Overview]]

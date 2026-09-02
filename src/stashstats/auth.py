@@ -35,6 +35,7 @@ class AuthVerificationResult(BaseModel):
     """Raw response payload or error body."""
 
 
+# start snippet auth-verifier
 class RavelryAuthVerifier(BaseModel):
     """Helper to verify Ravelry API credentials against /current_user.json."""
 
@@ -78,11 +79,13 @@ class RavelryAuthVerifier(BaseModel):
                 valid=False,
                 error=f"Network error: {e}",
             )
+# end snippet auth-verifier
 
 
 logger = logging.getLogger("stashstats.auth")
 
 
+# start snippet account-manager
 class AccountManager:
     """Manages active Ravelry account environment (dev vs prod) and client instances."""
 
@@ -153,6 +156,7 @@ class AccountManager:
         username = self.get_active_username()
         logger.info(f"Switched account to {self._active_label.upper()} (@{username})")
         return self._active_label, username
+# end snippet account-manager
 
 
 account_manager = AccountManager()

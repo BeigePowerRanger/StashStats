@@ -1,0 +1,45 @@
+---
+title: Stash Domain Models
+created: 2026-09-01
+updated: 2026-09-01
+type: model
+tags:
+  - stashstats
+aliases:
+  - Stash Models
+  - StashItem Model
+  - Pack Model
+  - StashStatus
+---
+
+# Stash Domain Models
+
+*Navigation: [[index|← StashStats Index]] / [[models-overview|Domain Models]] / Stash Domain Models*
+*Siblings: [[models-yarn|Yarn Models]] · [[models-project|Project Models]]*
+
+The stash data model represents individual user inventory items and their skein purchase allocations.
+
+## Skein Pack Model
+
+`Pack` captures specific purchase lots, dye lots, skein weights, and project assignments:
+
+```{.python include="../src/stashstats/models/stash.py" snippet="pack-model"}
+```
+
+## Stash Item Model
+
+`StashItem` is the primary inventory model returned across list and search endpoints:
+
+```{.python include="../src/stashstats/models/stash.py" snippet="stash-item-model"}
+```
+
+## Normalization Strategy
+
+When a stash entry has a single `primary_pack` but an empty `packs` array, `normalize_packs_and_quantities` automatically wraps the primary pack into the `packs` collection and copies missing yardage/gram values to top-level properties.
+
+## Cross-References & Related
+
+- **Client Operations**: [[client-stash|Stash Client Operations]]
+- **Domain Relationships**: [[models-yarn|Yarn Domain Models]]
+- **Analytics Engine**: [[analytics-distributions|Categorical Distributions]] · [[analytics-velocity|Consumption Velocity]]
+- **UI Components**: [[web-components|Reusable UI Components]] (Stash Accordion)

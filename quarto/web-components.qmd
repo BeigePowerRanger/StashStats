@@ -1,0 +1,39 @@
+---
+title: Reusable UI Components
+created: 2026-09-01
+updated: 2026-09-01
+type: module
+tags:
+  - stashstats
+aliases:
+  - UI Components
+  - Component Library
+  - Header Component
+  - Stash Accordion
+---
+
+# Reusable UI Components
+
+*Navigation: [[index|← StashStats Index]] / [[web-app|Web Application]] / Reusable UI Components*
+*Siblings: [[web-callbacks|Dash UI Callbacks]]*
+
+StashStats provides modular Bootstrap-styled UI components for clean visual structure.
+
+## Global Header Component
+
+`create_header` renders the top navbar containing branding, sync state badges, and the account switcher pill:
+
+```{.python include="../src/stashstats/web/components/header.py" snippet="header-component"}
+```
+
+## Component Library
+
+- **Header (`header.py`)**: Environment pill, user avatar, and sync status indicator. See [[auth|Authentication & Accounts]].
+- **Modals (`modal.py`, `account_modal.py`)**: Dialogs for account switching and credential validation.
+- **Analytics Charts (`analytics_charts.py`)**: Plotly figures for weight distribution, fiber pie charts, and velocity bar charts. See [[analytics-distributions|Categorical Distributions]] and [[analytics-velocity|Consumption Velocity]].
+- **Stash Accordion (`stash.py`)**: Hierarchical accordion list grouping packs under parent commercial yarns. See [[models-stash|Stash Domain Models]].
+
+## Related UI Modules
+
+- **Application Factory**: [[web-app|Web Application Factory]]
+- **Dash Callbacks**: [[web-callbacks|Dash UI Callbacks]]

@@ -1,0 +1,40 @@
+---
+title: Stash Client Operations
+created: 2026-09-01
+updated: 2026-09-01
+type: module
+tags:
+  - stashstats
+aliases:
+  - Stash Client
+  - Stash Operations
+  - StashClientMixin
+---
+
+# Stash Client Operations
+
+*Navigation: [[index|← StashStats Index]] / [[client-overview|Client Architecture]] / Stash Client Operations*
+*Siblings: [[client-yarn|Yarn Operations]] · [[client-projects|Project Operations]]*
+
+The `StashClientMixin` provides synchronous endpoints for searching public stash items and querying authenticated personal inventories.
+
+## Public Stash Search
+
+`search_stash` queries Ravelry's global stash catalog with filtering and sort parameters:
+
+```{.python include="../src/stashstats/client/stash.py" snippet="stash-search"}
+```
+
+## User Stash Retrieval
+
+`get_stash_list` fetches paginated inventory entries for a specific username:
+
+```{.python include="../src/stashstats/client/stash.py" snippet="stash-get-list"}
+```
+
+## Associated Domain Models & Analytics
+
+- **Domain Models**: [[models-stash|Stash Domain Models]] — Detailed breakdown of `StashItem` and `Pack`.
+- **Analytics**: [[analytics-distributions|Categorical Distributions]] and [[analytics-velocity|Consumption Velocity]].
+- **Client Base**: [[client-overview|API Client Architecture]].
+- **UI Callbacks**: [[web-callbacks|Dash Callbacks]] — Stash table rendering and search callbacks.

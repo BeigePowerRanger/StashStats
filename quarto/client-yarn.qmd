@@ -1,0 +1,37 @@
+---
+title: Yarn Client Operations
+created: 2026-09-01
+updated: 2026-09-01
+type: module
+tags:
+  - stashstats
+aliases:
+  - Yarn Client
+  - Yarn Operations
+  - YarnClientMixin
+---
+
+# Yarn Client Operations
+
+*Navigation: [[index|← StashStats Index]] / [[client-overview|Client Architecture]] / Yarn Client Operations*
+*Siblings: [[client-stash|Stash Operations]] · [[client-projects|Project Operations]]*
+
+The `YarnClientMixin` handles queries against the official Ravelry yarn database, including search lookups, fiber categories, and standard weight tables.
+
+## Yarn Catalog Search
+
+`search_yarns` enables keyword searching across commercial and indie yarn lines:
+
+```{.python include="../src/stashstats/client/yarn.py" snippet="yarn-search"}
+```
+
+## Reference Data Caching
+
+Yarn queries utilize the local SQLite reference database and Redis cache layer to avoid repeated API requests for static yarn metadata.
+
+## Related Topics & Models
+
+- **Domain Models**: [[models-yarn|Yarn Domain Models]] (`Yarn`, `YarnWeight`, `Colorway`).
+- **Stash Models**: [[models-stash|Stash Domain Models]] — Inventory items referencing catalog yarns.
+- **Client Base**: [[client-overview|API Client Architecture]].
+- **Analytics**: [[analytics-distributions|Categorical Distributions]].

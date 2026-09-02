@@ -67,3 +67,8 @@ Brainstorm.md
 # Syncthing conflict files
 *sync-conflict*
 .*sync-conflict*
+
+# Quarto
+.quarto/
+quarto/_test_output/
+

@@ -26,6 +26,7 @@ StashSort = Literal["best", "rating", "projects", "created_", "yarn_name"]
 class StashClientMixin:
     """Mixin providing stash inventory management, searches, and pack operations."""
 
+    # start snippet stash-search
     def search_stash(
         self: BaseAPIClient | Any,
         query: str = "",
@@ -53,7 +54,9 @@ class StashClientMixin:
         }
         data = self.get("/stash/search.json", params=params)
         return StashSearchResponse.model_validate(data)
+    # end snippet stash-search
 
+    # start snippet stash-get-list
     def get_stash_list(
         self: BaseAPIClient | Any,
         username: str,
@@ -89,6 +92,7 @@ class StashClientMixin:
         }
         data = self.get(f"/people/{username}/stash/list.json", params=params)
         return StashListResponse.model_validate(data)
+    # end snippet stash-get-list
 
     def get_stash_items(
         self: BaseAPIClient | Any,

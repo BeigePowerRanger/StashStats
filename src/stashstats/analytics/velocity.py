@@ -16,6 +16,7 @@ from stashstats.models.history import StashHistory
 from stashstats.models.stash import StashItem
 
 
+# start snippet velocity-calculator
 class StashVelocityCalculator:
     """Computes delta events, periodic rollups, and rolling velocities from stash histories."""
 
@@ -34,6 +35,7 @@ class StashVelocityCalculator:
         Returns:
             Sorted list of StashDeltaEvent instances.
         """
+# end snippet velocity-calculator
         all_events: list[StashDeltaEvent] = []
         covered_stash_ids: set[int] = set()
 

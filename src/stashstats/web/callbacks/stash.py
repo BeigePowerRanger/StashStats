@@ -16,6 +16,7 @@ from stashstats.web.components.stash import (
 logger = logging.getLogger("stashstats.web.stash")
 
 
+# start snippet stash-callback-logic
 def update_stash_view_logic(
     search_query: str | None,
     sort_by: str | None,
@@ -46,6 +47,7 @@ def update_stash_view_logic(
     info_text = f"Showing page {clamped_page} of {total_pages} ({len(filtered)} parent yarns)"
 
     return accordion, total_pages, clamped_page, info_text
+# end snippet stash-callback-logic
 
 
 def handle_stash_sync_logic(

@@ -1,0 +1,38 @@
+---
+title: Dash UI Callbacks
+created: 2026-09-01
+updated: 2026-09-01
+type: module
+tags:
+  - stashstats
+aliases:
+  - Web Callbacks
+  - Dash Callbacks
+  - Callback Handlers
+---
+
+# Dash UI Callbacks
+
+*Navigation: [[index|← StashStats Index]] / [[web-app|Web Application]] / Dash UI Callbacks*
+*Siblings: [[web-components|Reusable UI Components]]*
+
+Dash callbacks handle asynchronous user interactions, filtering, search triggers, and account toggling.
+
+## Stash Filtering & Pagination Callback
+
+`update_stash_view_logic` processes search inputs, sort criteria, and page changes to re-render the accordion view:
+
+```{.python include="../src/stashstats/web/callbacks/stash.py" snippet="stash-callback-logic"}
+```
+
+## Callback Modules
+
+- **`web.callbacks.stash`**: Stash search, sorting, and manual yarn additions. See [[client-stash|Stash Client Operations]].
+- **`web.callbacks.analytics`**: Chart dimension toggles and timeframe filtering. See [[analytics-overview|Analytics Engine Overview]].
+- **`web.callbacks.auth`**: Real-time account switching (`dev` ↔ `prod`) and credential validation modal. See [[auth|Authentication & Accounts]].
+- **`web.callbacks.projects`**: Project status updates and photo previews. See [[client-projects|Project Client Operations]].
+
+## Related UI Topics
+
+- **Application Factory**: [[web-app|Web Application Factory]]
+- **UI Components**: [[web-components|Reusable UI Components]]

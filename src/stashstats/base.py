@@ -12,6 +12,7 @@ from stashstats.exceptions import raise_for_status_code
 logger = logging.getLogger("stashstats.base")
 
 
+# start snippet base-client
 class BaseAPIClient(BaseModel):
     """Base synchronous HTTP client for handling requests to the Ravelry API."""
 
@@ -59,6 +60,7 @@ class BaseAPIClient(BaseModel):
             headers=self.default_headers,
             timeout=self.settings.timeout_seconds,
         )
+# end snippet base-client
 
 
         if self._client is not None and not self._client.is_closed:

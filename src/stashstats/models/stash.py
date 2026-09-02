@@ -16,6 +16,7 @@ class StashStatus(BaseModel):
     """Status label (e.g. 'In stash', 'Used up', 'Will trade')."""
 
 
+# start snippet pack-model
 class Pack(BaseModel):
     """Skein allocation and purchase record for a stash or project item."""
 
@@ -75,6 +76,7 @@ class Pack(BaseModel):
 
     purchased_date: str | None = None
     """Date purchased (YYYY-MM-DD) if entered by user."""
+# end snippet pack-model
 
 
 class StashYarn(BaseModel):
@@ -114,6 +116,7 @@ class StashYarn(BaseModel):
     """Gallery photos of the commercial yarn."""
 
 
+# start snippet stash-item-model
 class StashItem(BaseModel):
     """The standard Ravelry 'Stash (list)' data model.
 
@@ -139,8 +142,35 @@ class StashItem(BaseModel):
     dye_lot: str | None = None
     """Dye lot string from ball band."""
 
+    has_photo: bool = False
+    """Whether user uploaded photos of their stash item."""
+
+    stash_status: StashStatus | None = None
+    """Current inventory status classification."""
+
     location: str | None = None
-    """Physical storage location description."""
+    """Storage location description."""
+
+    yarn: StashYarn | None = None
+    """Associated commercial yarn profile."""
+
+    yarn_id: int | None = None
+    """Associated commercial yarn database ID."""
+
+    yarn_weight: YarnWeight | None = None
+    """Standard yarn weight classification."""
+
+    long_yarn_weight_name: str | None = None
+    """Verbose weight label."""
+
+    yarn_company_name: str | None = None
+    """Manufacturer/brand name."""
+
+    primary_pack: Pack | None = None
+    """Primary skein and purchase pack."""
+
+    packs: list[Pack] = Field(default_factory=list)
+    """Allocated skein and purchase packs."""
 
     comments_count: int = 0
     """Number of comments on this stash entry."""
@@ -150,9 +180,6 @@ class StashItem(BaseModel):
 
     handspun: bool = False
     """Whether the yarn is handspun fiber."""
-
-    has_photo: bool = False
-    """Whether user uploaded photos for this stash item."""
 
     created_at: str | None = None
     """Record creation timestamp string."""
@@ -166,23 +193,8 @@ class StashItem(BaseModel):
     yarn_weight_name: str | None = None
     """Name of the yarn weight (e.g. 'Worsted', 'Fingering')."""
 
-    long_yarn_weight_name: str | None = None
-    """Expanded description of the yarn weight."""
-
     personal_yarn_weight: YarnWeight | None = None
     """User-specified yarn weight if not linked to a database yarn."""
-
-    stash_status: StashStatus | None = None
-    """Active status (e.g. 'In stash', 'Used up')."""
-
-    yarn: StashYarn | None = None
-    """Associated commercial yarn profile."""
-
-    primary_pack: Pack | None = None
-    """Primary skein and purchase pack."""
-
-    packs: list[Pack] = Field(default_factory=list)
-    """Allocated skein and purchase packs."""
 
     skeins: float | None = Field(default=None, ge=0)
     """Top-level or computed total skein count."""
@@ -225,6 +237,7 @@ class StashItem(BaseModel):
             if not self.dye_lot and self.primary_pack.dye_lot:
                 self.dye_lot = self.primary_pack.dye_lot
         return self
+# end snippet stash-item-model
 
     @field_validator("has_photo", mode="before")
     @classmethod

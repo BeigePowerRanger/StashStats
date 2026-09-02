@@ -1,0 +1,33 @@
+---
+title: Project Client Operations
+created: 2026-09-01
+updated: 2026-09-01
+type: module
+tags:
+  - stashstats
+aliases:
+  - Project Client
+  - Project Operations
+  - ProjectClientMixin
+---
+
+# Project Client Operations
+
+*Navigation: [[index|← StashStats Index]] / [[client-overview|Client Architecture]] / Project Client Operations*
+*Siblings: [[client-stash|Stash Operations]] · [[client-yarn|Yarn Operations]]*
+
+The `ProjectClientMixin` interfaces with Ravelry's user project listings and progress tracking endpoints.
+
+## User Project Listing
+
+`list_projects` retrieves paginated project summaries with filters for craft type and status:
+
+```{.python include="../src/stashstats/client/projects.py" snippet="project-list"}
+```
+
+## Related Models & Analytics
+
+- **Domain Models**: [[models-project|Project Domain Models]] (`ProjectListResult`, `Project`).
+- **Analytics**: [[analytics-projects|Project Analytics]] — Analysis of completion rates and fiber usage.
+- **Client Base**: [[client-overview|API Client Architecture]].
+- **Domain Overview**: [[models-overview|Domain Models Overview]].
