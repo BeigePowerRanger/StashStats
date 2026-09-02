@@ -232,36 +232,67 @@ def register_projects_callbacks(app: dash.Dash) -> None:
         user_data: dict | None,
     ) -> tuple[Any, int, int]:
         user_id = (user_data or {}).get("user_id", "default")
-        from stashstats.web.components.projects import (
-            filter_projects,
-            sort_projects,
-            paginate_projects,
-            create_grouped_projects_accordion
+        return update_projects_view_logic(
+            raw_projects=raw_projects,
+            search_query=search_query,
+            sort_by=sort_by,
+            active_page=active_page,
+            user_id=user_id,
         )
-        import math
-        
-        projects = raw_projects or []
-        
-        # Filter
-        if search_query:
-            projects = filter_projects(projects, search_query)
-        
-        # Sort
-        projects = sort_projects(projects, sort_by or "date_desc")
-        
-        # Paginate
-        page = active_page or 1
-        page_size = 10
-        total_pages = max(1, math.ceil(len(projects) / page_size))
-        
-        # Clamp active page
-        page = max(1, min(page, total_pages))
-        
-        _, paged_projects = paginate_projects(projects, page, page_size)
-        
-        accordion = create_grouped_projects_accordion(paged_projects, user_id=user_id)
-        
-        return accordion, total_pages, page
+
+
+def update_projects_view_logic(
+    raw_projects: list[dict[str, Any]] | None,
+    search_query: str | None = None,
+    sort_by: str | None = "date_desc",
+    active_page: int | None = 1,
+    user_id: str = "default",
+    page_size: int = 10,
+) -> tuple[Any, int, int]:
+    """Filter, sort, paginate projects and render accordion component.
+
+    Args:
+        raw_projects: List of project dicts from store.
+        search_query: Search string to filter projects.
+        sort_by: Sort criterion (e.g. 'date_desc', 'name_asc', etc.).
+        active_page: Current page number (1-based).
+        user_id: User identifier.
+        page_size: Number of projects per page (default 10).
+
+    Returns:
+        Tuple of (accordion_component, total_pages, clamped_active_page).
+    """
+    import math
+
+    from stashstats.web.components.projects import (
+        create_grouped_projects_accordion,
+        filter_projects,
+        paginate_projects,
+        sort_projects,
+    )
+
+    projects = raw_projects or []
+
+    # Filter
+    if search_query:
+        projects = filter_projects(projects, search_query)
+
+    # Sort
+    projects = sort_projects(projects, sort_by or "date_desc")
+
+    # Paginate
+    page = active_page or 1
+    total_pages = max(1, math.ceil(len(projects) / page_size))
+
+    # Clamp active page
+    page = max(1, min(page, total_pages))
+
+    _, paged_projects = paginate_projects(projects, page, page_size)
+
+    accordion = create_grouped_projects_accordion(paged_projects, user_id=user_id)
+
+    return accordion, total_pages, page
+
 
 
 def handle_projects_sync_logic(

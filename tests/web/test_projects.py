@@ -413,3 +413,67 @@ class TestCreateGroupedProjectsAccordion:
         # It should return an empty state component (like a Div containing text or alert)
         assert not isinstance(result, dbc.Accordion)
 
+
+# ---------------------------------------------------------------------------
+# Logic: update_projects_view_logic
+# ---------------------------------------------------------------------------
+
+
+class TestUpdateProjectsViewLogic:
+    @pytest.fixture
+    def sample_projects(self):
+        return [
+            {"id": 1, "name": "Blue Scarf", "started": "2023-01-01", "created_at": "2023-01-01", "progress": 10, "status_name": "In progress"},
+            {"id": 2, "name": "Red Hat", "started": "2023-03-01", "created_at": "2023-03-01", "progress": 100, "status_name": "Finished"},
+            {"id": 3, "name": "Blue Socks", "started": "2023-02-01", "created_at": "2023-02-01", "progress": 50, "status_name": "In progress"},
+            {"id": 4, "name": "Green Mittens", "started": "2023-04-01", "created_at": "2023-04-01", "progress": 0, "status_name": "Hibernating"},
+            {"id": 5, "name": "Yellow Shawl", "started": "2023-05-01", "created_at": "2023-05-01", "progress": 80, "status_name": "In progress"},
+        ]
+
+    def test_empty_projects(self):
+        from stashstats.web.callbacks.projects import update_projects_view_logic
+        accordion, total_pages, page = update_projects_view_logic(None)
+        assert total_pages == 1
+        assert page == 1
+        assert accordion is not None
+
+    def test_filter_and_sort(self, sample_projects):
+        from stashstats.web.callbacks.projects import update_projects_view_logic
+        accordion, total_pages, page = update_projects_view_logic(
+            raw_projects=sample_projects,
+            search_query="blue",
+            sort_by="name_asc",
+            active_page=1,
+            page_size=10,
+        )
+        assert total_pages == 1
+        assert page == 1
+        assert len(accordion.children) == 2
+        assert "Blue Scarf" in str(accordion.children[0].title)
+        assert "Blue Socks" in str(accordion.children[1].title)
+
+    def test_pagination_and_clamping(self, sample_projects):
+        from stashstats.web.callbacks.projects import update_projects_view_logic
+        accordion, total_pages, page = update_projects_view_logic(
+            raw_projects=sample_projects,
+            search_query="",
+            sort_by="date_desc",
+            active_page=10,
+            page_size=2,
+        )
+        assert total_pages == 3
+        assert page == 3
+        assert len(accordion.children) == 1
+
+    def test_page_clamped_to_minimum(self, sample_projects):
+        from stashstats.web.callbacks.projects import update_projects_view_logic
+        accordion, total_pages, page = update_projects_view_logic(
+            raw_projects=sample_projects,
+            active_page=0,
+            page_size=2,
+        )
+        assert total_pages == 3
+        assert page == 1
+        assert len(accordion.children) == 2
+
+
