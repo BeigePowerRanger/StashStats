@@ -1,6 +1,6 @@
 # Implementation Plan: Projects Tab Accordion Layout Refactor
 
-## Phase 1: Project Filtering, Sorting, and Pagination Core Engine (TDD)
+## Phase 1: Project Filtering, Sorting, and Pagination Core Engine (TDD) [checkpoint: 55d07ac]
 - [x] Task: Write unit tests for project filtering, sorting, and pagination [e5c41f2]
   - [x] Write unit tests for `filter_projects` with search queries matching name, pattern, craft, status, and tags in `tests/web/test_projects.py`
   - [x] Write unit tests for `sort_projects` with `date_desc`, `name_asc`, `progress_desc`, and `status_asc`
@@ -9,9 +9,9 @@
   - [x] Implement `filter_projects` in `src/stashstats/web/components/projects.py`
   - [x] Implement `sort_projects` in `src/stashstats/web/components/projects.py`
   - [x] Implement `paginate_projects` in `src/stashstats/web/components/projects.py`
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [55d07ac]
 
-## Phase 2: Project Accordion UI Components & Layout Construction (TDD)
+## Phase 2: Project Accordion UI Components & Layout Construction (TDD) [checkpoint: 55d07ac]
 - [x] Task: Write unit tests for project accordion UI components and controls [55f55d8]
   - [x] Write tests for `create_project_accordion_item` validating header content (photo, title, badges) and body content (progress bar, metadata, PDF section)
   - [x] Write tests for `create_grouped_projects_accordion` handling empty list and populated list
@@ -19,7 +19,7 @@
 - [x] Task: Implement accordion components and updated layout [55f55d8]
   - [x] Implement `create_project_accordion_item` and `create_grouped_projects_accordion` in `src/stashstats/web/components/projects.py`
   - [x] Update `src/stashstats/web/layouts/projects.py` to structure the layout with search bar, sort dropdown, accordion container, and pagination
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [55d07ac]
 
 ## Phase 3: Reactive View Callbacks & PDF Integration (TDD)
 - [ ] Task: Write unit tests for reactive project view callbacks
