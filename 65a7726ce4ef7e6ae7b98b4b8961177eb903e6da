@@ -1,0 +1,2 @@
+Task: Phase 3 Checkpoint
+Verification: Automated tests passed (46/46) via docker compose exec -e CI=true -T app pytest tests/web/test_projects.py. Manual verification of reactive UI callbacks (search/sort/paginate) and PDF integration confirmed by user.
