@@ -254,6 +254,40 @@ def create_yarn_search_details(
                     ),
                     dbc.Col(
                         [
+                            dbc.Label("Grams / Skein"),
+                            dbc.Input(
+                                type="number",
+                                id={"type": "stash-grams-per-skein", "index": yarn_id},
+                                value=yarn.grams,
+                                placeholder="Grams",
+                                min=0,
+                                step=0.1,
+                                style=DARK_INPUT_STYLE,
+                            ),
+                        ],
+                        xs=12,
+                        sm=3,
+                        className="mb-2 mb-sm-0",
+                    ),
+                    dbc.Col(
+                        [
+                            dbc.Label("Yards / Skein"),
+                            dbc.Input(
+                                type="number",
+                                id={"type": "stash-yards-per-skein", "index": yarn_id},
+                                value=yarn.yardage,
+                                placeholder="Yards",
+                                min=0,
+                                step=0.1,
+                                style=DARK_INPUT_STYLE,
+                            ),
+                        ],
+                        xs=12,
+                        sm=3,
+                        className="mb-2 mb-sm-0",
+                    ),
+                    dbc.Col(
+                        [
                             dbc.Label("Custom Colorway"),
                             dbc.Input(
                                 type="text",
