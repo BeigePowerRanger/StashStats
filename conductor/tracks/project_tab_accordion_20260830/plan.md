@@ -21,14 +21,14 @@
   - [x] Update `src/stashstats/web/layouts/projects.py` to structure the layout with search bar, sort dropdown, accordion container, and pagination
 - [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [55d07ac]
 
-## Phase 3: Reactive View Callbacks & PDF Integration (TDD)
-- [ ] Task: Write unit tests for reactive project view callbacks
-  - [ ] Write tests for `update_projects_view_logic` handling search, sort, page change, and store updates
-  - [ ] Write tests ensuring PDF upload, delete, and view button callbacks resolve correctly with accordion item structures
-- [ ] Task: Implement reactive callbacks and integrate with PDF handlers
-  - [ ] Implement `update_projects_view_logic` and callback registration in `src/stashstats/web/callbacks/projects.py`
-  - [ ] Verify PDF action callbacks (`handle_pdf_upload`, `handle_pdf_delete`, `handle_pdf_view`) and sync callback work seamlessly
-- [ ] Task: Phase Verification & Checkpoint (Refer to workflow.md)
+## Phase 3: Reactive View Callbacks & PDF Integration (TDD) [checkpoint: 65a7726]
+- [x] Task: Write unit tests for reactive project view callbacks [65a7726]
+  - [x] Write tests for `update_projects_view_logic` handling search, sort, page change, and store updates
+  - [x] Write tests ensuring PDF upload, delete, and view button callbacks resolve correctly with accordion item structures
+- [x] Task: Implement reactive callbacks and integrate with PDF handlers [65a7726]
+  - [x] Implement `update_projects_view_logic` and callback registration in `src/stashstats/web/callbacks/projects.py`
+  - [x] Verify PDF action callbacks (`handle_pdf_upload`, `handle_pdf_delete`, `handle_pdf_view`) and sync callback work seamlessly
+- [x] Task: Phase Verification & Checkpoint (Refer to workflow.md) [65a7726]
 
 ## Phase 4: Full System Verification & Coverage
 - [ ] Task: Comprehensive test execution and code quality validation
