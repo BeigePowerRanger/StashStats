@@ -22,7 +22,7 @@ class AppDataClientMixin:
         """Retrieve stored user key/value pairs from Ravelry app data storage.
 
         Args:
-            keys: List of string keys to retrieve.
+            keys: list of string keys to retrieve.
 
         Returns:
             Dictionary of stored key/value pairs.
@@ -53,7 +53,7 @@ class AppDataClientMixin:
         """Delete stored key/value entries from Ravelry app data storage.
 
         Args:
-            keys: List of string keys to delete.
+            keys: list of string keys to delete.
 
         Returns:
             Dictionary containing previous contents of deleted keys.
@@ -171,7 +171,7 @@ class AppDataClientMixin:
         """Retrieve quantity histories for multiple stash items in a single request.
 
         Args:
-            stash_ids: List of stash item IDs to look up.
+            stash_ids: list of stash item IDs to look up.
             user_id: Optional user identifier for namespaced history.
 
         Returns:

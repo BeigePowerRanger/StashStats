@@ -30,7 +30,7 @@ class StashVelocityCalculator:
 
         Args:
             histories: Mapping of stash_id to StashHistory container or list of entries.
-            stash_items: Optional list of StashItem records to synthesize baseline events when histories are missing.
+            stash_items: optional list of StashItem records to synthesize baseline events when histories are missing.
 
         Returns:
             Sorted list of StashDeltaEvent instances.
@@ -257,11 +257,11 @@ class StashVelocityCalculator:
         """Aggregate delta events into periodic calendar intervals (monthly or yearly).
 
         Args:
-            events: List of StashDeltaEvent instances.
+            events: list of StashDeltaEvent instances.
             granularity: 'monthly' (YYYY-MM) or 'yearly' (YYYY).
 
         Returns:
-            List of PeriodicRollup summaries sorted chronologically.
+            list of PeriodicRollup summaries sorted chronologically.
         """
         grouped_events: dict[str, list[StashDeltaEvent]] = defaultdict(list)
 
@@ -306,7 +306,7 @@ class StashVelocityCalculator:
         """Calculate consumption velocity across a trailing N-day window.
 
         Args:
-            events: List of StashDeltaEvent instances.
+            events: list of StashDeltaEvent instances.
             window_days: Window duration in days (e.g., 30, 90, 365).
             as_of: Benchmark date for trailing window (defaults to now in UTC).
 
@@ -402,7 +402,7 @@ class StashVelocityCalculator:
         """Generate composite stash flow and consumption velocity report.
 
         Args:
-            stash_items: List of active user stash items.
+            stash_items: list of active user stash items.
             histories: Mapping of stash item IDs to quantity histories.
             as_of: Benchmark date for trailing velocity (defaults to now in UTC).
 

@@ -30,7 +30,7 @@ def create_stash_layout(
     """Create the Personal Stash interface layout.
 
     Args:
-        items: Optional list of StashItem objects or dictionary payloads.
+        items: optional list of StashItem objects or dictionary payloads.
         sync_status: Status string for the sync status badge.
         pending_count: Count of pending changes.
         last_synced: Timestamp of last successful sync.

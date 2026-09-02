@@ -24,7 +24,7 @@ def create_yarn_search_layout(
     """Create the Yarn Search interface layout.
 
     Args:
-        yarns: Optional list of YarnSearchResult objects or dict payloads.
+        yarns: optional list of YarnSearchResult objects or dict payloads.
         page: Current active page number (1-indexed).
         total_pages: Total number of pages available.
         total_results: Total count of matched yarns.

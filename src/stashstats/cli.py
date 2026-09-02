@@ -87,7 +87,7 @@ def run_server(
         debug: Whether to run Dash with debug mode.
         dev: Whether to enable Dash dev tools UI.
         open_browser: Whether to open default browser automatically.
-        client: Optional pre-configured RavelryClient instance.
+        client: optional pre-configured RavelryClient instance.
     """
     # Attempt to initialize client if not provided
     if client is None:

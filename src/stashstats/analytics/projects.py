@@ -51,12 +51,12 @@ class StashProjectUsageCalculator:
         """Match project yarn allocations, packs, and usage ledger entries to stash items.
 
         Args:
-            stash_items: List of user's StashItem records.
-            projects: Optional list of user's Project records with packs.
+            stash_items: list of user's StashItem records.
+            projects: optional list of user's Project records with packs.
             histories: Optional mapping of stash_id to history ledger records or list of entries.
 
         Returns:
-            List of ProjectUsageRecord correlation objects.
+            list of ProjectUsageRecord correlation objects.
         """
         normalized_stash: list[StashItem] = [
             _normalize_stash_item(item) for item in (stash_items or [])
@@ -352,7 +352,7 @@ class StashProjectUsageCalculator:
         """Aggregate total project-level consumption metrics across usage records.
 
         Args:
-            records: List of ProjectUsageRecord correlation objects.
+            records: list of ProjectUsageRecord correlation objects.
 
         Returns:
             ProjectConsumptionSummary containing totals and project counts.
@@ -385,9 +385,9 @@ class StashProjectUsageCalculator:
 
         Args:
             stash_id: Unique stash item database ID.
-            records: List of ProjectUsageRecord objects.
+            records: list of ProjectUsageRecord objects.
 
         Returns:
-            List of ProjectUsageRecord entries linked to the given stash item.
+            list of ProjectUsageRecord entries linked to the given stash item.
         """
         return [r for r in records if r.stash_id == stash_id]

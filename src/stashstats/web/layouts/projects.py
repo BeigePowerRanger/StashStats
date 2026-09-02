@@ -22,7 +22,7 @@ def create_projects_layout(
     Renders a sync control bar, search/sort controls, and an accordion of projects.
 
     Args:
-        projects: Optional list of project dicts fetched from Ravelry.
+        projects: optional list of project dicts fetched from Ravelry.
         user_id: Current user identifier for scoping PDF storage.
         sync_status: Initial sync status string.
         last_synced: Timestamp string for last sync.

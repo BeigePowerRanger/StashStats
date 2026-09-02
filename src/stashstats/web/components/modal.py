@@ -350,7 +350,7 @@ def create_usage_history_table(history: list[dict[str, Any]] | None = None) -> C
     """Create table component showing past usage history and rollback actions.
 
     Args:
-        history: List of history ledger entries.
+        history: list of history ledger entries.
 
     Returns:
         dbc.Table or placeholder Div.
@@ -438,7 +438,7 @@ def create_linked_projects_table(
     """Create table component showing projects that consumed this stash yarn.
 
     Args:
-        linked_projects: List of ProjectUsageRecord or dicts.
+        linked_projects: list of ProjectUsageRecord or dicts.
 
     Returns:
         dbc.Table or placeholder Div.
@@ -526,8 +526,8 @@ def create_stash_modal(
 
     Args:
         stash_item: Optional StashItem or dict to pre-populate.
-        history: Optional list of usage history events.
-        linked_projects: Optional list of linked ProjectUsageRecord or dicts.
+        history: optional list of usage history events.
+        linked_projects: optional list of linked ProjectUsageRecord or dicts.
         is_open: Initial open state of the modal.
         modal_id: Component ID for the modal.
 

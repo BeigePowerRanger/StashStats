@@ -135,7 +135,7 @@ class StashClientMixin:
         """Fetch all pages of stash items for the authenticated or specified user.
 
         Args:
-            username: Optional username override.
+            username: optional username override.
             sort: Sort order.
             query: Optional search filter.
             yarn_id: Optional yarn ID filter.
@@ -178,7 +178,7 @@ class StashClientMixin:
 
         Args:
             stash_id: Unique stash item database ID.
-            username: Optional username override (defaults to current user).
+            username: optional username override (defaults to current user).
 
         Returns:
             Parsed StashItem record.
@@ -223,7 +223,7 @@ class StashClientMixin:
             notes: Personal stash notes.
             purchased_date: Purchase or addition date string.
             stash_status_id: 1 for active/in stash, 2 for used up, etc.
-            username: Optional username override.
+            username: optional username override.
 
         Returns:
             Parsed StashItem record for the newly created stash entry.
@@ -314,7 +314,7 @@ class StashClientMixin:
             total_grams: Total weight in grams.
             total_yards: Total length in yards.
             pack_id: Associated pack ID to update.
-            username: Optional username override.
+            username: optional username override.
 
         Returns:
             Updated StashItem record.
@@ -371,7 +371,7 @@ class StashClientMixin:
 
         Args:
             stash_id: Unique stash item database ID to remove.
-            username: Optional username override.
+            username: optional username override.
 
         Returns:
             API confirmation response.

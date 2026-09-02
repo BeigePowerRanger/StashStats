@@ -252,7 +252,7 @@ class StashListResponse(BaseModel):
     """Pagination metadata metrics."""
 
     stash: list[StashItem]
-    """List of Stash (list) records on the current page."""
+    """list of Stash (list) records on the current page."""
 
 
 class StashDetailResponse(BaseModel):
@@ -269,6 +269,6 @@ class StashSearchResponse(BaseModel):
     """Pagination metrics."""
 
     stashes: list[StashItem] = Field(default_factory=list)
-    """List of matching stash items."""
+    """list of matching stash items."""
 
 

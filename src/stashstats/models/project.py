@@ -80,7 +80,7 @@ class ProjectListResponse(BaseModel):
     """Response envelope for GET /people/{username}/projects/list.json."""
 
     projects: list[ProjectListResult] = Field(default_factory=list)
-    """List of projects on the current page."""
+    """list of projects on the current page."""
 
     paginator: Paginator
     """Pagination metadata metrics."""
@@ -122,7 +122,7 @@ class QueueListResponse(BaseModel):
     """Response envelope for GET /people/{username}/queue/list.json."""
 
     queued_projects: list[QueuedProject] = Field(default_factory=list)
-    """List of queued projects."""
+    """list of queued projects."""
 
     paginator: Paginator
     """Pagination metadata metrics."""

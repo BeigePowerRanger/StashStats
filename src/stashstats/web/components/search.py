@@ -489,7 +489,7 @@ def create_yarn_search_accordion(
     """Render the full collapsible accordion list for yarn search results.
 
     Args:
-        yarns: Optional list of YarnSearchResult objects or dicts.
+        yarns: optional list of YarnSearchResult objects or dicts.
 
     Returns:
         dbc.Accordion component with search results or empty state alert.

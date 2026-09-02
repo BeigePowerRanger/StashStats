@@ -71,10 +71,10 @@ def group_stash_items(items: list[StashItem] | list[dict[str, Any]]) -> list[Par
     """Group stash records by parent yarn (Brand + Product Name) and compute aggregate metrics.
 
     Args:
-        items: List of StashItem objects or raw dictionary payloads.
+        items: list of StashItem objects or raw dictionary payloads.
 
     Returns:
-        List of aggregated ParentYarnGroup objects.
+        list of aggregated ParentYarnGroup objects.
     """
     if not items:
         return []
@@ -169,7 +169,7 @@ def filter_stash_groups(
     """Filter parent yarn groups by brand, yarn name, or child item colorways.
 
     Args:
-        groups: List of ParentYarnGroup objects.
+        groups: list of ParentYarnGroup objects.
         query: Case-insensitive search query string.
 
     Returns:
@@ -231,7 +231,7 @@ def sort_stash_groups(
         - "date_desc": Most recent addition date descending
 
     Args:
-        groups: List of ParentYarnGroup objects.
+        groups: list of ParentYarnGroup objects.
         sort_by: Sort mode key.
 
     Returns:
@@ -262,7 +262,7 @@ def paginate_stash_groups(
     """Paginate parent yarn groups.
 
     Args:
-        groups: List of ParentYarnGroup objects.
+        groups: list of ParentYarnGroup objects.
         page: 1-indexed page number.
         page_size: Number of parent yarn groups per page (default 10).
 
@@ -509,7 +509,7 @@ def create_grouped_stash_accordion(
     """Render the full collapsible accordion container for parent yarn groups.
 
     Args:
-        groups: List of ParentYarnGroup objects to render.
+        groups: list of ParentYarnGroup objects to render.
 
     Returns:
         dbc.Accordion component or empty state Alert.

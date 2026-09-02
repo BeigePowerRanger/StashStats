@@ -69,7 +69,7 @@ def create_fiber_donut_chart(
     """Generate a donut pie chart of fiber content distribution.
 
     Args:
-        distributions: List of CategoryDistribution objects for fibers.
+        distributions: list of CategoryDistribution objects for fibers.
         unit: Quantity dimension ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
@@ -128,7 +128,7 @@ def create_weight_distribution_chart(
     """Generate a horizontal or vertical bar chart for yarn weight categories.
 
     Args:
-        distributions: List of CategoryDistribution objects for yarn weights.
+        distributions: list of CategoryDistribution objects for yarn weights.
         unit: Quantity dimension ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
@@ -228,8 +228,8 @@ def create_stash_by_time_chart(
     """Generate a timeline area chart of stash volume over continuous calendar time.
 
     Args:
-        items: Optional list of StashItem objects.
-        rollups: Optional list of PeriodicRollup summaries.
+        items: optional list of StashItem objects.
+        rollups: optional list of PeriodicRollup summaries.
         unit: Quantity dimension ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
@@ -375,7 +375,7 @@ def create_monthly_flow_chart(
     """Generate a dual-bar chart showing monthly stash acquisitions vs consumptions.
 
     Args:
-        rollups: List of PeriodicRollup summaries.
+        rollups: list of PeriodicRollup summaries.
         unit: Quantity dimension ('yards', 'meters', 'grams', 'skeins').
 
     Returns:
@@ -536,7 +536,7 @@ def create_projects_pie_chart(
     """Generate a donut pie chart of stash yarn consumption by project.
 
     Args:
-        usages: List of ProjectUsageRecord correlation objects.
+        usages: list of ProjectUsageRecord correlation objects.
         unit: Quantity dimension ('yards', 'meters', 'grams', 'skeins').
 
     Returns:

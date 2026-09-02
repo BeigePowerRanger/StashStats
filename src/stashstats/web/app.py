@@ -34,7 +34,7 @@ def create_app(
     Args:
         client: Optional authenticated RavelryClient instance.
         title: Title of the web application.
-        external_stylesheets: List of external stylesheets (defaults to DARKLY and Bootstrap Icons).
+        external_stylesheets: list of external stylesheets (defaults to DARKLY and Bootstrap Icons).
         items: Optional initial list of stash items.
         assets_folder: Optional path to static assets folder (defaults to absolute project root / assets).
         **dash_kwargs: Additional keyword arguments passed directly to `dash.Dash`.

@@ -154,7 +154,7 @@ def list_user_files(
         base_dir: Root storage base directory.
 
     Returns:
-        List of filenames contained in the user directory.
+        list of filenames contained in the user directory.
     """
     user_dir = get_user_data_dir(user_id, base_dir=base_dir)
     return [p.name for p in user_dir.iterdir() if p.is_file()]

@@ -22,7 +22,7 @@ def create_pdf_file_list(
         user_id: User identifier (not used in ID but kept for future use).
 
     Returns:
-        List of Dash component children suitable for a ``children`` prop.
+        list of Dash component children suitable for a ``children`` prop.
     """
     if not filenames:
         return [html.P("No PDFs attached.", className="text-muted small mb-0")]

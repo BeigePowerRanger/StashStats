@@ -401,7 +401,7 @@ class YarnSearchResponse(BaseModel):
     """Pagination metrics."""
 
     yarns: list[YarnSearchResult] = Field(default_factory=list)
-    """List of matching yarn search results."""
+    """list of matching yarn search results."""
 
     @field_validator("yarns", mode="before")
     @classmethod

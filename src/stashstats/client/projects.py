@@ -75,7 +75,7 @@ class ProjectClientMixin:
 
         Args:
             project_id: Unique project database ID.
-            username: Optional username override (defaults to current user).
+            username: optional username override (defaults to current user).
 
         Returns:
             ProjectDetailResponse containing detailed project record and comments.
@@ -99,7 +99,7 @@ class ProjectClientMixin:
 
         Args:
             project_data: Project data dict or model.
-            username: Optional username override.
+            username: optional username override.
             **kwargs: Extra fields for project payload.
 
         Returns:
@@ -131,7 +131,7 @@ class ProjectClientMixin:
         Args:
             project_id: Unique project database ID.
             project_data: Project update fields.
-            username: Optional username override.
+            username: optional username override.
             **kwargs: Extra fields for update.
 
         Returns:
@@ -159,7 +159,7 @@ class ProjectClientMixin:
 
         Args:
             project_id: Unique project database ID.
-            username: Optional username override.
+            username: optional username override.
 
         Returns:
             API confirmation response.
@@ -185,7 +185,7 @@ class ProjectClientMixin:
             project_id: Unique project database ID.
             image_id: Optional uploaded image ID.
             source_url: Optional source image URL.
-            username: Optional username override.
+            username: optional username override.
 
         Returns:
             API response with status token.

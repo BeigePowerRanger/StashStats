@@ -252,7 +252,7 @@ def update_projects_view_logic(
     """Filter, sort, paginate projects and render accordion component.
 
     Args:
-        raw_projects: List of project dicts from store.
+        raw_projects: list of project dicts from store.
         search_query: Search string to filter projects.
         sort_by: Sort criterion (e.g. 'date_desc', 'name_asc', etc.).
         active_page: Current page number (1-based).
