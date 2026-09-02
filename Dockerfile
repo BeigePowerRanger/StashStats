@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-slim as base
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -21,6 +21,26 @@ RUN uv venv /opt/venv
 # Install dependencies using pyproject.toml
 COPY pyproject.toml README.md ./
 COPY src/ ./src/
+
+# -------------------------
+# Test / Dev Stage
+# -------------------------
+FROM base as dev
+# Install with dev dependencies for pytest and testing
+RUN uv pip install --no-cache -e .[dev]
+
+COPY . .
+
+# Ensure data and logs directories and permissions
+RUN mkdir -p /app/data /app/logs && chmod -R 777 /app/data /app/logs /opt/venv
+
+CMD ["pytest", "tests/"]
+
+# -------------------------
+# Production Stage
+# -------------------------
+FROM base as prod
+# Install standard dependencies
 RUN uv pip install --no-cache -e .
 
 # Copy remaining project files
