@@ -264,13 +264,15 @@ def handle_add_to_stash_logic(
     yarn_id: int,
     skeins: float | None,
     colorway: str | None,
+    manual_colorway: str | None = None,
     dyelot: str | None = None,
     location: str | None = None,
     notes: str | None = None,
     date_added: str | None = None,
+    grams_per_skein: float | None = None,
+    yards_per_skein: float | None = None,
     search_results: list[dict[str, Any]] | None = None,
     raw_stash_items: list[dict[str, Any]] | None = None,
-    manual_colorway: str | None = None,
 ) -> tuple[str, list[dict[str, Any]]]:
     """Process adding a catalog yarn to personal stash either via API or local state fallback.
 
@@ -279,13 +281,15 @@ def handle_add_to_stash_logic(
         yarn_id: Unique database ID of the catalog yarn.
         skeins: Skein count.
         colorway: Selected or entered colorway name.
+        manual_colorway: Optional manual custom colorway override string.
         dyelot: Dye lot string.
         location: Storage location string.
         notes: Personal notes.
         date_added: Purchase or addition date string.
+        grams_per_skein: Custom weight in grams per skein.
+        yards_per_skein: Custom length in yards per skein.
         search_results: Cached yarn search results for metadata lookup.
         raw_stash_items: Current stash item dictionaries in browser store.
-        manual_colorway: Optional manual custom colorway override string.
 
     Returns:
         Tuple of (status_message, updated_stash_items_list).
@@ -323,22 +327,31 @@ def handle_add_to_stash_logic(
         else yarn_name
     )
 
+    total_grams = (skeins * grams_per_skein) if skeins is not None and grams_per_skein is not None else None
+    total_yards = (skeins * yards_per_skein) if skeins is not None and yards_per_skein is not None else None
+
     # 1. Online API call if client is available
     if client is not None:
         try:
-            created_item = client.create_stash_item(
-                yarn_id=yarn_id,
-                skeins=skeins or 1.0,
-                colorway_name=effective_colorway,
-                dye_lot=dyelot,
-                location=location,
-                notes=notes,
-                purchased_date=date_added,
-            )
+            kwargs = {
+                "yarn_id": yarn_id,
+                "colorway_name": effective_colorway,
+                "dye_lot": dyelot,
+                "skeins": skeins,
+                "total_grams": total_grams,
+                "total_yards": total_yards,
+            }
+            if location is not None:
+                kwargs["location"] = location
+            if notes is not None:
+                kwargs["notes"] = notes
+            if date_added is not None:
+                kwargs["purchased_date"] = date_added
+            created_item = client.create_stash_item(**kwargs)
             serialized_new = (
                 created_item.model_dump()
                 if hasattr(created_item, "model_dump")
-                else created_item
+                else (created_item if isinstance(created_item, dict) else dict(created_item))
             )
             updated_stash = [serialized_new] + raw_stash
             return (
@@ -355,8 +368,10 @@ def handle_add_to_stash_logic(
     yardage = matching_yarn.get("yardage") if matching_yarn else None
     grams = matching_yarn.get("grams") if matching_yarn else None
     sk = float(skeins or 1.0)
-    total_yards = (float(yardage) * sk) if yardage else None
-    total_grams = (float(grams) * sk) if grams else None
+    fallback_total_yards = (float(yardage) * sk) if yardage is not None else None
+    fallback_total_grams = (float(grams) * sk) if grams is not None else None
+    final_total_yards = total_yards if total_yards is not None else fallback_total_yards
+    final_total_grams = total_grams if total_grams is not None else fallback_total_grams
 
     # Generate synthetic ID
     synthetic_id = (
@@ -374,9 +389,9 @@ def handle_add_to_stash_logic(
         "notes": notes,
         "created_at": date_added or datetime.now(tz=UTC).strftime("%Y-%m-%d"),
         "skeins": sk,
-        "total_yards": total_yards,
-        "total_grams": total_grams,
-        "total_meters": round(total_yards * 0.9144, 2) if total_yards else None,
+        "total_yards": final_total_yards,
+        "total_grams": final_total_grams,
+        "total_meters": round(final_total_yards * 0.9144, 2) if final_total_yards else None,
         "stash_status": {"id": 1, "name": "In stash"},
         "yarn": {
             "id": yarn_id,
@@ -393,8 +408,8 @@ def handle_add_to_stash_logic(
                 "colorway": effective_colorway,
                 "dye_lot": dyelot,
                 "skeins": sk,
-                "total_yards": total_yards,
-                "total_grams": total_grams,
+                "total_yards": final_total_yards,
+                "total_grams": final_total_grams,
                 "purchased_date": date_added,
             }
         ],
@@ -469,6 +484,8 @@ def register_search_callbacks(app: dash.Dash) -> None:
         State({"type": "stash-location", "index": ALL}, "value"),
         State({"type": "stash-notes", "index": ALL}, "value"),
         State({"type": "stash-date-added", "index": ALL}, "value"),
+        State({"type": "stash-grams-per-skein", "index": ALL}, "value"),
+        State({"type": "stash-yards-per-skein", "index": ALL}, "value"),
         State({"type": "stash-submit-btn", "index": ALL}, "id"),
         State("yarn-search-results-store", "data"),
         State("stash-raw-store", "data"),
@@ -483,6 +500,8 @@ def register_search_callbacks(app: dash.Dash) -> None:
         location_list: list[str | None],
         notes_list: list[str | None],
         date_added_list: list[str | None],
+        grams_list: list[float | None],
+        yards_list: list[float | None],
         btn_ids: list[dict[str, Any]],
         search_results: list[dict[str, Any]] | None,
         raw_stash_items: list[dict[str, Any]] | None,
@@ -515,6 +534,8 @@ def register_search_callbacks(app: dash.Dash) -> None:
             location=location_list[target_idx],
             notes=notes_list[target_idx],
             date_added=date_added_list[target_idx],
+            grams_per_skein=grams_list[target_idx] if grams_list and target_idx < len(grams_list) else None,
+            yards_per_skein=yards_list[target_idx] if yards_list and target_idx < len(yards_list) else None,
             search_results=search_results,
             raw_stash_items=raw_stash_items,
         )

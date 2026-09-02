@@ -610,3 +610,28 @@ def test_handle_add_to_stash_logic_with_manual_colorway_override() -> None:
     assert kwargs.get("colorway_name") == "My Custom Hand Dye"
     assert "Successfully added" in status_msg
 
+
+def test_handle_add_to_stash_with_custom_weights() -> None:
+    """Verify custom grams and yards per skein are multiplied by skeins and sent to API."""
+    client_mock = MagicMock()
+    client_mock.create_stash_item.return_value = {"id": 999, "name": "New Item"}
+
+    status_msg, updated_stash = handle_add_to_stash_logic(
+        client=client_mock,
+        yarn_id=123,
+        skeins=2.5,
+        colorway="Blue",
+        grams_per_skein=100.0,
+        yards_per_skein=400.0,
+    )
+
+    client_mock.create_stash_item.assert_called_once_with(
+        yarn_id=123,
+        colorway_name="Blue",
+        skeins=2.5,
+        total_grams=250.0,
+        total_yards=1000.0,
+        dye_lot=None,
+    )
+
+
