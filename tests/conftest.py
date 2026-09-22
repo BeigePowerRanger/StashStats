@@ -8,3 +8,15 @@ def disable_redis_cache():
         mock_client.get.return_value = None
         mock_get_redis.return_value = mock_client
         yield mock_client
+
+
+@pytest.fixture(autouse=True)
+def mock_default_account_manager():
+    mock_client = Mock()
+    mock_client._cached_username = "testuser"
+    mock_client.username = "testuser"
+    mock_client.get_all_my_stash.return_value = []
+    mock_client.get_my_stash.return_value = Mock(stash=[])
+    mock_client.get_my_projects.return_value = Mock(projects=[])
+    with patch("stashstats.auth.account_manager.get_client", return_value=mock_client):
+        yield mock_client
