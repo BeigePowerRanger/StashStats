@@ -118,10 +118,12 @@ def create_projects_layout(
     # Main container for the accordion
     # Initially we pass the raw projects, but the callback will manage filtering/pagination
     accordion_container = html.Div(
-        create_grouped_projects_accordion(raw_projects[:10] if raw_projects else [], user_id=user_id),
+        create_grouped_projects_accordion(
+            raw_projects[:10] if raw_projects else [], user_id=user_id
+        ),
         id="projects-accordion-container",
     )
-    
+
     # Pagination
     pagination_row = dbc.Row(
         [

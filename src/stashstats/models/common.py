@@ -118,4 +118,3 @@ class YarnCompany(BaseModel):
 
     yarns_count: int | None = None
     """Total number of yarns manufactured."""
-

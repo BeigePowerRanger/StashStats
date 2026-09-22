@@ -1,7 +1,7 @@
 """UI KPI cards and unit toggle components for Stash Analytics dashboard."""
 
 import dash_bootstrap_components as dbc
-from dash import dcc, html
+from dash import html
 
 
 def create_kpi_summary_cards(
@@ -30,9 +30,7 @@ def create_kpi_summary_cards(
         dbc.Row containing structured KPI cards.
     """
     horizon_text = (
-        f"{months_remaining:,.1f} mo"
-        if months_remaining is not None
-        else "Stable / No burn"
+        f"{months_remaining:,.1f} mo" if months_remaining is not None else "Stable / No burn"
     )
     horizon_subtext = (
         f"~{(months_remaining / 12.0):,.1f} years"
@@ -75,8 +73,15 @@ def create_kpi_summary_cards(
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.H6(f"Active Stash ({u.capitalize()})", className="card-subtitle text-muted mb-1"),
-                            html.H3(main_val_text, className="card-title mb-1 fw-bold", style={"color": "#5c92d1"}),
+                            html.H6(
+                                f"Active Stash ({u.capitalize()})",
+                                className="card-subtitle text-muted mb-1",
+                            ),
+                            html.H3(
+                                main_val_text,
+                                className="card-title mb-1 fw-bold",
+                                style={"color": "#5c92d1"},
+                            ),
                             html.Small(main_subtext, className="text-secondary"),
                         ]
                     ),
@@ -93,7 +98,11 @@ def create_kpi_summary_cards(
                     dbc.CardBody(
                         [
                             html.H6("Knitting Velocity", className="card-subtitle text-muted mb-1"),
-                            html.H3(rate_val_text, className="card-title mb-1 fw-bold", style={"color": "#8e6bb3"}),
+                            html.H3(
+                                rate_val_text,
+                                className="card-title mb-1 fw-bold",
+                                style={"color": "#8e6bb3"},
+                            ),
                             html.Small(rate_subtext, className="text-secondary"),
                         ]
                     ),
@@ -109,8 +118,14 @@ def create_kpi_summary_cards(
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.H6("Stash Lifespan Horizon", className="card-subtitle text-muted mb-1"),
-                            html.H3(horizon_text, className="card-title mb-1 fw-bold", style={"color": "#d8839e"}),
+                            html.H6(
+                                "Stash Lifespan Horizon", className="card-subtitle text-muted mb-1"
+                            ),
+                            html.H3(
+                                horizon_text,
+                                className="card-title mb-1 fw-bold",
+                                style={"color": "#d8839e"},
+                            ),
                             html.Small(horizon_subtext, className="text-secondary"),
                         ]
                     ),
@@ -126,7 +141,9 @@ def create_kpi_summary_cards(
                 dbc.Card(
                     dbc.CardBody(
                         [
-                            html.H6("Inventory Utilization", className="card-subtitle text-muted mb-1"),
+                            html.H6(
+                                "Inventory Utilization", className="card-subtitle text-muted mb-1"
+                            ),
                             html.H3(
                                 f"{total_items} items",
                                 className="card-title mb-1 fw-bold",
@@ -167,7 +184,9 @@ def create_unit_selector_bar(active_unit: str = "yards") -> dbc.Card:
                             [
                                 html.Div(
                                     [
-                                        html.Span("⚡ VIEW METRIC UNIT", className="unit-label-pill me-3"),
+                                        html.Span(
+                                            "⚡ VIEW METRIC UNIT", className="unit-label-pill me-3"
+                                        ),
                                         html.Div(
                                             dbc.RadioItems(
                                                 id="analytics-unit-selector",

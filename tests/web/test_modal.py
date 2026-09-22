@@ -428,7 +428,10 @@ def test_create_usage_history_table() -> None:
     # Find delete buttons
     del_btns = find_all_components(
         table,
-        lambda c: isinstance(getattr(c, "id", None), dict) and c.id.get("type") == "modal-btn-delete-usage"
+        lambda c: (
+            isinstance(getattr(c, "id", None), dict)
+            and c.id.get("type") == "modal-btn-delete-usage"
+        ),
     )
     assert len(del_btns) == 2
 
@@ -442,7 +445,9 @@ def test_create_usage_history_table_empty() -> None:
 
 def test_create_usage_preview_valid() -> None:
     """Verify preview card with valid remaining quantity."""
-    preview = create_usage_preview(current_skeins=4.0, used_skeins=1.5, total_yards=840.0, total_grams=400.0)
+    preview = create_usage_preview(
+        current_skeins=4.0, used_skeins=1.5, total_yards=840.0, total_grams=400.0
+    )
     preview_str = str(preview.to_plotly_json())
     assert "Currently have: 4.0 skeins" in preview_str
     assert "Used: 1.5 skeins" in preview_str
@@ -453,7 +458,11 @@ def test_create_usage_preview_overdrawn() -> None:
     """Verify preview card shows warning/danger when overdrawn."""
     preview = create_usage_preview(current_skeins=1.0, used_skeins=2.5)
     preview_str = str(preview.to_plotly_json())
-    assert "exceeds" in preview_str.lower() or "overdrawn" in preview_str.lower() or "remaining: -1.5" in preview_str.lower()
+    assert (
+        "exceeds" in preview_str.lower()
+        or "overdrawn" in preview_str.lower()
+        or "remaining: -1.5" in preview_str.lower()
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -600,6 +609,7 @@ def test_handle_save_modal_tab_log_usage_zero_skeins_prevents_update() -> None:
 
 def test_create_linked_projects_table_empty():
     from stashstats.web.components.modal import create_linked_projects_table
+
     res = create_linked_projects_table([])
     assert isinstance(res, (html.Div, Component))
 
@@ -626,6 +636,7 @@ def test_create_linked_projects_table_with_records():
 
 def test_create_stash_modal_with_linked_projects():
     from stashstats.models.analytics import ProjectUsageRecord
+
     records = [
         ProjectUsageRecord(
             project_id=101,
@@ -666,10 +677,7 @@ def test_create_usage_history_table_with_project():
     assert "Winter Beanie" in table_str
 
 
-
-
 def test_handle_delete_entry_callback(monkeypatch: Any) -> None:
-    from stashstats.web.callbacks.modal import handle_delete_entry
 
     # Setup mocks
     app_mock = MagicMock()
@@ -682,14 +690,10 @@ def test_handle_delete_entry_callback(monkeypatch: Any) -> None:
     raw_stash = [{"id": 123, "name": "Test Yarn"}, {"id": 456, "name": "Other Yarn"}]
 
     is_open, updated_stash = handle_delete_entry(
-        n_clicks=1,
-        stash_data=stash_data,
-        raw_stash_items=raw_stash
+        n_clicks=1, stash_data=stash_data, raw_stash_items=raw_stash
     )
 
     client_mock.delete_stash_item.assert_called_once_with(123)
     assert is_open is False
     assert len(updated_stash) == 1
     assert updated_stash[0]["id"] == 456
-
-

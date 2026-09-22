@@ -583,10 +583,10 @@ def test_handle_stash_sync_callback_logic() -> None:
     mock_client = MagicMock()
     mock_client.get_all_my_stash.side_effect = RuntimeError("API unreachable")
     mock_client.get_my_stash.side_effect = RuntimeError("API unreachable")
-    err_status, err_color, err_synced, err_items = handle_stash_sync_logic(1, [{"id": 1}], client=mock_client)
+    err_status, err_color, err_synced, err_items = handle_stash_sync_logic(
+        1, [{"id": 1}], client=mock_client
+    )
     assert err_status == "Sync Failed"
     assert err_color == "danger"
     assert "Sync failed" in err_synced
     assert err_items == [{"id": 1}]
-
-

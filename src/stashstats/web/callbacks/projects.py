@@ -1,7 +1,6 @@
 import base64
 import logging
 from datetime import UTC, datetime
-from pathlib import Path
 from typing import Any
 
 import dash
@@ -17,6 +16,7 @@ from stashstats.storage import (
 logger = logging.getLogger("stashstats.web.projects")
 
 MAX_PDF_BYTES = 25 * 1024 * 1024  # 25 MB
+
 
 def _decode_upload(contents: str) -> tuple[str, bytes] | tuple[None, None]:
     """Decode a dcc.Upload base64 payload into (mime_type, bytes).
@@ -79,7 +79,9 @@ def register_projects_callbacks(app: dash.Dash) -> None:
         list_outputs: list[Any] = []
         error_outputs: list[Any] = []
 
-        for contents, filename, comp_id in zip(contents_list, filenames_list, ids_list):
+        for contents, filename, comp_id in zip(
+            contents_list, filenames_list, ids_list, strict=False
+        ):
             project_id = str(comp_id.get("index", "unknown"))
 
             if not contents or not filename:
@@ -114,7 +116,10 @@ def register_projects_callbacks(app: dash.Dash) -> None:
 
     @app.callback(
         Output({"type": "project-pdf-list", "index": dash.MATCH}, "children", allow_duplicate=True),
-        Input({"type": "project-pdf-delete-btn", "index": dash.MATCH, "filename": dash.ALL}, "n_clicks"),
+        Input(
+            {"type": "project-pdf-delete-btn", "index": dash.MATCH, "filename": dash.ALL},
+            "n_clicks",
+        ),
         State({"type": "project-pdf-delete-btn", "index": dash.MATCH, "filename": dash.ALL}, "id"),
         State("projects-user-store", "data"),
         prevent_initial_call=True,
@@ -156,7 +161,9 @@ def register_projects_callbacks(app: dash.Dash) -> None:
     @app.callback(
         Output({"type": "project-pdf-viewer", "index": dash.MATCH}, "src"),
         Output({"type": "project-pdf-viewer", "index": dash.MATCH}, "style"),
-        Input({"type": "project-pdf-view-btn", "index": dash.MATCH, "filename": dash.ALL}, "n_clicks"),
+        Input(
+            {"type": "project-pdf-view-btn", "index": dash.MATCH, "filename": dash.ALL}, "n_clicks"
+        ),
         State({"type": "project-pdf-view-btn", "index": dash.MATCH, "filename": dash.ALL}, "id"),
         State("projects-user-store", "data"),
         prevent_initial_call=True,
@@ -294,7 +301,6 @@ def update_projects_view_logic(
     return accordion, total_pages, page
 
 
-
 def handle_projects_sync_logic(
     n_clicks: int | None,
     raw_data: list[dict[str, Any]] | None,
@@ -310,8 +316,7 @@ def handle_projects_sync_logic(
             logger.info("Executing manual projects sync with Ravelry API...")
             proj_resp = client.get_my_projects()
             fresh_items = [
-                it.model_dump() if hasattr(it, "model_dump") else it
-                for it in proj_resp.projects
+                it.model_dump() if hasattr(it, "model_dump") else it for it in proj_resp.projects
             ]
             logger.info(f"Manual projects sync complete: {len(fresh_items)} projects retrieved")
             now_str = datetime.now(UTC).strftime("Today %H:%M")

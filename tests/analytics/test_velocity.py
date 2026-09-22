@@ -1,4 +1,4 @@
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 from stashstats.analytics.velocity import StashVelocityCalculator
 from stashstats.models.history import StashHistory, StashHistoryEntry
@@ -77,7 +77,9 @@ class TestStashVelocityCalculator:
         history = create_sample_history(stash_id=1)
         events = StashVelocityCalculator.extract_events({1: history})
 
-        monthly_rollups = StashVelocityCalculator.calculate_periodic_rollups(events, granularity="monthly")
+        monthly_rollups = StashVelocityCalculator.calculate_periodic_rollups(
+            events, granularity="monthly"
+        )
         assert len(monthly_rollups) == 3
 
         # June: Initial acquisition of 800 yds
@@ -102,7 +104,9 @@ class TestStashVelocityCalculator:
         history = create_sample_history(stash_id=1)
         events = StashVelocityCalculator.extract_events({1: history})
 
-        yearly_rollups = StashVelocityCalculator.calculate_periodic_rollups(events, granularity="yearly")
+        yearly_rollups = StashVelocityCalculator.calculate_periodic_rollups(
+            events, granularity="yearly"
+        )
         assert len(yearly_rollups) == 1
         assert yearly_rollups[0].period == "2026"
         assert yearly_rollups[0].acquired_yards == 800.0
@@ -116,13 +120,17 @@ class TestStashVelocityCalculator:
         as_of = datetime(2026, 8, 15, tzinfo=UTC)
 
         # 30-day window covers 2026-07-16 to 2026-08-15 (covers 2026-08-01 event: 400 yards consumed)
-        v30 = StashVelocityCalculator.calculate_rolling_velocity(events, window_days=30, as_of=as_of)
+        v30 = StashVelocityCalculator.calculate_rolling_velocity(
+            events, window_days=30, as_of=as_of
+        )
         assert v30.yards_consumed == 400.0
         assert v30.skeins_consumed == 2.0
         assert v30.yards_per_day == round(400.0 / 30.0, 2)
 
         # 90-day window covers 2026-07-01 and 2026-08-01 (covers 200 + 400 = 600 yards consumed)
-        v90 = StashVelocityCalculator.calculate_rolling_velocity(events, window_days=90, as_of=as_of)
+        v90 = StashVelocityCalculator.calculate_rolling_velocity(
+            events, window_days=90, as_of=as_of
+        )
         assert v90.yards_consumed == 600.0
         assert v90.skeins_consumed == 3.0
         assert v90.yards_per_day == round(600.0 / 90.0, 2)
@@ -284,5 +292,3 @@ class TestStashVelocityCalculator:
         assert report.horizon.monthly_burn_rate_yards > 0
         assert report.horizon.months_remaining is not None
         assert report.horizon.months_remaining > 0
-
-

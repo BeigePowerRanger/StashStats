@@ -1,7 +1,7 @@
 from typing import Any
-import plotly.graph_objects as go
+
 import dash_bootstrap_components as dbc
-import pytest
+import plotly.graph_objects as go
 
 from stashstats.web.callbacks.analytics import update_analytics_dashboard_logic
 
@@ -65,11 +65,13 @@ def sample_raw_stash() -> list[dict[str, Any]]:
 class TestAnalyticsCallbacks:
     def test_update_analytics_all_data(self):
         raw = sample_raw_stash()
-        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, projects_fig = update_analytics_dashboard_logic(
-            raw_stash_data=raw,
-            raw_projects_data=None,
-            histories_data=None,
-            unit="yards",
+        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, projects_fig = (
+            update_analytics_dashboard_logic(
+                raw_stash_data=raw,
+                raw_projects_data=None,
+                histories_data=None,
+                unit="yards",
+            )
         )
 
         assert isinstance(kpi, dbc.Row)
@@ -81,26 +83,32 @@ class TestAnalyticsCallbacks:
 
     def test_update_analytics_unit_meters(self):
         raw = sample_raw_stash()
-        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, projects_fig = update_analytics_dashboard_logic(
-            raw_stash_data=raw,
-            unit="meters",
+        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, projects_fig = (
+            update_analytics_dashboard_logic(
+                raw_stash_data=raw,
+                unit="meters",
+            )
         )
         assert isinstance(kpi, dbc.Row)
         assert isinstance(weight_fig, go.Figure)
 
     def test_update_analytics_unit_grams(self):
         raw = sample_raw_stash()
-        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, projects_fig = update_analytics_dashboard_logic(
-            raw_stash_data=raw,
-            unit="grams",
+        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, projects_fig = (
+            update_analytics_dashboard_logic(
+                raw_stash_data=raw,
+                unit="grams",
+            )
         )
         assert isinstance(kpi, dbc.Row)
 
     def test_update_analytics_unit_skeins(self):
         raw = sample_raw_stash()
-        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, projects_fig = update_analytics_dashboard_logic(
-            raw_stash_data=raw,
-            unit="skeins",
+        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, projects_fig = (
+            update_analytics_dashboard_logic(
+                raw_stash_data=raw,
+                unit="skeins",
+            )
         )
         assert isinstance(kpi, dbc.Row)
 
@@ -118,22 +126,25 @@ class TestAnalyticsCallbacks:
                 }
             ]
         }
-        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, projects_fig = update_analytics_dashboard_logic(
-            raw_stash_data=raw,
-            raw_projects_data=None,
-            histories_data=histories,
-            unit="yards",
+        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, projects_fig = (
+            update_analytics_dashboard_logic(
+                raw_stash_data=raw,
+                raw_projects_data=None,
+                histories_data=histories,
+                unit="yards",
+            )
         )
         assert isinstance(projects_fig, go.Figure)
         assert len(projects_fig.data) > 0
 
     def test_update_analytics_without_histories_or_projects(self):
         raw = sample_raw_stash()
-        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, projects_fig = update_analytics_dashboard_logic(
-            raw_stash_data=raw,
-            raw_projects_data=None,
-            histories_data=None,
-            unit="yards",
+        kpi, fiber_fig, weight_fig, timeline_fig, flow_fig, projects_fig = (
+            update_analytics_dashboard_logic(
+                raw_stash_data=raw,
+                raw_projects_data=None,
+                histories_data=None,
+                unit="yards",
+            )
         )
         assert isinstance(projects_fig, go.Figure)
-

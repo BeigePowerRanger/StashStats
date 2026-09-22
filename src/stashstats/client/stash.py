@@ -54,6 +54,7 @@ class StashClientMixin:
         }
         data = self.get("/stash/search.json", params=params)
         return StashSearchResponse.model_validate(data)
+
     # end snippet stash-search
 
     # start snippet stash-get-list
@@ -92,6 +93,7 @@ class StashClientMixin:
         }
         data = self.get(f"/people/{username}/stash/list.json", params=params)
         return StashListResponse.model_validate(data)
+
     # end snippet stash-get-list
 
     def get_stash_items(
@@ -106,7 +108,9 @@ class StashClientMixin:
         stash_status_id: int | None = None,
     ) -> StashListResponse:
         """Fetch a page of stash items for the currently authenticated or specified user."""
-        target_username = username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        target_username = (
+            username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        )
         if not target_username and hasattr(self, "get_current_user"):
             user_resp = self.get_current_user()
             target_username = user_resp.user.username
@@ -183,7 +187,9 @@ class StashClientMixin:
         Returns:
             Parsed StashItem record.
         """
-        target_username = username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        target_username = (
+            username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        )
         if not target_username and hasattr(self, "get_current_user"):
             user_resp = self.get_current_user()
             target_username = user_resp.user.username
@@ -228,7 +234,9 @@ class StashClientMixin:
         Returns:
             Parsed StashItem record for the newly created stash entry.
         """
-        target_username = username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        target_username = (
+            username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        )
         if not target_username and hasattr(self, "get_current_user"):
             user_resp = self.get_current_user()
             target_username = user_resp.user.username
@@ -319,7 +327,9 @@ class StashClientMixin:
         Returns:
             Updated StashItem record.
         """
-        target_username = username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        target_username = (
+            username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        )
         if not target_username and hasattr(self, "get_current_user"):
             user_resp = self.get_current_user()
             target_username = user_resp.user.username
@@ -376,7 +386,9 @@ class StashClientMixin:
         Returns:
             API confirmation response.
         """
-        target_username = username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        target_username = (
+            username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        )
         if not target_username and hasattr(self, "get_current_user"):
             user_resp = self.get_current_user()
             target_username = user_resp.user.username
@@ -393,7 +405,9 @@ class StashClientMixin:
         **kwargs: Any,
     ) -> Pack | dict[str, Any]:
         """Create a new pack associated with a stash entry."""
-        payload = dict(pack_data.model_dump() if hasattr(pack_data, "model_dump") else (pack_data or {}))
+        payload = dict(
+            pack_data.model_dump() if hasattr(pack_data, "model_dump") else (pack_data or {})
+        )
         payload.update(kwargs)
         data = self.post("/packs/create.json", json={"pack": payload, "stash_id": stash_id})
         if isinstance(data, dict) and "pack" in data:
@@ -407,7 +421,9 @@ class StashClientMixin:
         **kwargs: Any,
     ) -> Pack | dict[str, Any]:
         """Update an existing pack record."""
-        payload = dict(pack_data.model_dump() if hasattr(pack_data, "model_dump") else (pack_data or {}))
+        payload = dict(
+            pack_data.model_dump() if hasattr(pack_data, "model_dump") else (pack_data or {})
+        )
         payload.update(kwargs)
         data = self.put(f"/packs/{pack_id}.json", json={"pack": payload})
         if isinstance(data, dict) and "pack" in data:
@@ -430,7 +446,9 @@ class StashClientMixin:
         username: str | None = None,
     ) -> dict[str, Any]:
         """Attach a photo to a stash entry using uploaded image ID or source URL."""
-        target_username = username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        target_username = (
+            username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        )
         if not target_username and hasattr(self, "get_current_user"):
             user_resp = self.get_current_user()
             target_username = user_resp.user.username
@@ -441,7 +459,9 @@ class StashClientMixin:
         if source_url is not None:
             payload["source_url"] = source_url
 
-        return self.post(f"/people/{target_username}/stash/{stash_id}/create_photo.json", json=payload)
+        return self.post(
+            f"/people/{target_username}/stash/{stash_id}/create_photo.json", json=payload
+        )
 
     def get_stash_velocity_report(
         self: BaseAPIClient | Any,
@@ -456,21 +476,42 @@ class StashClientMixin:
         return StashVelocityCalculator.generate_report(stash_items, histories, as_of=as_of)
 
     # Script/helper aliases
-    def create_stash(self: BaseAPIClient | Any, username_or_yarn_id: Any = None, data_or_kwargs: Any = None, **kwargs: Any) -> Any:
+    def create_stash(
+        self: BaseAPIClient | Any,
+        username_or_yarn_id: Any = None,
+        data_or_kwargs: Any = None,
+        **kwargs: Any,
+    ) -> Any:
         if isinstance(username_or_yarn_id, str) and isinstance(data_or_kwargs, dict):
-            return self.post(f"/people/{username_or_yarn_id}/stash/create.json", json=data_or_kwargs)
+            return self.post(
+                f"/people/{username_or_yarn_id}/stash/create.json", json=data_or_kwargs
+            )
         if isinstance(username_or_yarn_id, int):
             return self.create_stash_item(yarn_id=username_or_yarn_id, **kwargs)
         return self.create_stash_item(**kwargs)
 
-    def update_stash(self: BaseAPIClient | Any, username_or_stash_id: Any = None, stash_id_or_data: Any = None, data_or_none: Any = None, **kwargs: Any) -> Any:
-        if isinstance(username_or_stash_id, str) and isinstance(stash_id_or_data, int) and isinstance(data_or_none, dict):
-            return self.post(f"/people/{username_or_stash_id}/stash/{stash_id_or_data}.json", json=data_or_none)
+    def update_stash(
+        self: BaseAPIClient | Any,
+        username_or_stash_id: Any = None,
+        stash_id_or_data: Any = None,
+        data_or_none: Any = None,
+        **kwargs: Any,
+    ) -> Any:
+        if (
+            isinstance(username_or_stash_id, str)
+            and isinstance(stash_id_or_data, int)
+            and isinstance(data_or_none, dict)
+        ):
+            return self.post(
+                f"/people/{username_or_stash_id}/stash/{stash_id_or_data}.json", json=data_or_none
+            )
         if isinstance(username_or_stash_id, int):
             return self.update_stash_item(username_or_stash_id, **kwargs)
         return self.update_stash_item(stash_id_or_data, **kwargs)
 
-    def delete_stash(self: BaseAPIClient | Any, username_or_stash_id: Any = None, stash_id_or_none: Any = None) -> Any:
+    def delete_stash(
+        self: BaseAPIClient | Any, username_or_stash_id: Any = None, stash_id_or_none: Any = None
+    ) -> Any:
         if isinstance(username_or_stash_id, str) and isinstance(stash_id_or_none, int):
             return self.delete_stash_item(stash_id_or_none, username=username_or_stash_id)
         return self.delete_stash_item(username_or_stash_id)

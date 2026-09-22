@@ -80,8 +80,7 @@ def group_stash_items(items: list[StashItem] | list[dict[str, Any]]) -> list[Par
         return []
 
     validated_items: list[StashItem] = [
-        item if isinstance(item, StashItem) else StashItem.model_validate(item)
-        for item in items
+        item if isinstance(item, StashItem) else StashItem.model_validate(item) for item in items
     ]
 
     groups_map: dict[tuple[str, str], list[StashItem]] = {}
@@ -301,7 +300,9 @@ def create_stash_item_row(
         item = StashItem.model_validate(item)
 
     colorway_label = item.colorway_name or (
-        item.primary_pack.colorway if item.primary_pack and item.primary_pack.colorway else "Default / No Colorway"
+        item.primary_pack.colorway
+        if item.primary_pack and item.primary_pack.colorway
+        else "Default / No Colorway"
     )
 
     # Status badge formatting
@@ -341,10 +342,7 @@ def create_stash_item_row(
     if grams > 0:
         sub_parts.append(f"{grams:g} g")
 
-    if sub_parts:
-        qty_str = f"{qty_parts[0]} ({' / '.join(sub_parts)})"
-    else:
-        qty_str = qty_parts[0]
+    qty_str = f"{qty_parts[0]} ({' / '.join(sub_parts)})" if sub_parts else qty_parts[0]
 
     # Meta badges / info chips
     chips: list[html.Component] = [
@@ -354,14 +352,21 @@ def create_stash_item_row(
     dye_lot = item.dye_lot or (item.primary_pack.dye_lot if item.primary_pack else None)
     if dye_lot:
         chips.append(
-            dbc.Badge(f"Lot: {dye_lot}", color="dark", className="border border-secondary me-2 text-light", pill=True)
+            dbc.Badge(
+                f"Lot: {dye_lot}",
+                color="dark",
+                className="border border-secondary me-2 text-light",
+                pill=True,
+            )
         )
 
     date_added = None
     if item.created_at:
         date_added = str(item.created_at).split("T")[0].split(" ")[0].replace("/", "-")
     elif item.primary_pack and item.primary_pack.purchased_date:
-        date_added = str(item.primary_pack.purchased_date).split("T")[0].split(" ")[0].replace("/", "-")
+        date_added = (
+            str(item.primary_pack.purchased_date).split("T")[0].split(" ")[0].replace("/", "-")
+        )
     elif item.purchased:
         date_added = str(item.purchased).split("T")[0].split(" ")[0].replace("/", "-")
 
@@ -376,9 +381,7 @@ def create_stash_item_row(
         )
 
     if item.location:
-        chips.append(
-            html.Small(f"Loc: {item.location}", className="text-info me-2 fw-semibold")
-        )
+        chips.append(html.Small(f"Loc: {item.location}", className="text-info me-2 fw-semibold"))
 
     chips.append(
         dbc.Badge(
@@ -391,9 +394,7 @@ def create_stash_item_row(
     )
 
     if is_dirty:
-        chips.append(
-            dbc.Badge("Pending Sync", color="warning", pill=True, className="me-2")
-        )
+        chips.append(dbc.Badge("Pending Sync", color="warning", pill=True, className="me-2"))
 
     left_content = html.Div(chips, className="d-flex flex-wrap align-items-center mb-1")
 
@@ -436,7 +437,12 @@ def create_stash_item_row(
         dbc.Row(
             [
                 dbc.Col(left_wrapper, xs=12, md=8, className="d-flex align-items-center"),
-                dbc.Col(right_wrapper, xs=12, md=4, className="d-flex justify-content-md-end align-items-center"),
+                dbc.Col(
+                    right_wrapper,
+                    xs=12,
+                    md=4,
+                    className="d-flex justify-content-md-end align-items-center",
+                ),
             ],
             className="align-items-center g-2",
         ),
@@ -475,7 +481,9 @@ def create_parent_yarn_accordion_item(
     title_text = html.Span(group.display_title, className="fw-bold fs-6 text-light me-auto")
 
     items_unit = "item" if group.total_items == 1 else "items"
-    badge_label = f"{group.total_items} {items_unit} | {group.total_skeins:g} sk | {group.total_yards:g} yds"
+    badge_label = (
+        f"{group.total_items} {items_unit} | {group.total_skeins:g} sk | {group.total_yards:g} yds"
+    )
     aggregate_badge = dbc.Badge(
         badge_label,
         color="info",
@@ -528,8 +536,7 @@ def create_grouped_stash_accordion(
         )
 
     accordion_items = [
-        create_parent_yarn_accordion_item(group, index=i)
-        for i, group in enumerate(groups)
+        create_parent_yarn_accordion_item(group, index=i) for i, group in enumerate(groups)
     ]
 
     return dbc.Accordion(

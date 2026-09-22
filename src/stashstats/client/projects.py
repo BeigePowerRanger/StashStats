@@ -46,7 +46,9 @@ class ProjectClientMixin:
         Returns:
             ProjectListResponse with paginator metadata and list of project records.
         """
-        target_username = username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        target_username = (
+            username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        )
         if not target_username and hasattr(self, "get_current_user"):
             user_resp = self.get_current_user()
             target_username = user_resp.user.username
@@ -61,6 +63,7 @@ class ProjectClientMixin:
         }
         data = self.get(f"/people/{target_username}/projects/list.json", params=params)
         return ProjectListResponse.model_validate(data)
+
     # end snippet project-list
 
     get_project_list = list_projects
@@ -80,7 +83,9 @@ class ProjectClientMixin:
         Returns:
             ProjectDetailResponse containing detailed project record and comments.
         """
-        target_username = username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        target_username = (
+            username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        )
         if not target_username and hasattr(self, "get_current_user"):
             user_resp = self.get_current_user()
             target_username = user_resp.user.username
@@ -105,12 +110,18 @@ class ProjectClientMixin:
         Returns:
             Created ProjectDetailResponse or response dict.
         """
-        target_username = username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        target_username = (
+            username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        )
         if not target_username and hasattr(self, "get_current_user"):
             user_resp = self.get_current_user()
             target_username = user_resp.user.username
 
-        payload = dict(project_data.model_dump() if hasattr(project_data, "model_dump") else (project_data or {}))
+        payload = dict(
+            project_data.model_dump()
+            if hasattr(project_data, "model_dump")
+            else (project_data or {})
+        )
         payload.update(kwargs)
         body = payload if "project" in payload else {"project": payload}
         data = self.post(f"/projects/{target_username}/create.json", json=body)
@@ -137,12 +148,18 @@ class ProjectClientMixin:
         Returns:
             Updated ProjectDetailResponse or response dict.
         """
-        target_username = username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        target_username = (
+            username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        )
         if not target_username and hasattr(self, "get_current_user"):
             user_resp = self.get_current_user()
             target_username = user_resp.user.username
 
-        payload = dict(project_data.model_dump() if hasattr(project_data, "model_dump") else (project_data or {}))
+        payload = dict(
+            project_data.model_dump()
+            if hasattr(project_data, "model_dump")
+            else (project_data or {})
+        )
         payload.update(kwargs)
         body = payload if "project" in payload else {"project": payload}
         data = self.post(f"/projects/{target_username}/{project_id}.json", json=body)
@@ -164,7 +181,9 @@ class ProjectClientMixin:
         Returns:
             API confirmation response.
         """
-        target_username = username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        target_username = (
+            username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        )
         if not target_username and hasattr(self, "get_current_user"):
             user_resp = self.get_current_user()
             target_username = user_resp.user.username
@@ -190,7 +209,9 @@ class ProjectClientMixin:
         Returns:
             API response with status token.
         """
-        target_username = username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        target_username = (
+            username or getattr(self, "username", None) or getattr(self, "_cached_username", None)
+        )
         if not target_username and hasattr(self, "get_current_user"):
             user_resp = self.get_current_user()
             target_username = user_resp.user.username
@@ -201,4 +222,6 @@ class ProjectClientMixin:
         if source_url is not None:
             payload["source_url"] = source_url
 
-        return self.post(f"/projects/{target_username}/{project_id}/create_photo.json", json=payload)
+        return self.post(
+            f"/projects/{target_username}/{project_id}/create_photo.json", json=payload
+        )

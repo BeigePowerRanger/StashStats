@@ -32,13 +32,17 @@ def handle_usage_preview_update(
     if total_yards is None and "primary_pack" in stash and stash["primary_pack"]:
         total_yards = stash["primary_pack"].get("total_yards")
     elif total_yards is None and stash.get("packs"):
-        total_yards = sum(p.get("total_yards", 0.0) or 0.0 for p in stash["packs"] if isinstance(p, dict))
+        total_yards = sum(
+            p.get("total_yards", 0.0) or 0.0 for p in stash["packs"] if isinstance(p, dict)
+        )
 
     total_grams = stash.get("total_grams")
     if total_grams is None and "primary_pack" in stash and stash["primary_pack"]:
         total_grams = stash["primary_pack"].get("total_grams")
     elif total_grams is None and stash.get("packs"):
-        total_grams = sum(p.get("total_grams", 0.0) or 0.0 for p in stash["packs"] if isinstance(p, dict))
+        total_grams = sum(
+            p.get("total_grams", 0.0) or 0.0 for p in stash["packs"] if isinstance(p, dict)
+        )
 
     yards_per_skein = stash.get("yards_per_skein")
     grams_per_skein = stash.get("grams_per_skein")
@@ -84,8 +88,16 @@ def handle_history_rollback(
     if client and updated_stash.get("id"):
         try:
             status_val = updated_stash.get("stash_status")
-            status_id = status_val.get("id") if isinstance(status_val, dict) else (2 if float(updated_stash.get("skeins") or 0.0) <= 0 else 1)
-            pack_id = updated_stash.get("primary_pack", {}).get("id") if isinstance(updated_stash.get("primary_pack"), dict) else None
+            status_id = (
+                status_val.get("id")
+                if isinstance(status_val, dict)
+                else (2 if float(updated_stash.get("skeins") or 0.0) <= 0 else 1)
+            )
+            pack_id = (
+                updated_stash.get("primary_pack", {}).get("id")
+                if isinstance(updated_stash.get("primary_pack"), dict)
+                else None
+            )
             client.update_stash_item(
                 stash_id=updated_stash["id"],
                 skeins=updated_stash.get("skeins"),
@@ -146,7 +158,9 @@ def handle_save_modal(
         if not used_skeins or float(used_skeins) <= 0:
             raise dash.exceptions.PreventUpdate
 
-        logger.info(f"Logging usage for stash_id={stash.get('id')}: {used_skeins} skeins on {date_used}")
+        logger.info(
+            f"Logging usage for stash_id={stash.get('id')}: {used_skeins} skeins on {date_used}"
+        )
         stash, entry = apply_usage_to_stash(
             stash_item=stash,
             used_skeins=float(used_skeins),
@@ -162,8 +176,16 @@ def handle_save_modal(
         if client and stash.get("id"):
             try:
                 status_val = stash.get("stash_status")
-                status_id = status_val.get("id") if isinstance(status_val, dict) else (2 if float(stash.get("skeins") or 0.0) <= 0 else 1)
-                pack_id = stash.get("primary_pack", {}).get("id") if isinstance(stash.get("primary_pack"), dict) else None
+                status_id = (
+                    status_val.get("id")
+                    if isinstance(status_val, dict)
+                    else (2 if float(stash.get("skeins") or 0.0) <= 0 else 1)
+                )
+                pack_id = (
+                    stash.get("primary_pack", {}).get("id")
+                    if isinstance(stash.get("primary_pack"), dict)
+                    else None
+                )
                 client.update_stash_item(
                     stash_id=stash["id"],
                     skeins=stash.get("skeins"),
@@ -212,7 +234,11 @@ def handle_save_modal(
 
         if client and stash.get("id"):
             try:
-                pack_id = stash.get("primary_pack", {}).get("id") if isinstance(stash.get("primary_pack"), dict) else None
+                pack_id = (
+                    stash.get("primary_pack", {}).get("id")
+                    if isinstance(stash.get("primary_pack"), dict)
+                    else None
+                )
                 client.update_stash_item(
                     stash_id=stash["id"],
                     colorway_name=colorway,
@@ -256,10 +282,7 @@ def handle_delete_entry(
 
     client.delete_stash_item(stash_id)
 
-    updated_stash = [
-        item for item in (raw_stash_items or [])
-        if item.get("id") != stash_id
-    ]
+    updated_stash = [item for item in (raw_stash_items or []) if item.get("id") != stash_id]
 
     return False, updated_stash
 
@@ -350,39 +373,57 @@ def register_modal_callbacks(app: dash.Dash) -> None:
             if isinstance(target_item.get("yarn"), dict)
             else (target_item.get("yarn_name") or target_item.get("name") or "")
         )
-        colorway_name = target_item.get("colorway_name") or (
-            target_item.get("primary_pack", {}).get("colorway")
-            if isinstance(target_item.get("primary_pack"), dict)
-            else ""
-        ) or ""
+        colorway_name = (
+            target_item.get("colorway_name")
+            or (
+                target_item.get("primary_pack", {}).get("colorway")
+                if isinstance(target_item.get("primary_pack"), dict)
+                else ""
+            )
+            or ""
+        )
 
         title = f"Edit {brand_name} {yarn_name} — {colorway_name}".strip(" —")
 
-        dye_lot = target_item.get("dye_lot") or (
-            target_item.get("primary_pack", {}).get("dye_lot")
-            if isinstance(target_item.get("primary_pack"), dict)
-            else ""
-        ) or ""
+        dye_lot = (
+            target_item.get("dye_lot")
+            or (
+                target_item.get("primary_pack", {}).get("dye_lot")
+                if isinstance(target_item.get("primary_pack"), dict)
+                else ""
+            )
+            or ""
+        )
         location = target_item.get("location") or ""
 
         skeins = target_item.get("skeins")
         if skeins is None and isinstance(target_item.get("primary_pack"), dict):
             skeins = target_item["primary_pack"].get("skeins")
         elif skeins is None and target_item.get("packs"):
-            skeins = sum(p.get("skeins", 0.0) or 0.0 for p in target_item["packs"] if isinstance(p, dict))
+            skeins = sum(
+                p.get("skeins", 0.0) or 0.0 for p in target_item["packs"] if isinstance(p, dict)
+            )
         skeins_val = float(skeins) if skeins is not None else 0.0
 
         total_yards = target_item.get("total_yards")
         if total_yards is None and isinstance(target_item.get("primary_pack"), dict):
             total_yards = target_item["primary_pack"].get("total_yards")
         elif total_yards is None and target_item.get("packs"):
-            total_yards = sum(p.get("total_yards", 0.0) or 0.0 for p in target_item["packs"] if isinstance(p, dict))
+            total_yards = sum(
+                p.get("total_yards", 0.0) or 0.0
+                for p in target_item["packs"]
+                if isinstance(p, dict)
+            )
 
         total_grams = target_item.get("total_grams")
         if total_grams is None and isinstance(target_item.get("primary_pack"), dict):
             total_grams = target_item["primary_pack"].get("total_grams")
         elif total_grams is None and target_item.get("packs"):
-            total_grams = sum(p.get("total_grams", 0.0) or 0.0 for p in target_item["packs"] if isinstance(p, dict))
+            total_grams = sum(
+                p.get("total_grams", 0.0) or 0.0
+                for p in target_item["packs"]
+                if isinstance(p, dict)
+            )
 
         status_name = (
             target_item.get("stash_status", {}).get("name")
@@ -394,9 +435,7 @@ def register_modal_callbacks(app: dash.Dash) -> None:
         baseline_text = f"Baseline inventory: {skeins_val:g} skeins"
 
         history: list[dict[str, Any]] = list(
-            target_item.get("history")
-            or target_item.get("usage_history")
-            or []
+            target_item.get("history") or target_item.get("usage_history") or []
         )
         if not history:
             client = getattr(app, "client", None)
@@ -444,11 +483,15 @@ def register_modal_callbacks(app: dash.Dash) -> None:
         if not stash_data:
             return []
 
-        existing_colorway = stash_data.get("colorway_name") or (
-            stash_data.get("primary_pack", {}).get("colorway")
-            if isinstance(stash_data.get("primary_pack"), dict)
-            else ""
-        ) or ""
+        existing_colorway = (
+            stash_data.get("colorway_name")
+            or (
+                stash_data.get("primary_pack", {}).get("colorway")
+                if isinstance(stash_data.get("primary_pack"), dict)
+                else ""
+            )
+            or ""
+        )
 
         options: list[dict[str, str]] = []
         if existing_colorway:
@@ -585,4 +628,3 @@ def register_modal_callbacks(app: dash.Dash) -> None:
         if not n_clicks:
             raise dash.exceptions.PreventUpdate
         return False
-

@@ -1,6 +1,5 @@
 """Tests for MinIO project PDF storage utilities and PDF serve route."""
 
-import io
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -12,7 +11,6 @@ from stashstats.storage import (
     sanitise_pdf_filename,
     save_project_pdf,
 )
-
 
 # ---------------------------------------------------------------------------
 # Helpers & Fixtures
@@ -34,6 +32,7 @@ def mock_minio_client():
 # TestSanitisePdfFilename
 # ---------------------------------------------------------------------------
 
+
 class TestSanitisePdfFilename:
     def test_strips_path_separators(self):
         assert "/" not in sanitise_pdf_filename("../../evil/path.pdf")
@@ -42,7 +41,7 @@ class TestSanitisePdfFilename:
     def test_replaces_spaces(self):
         result = sanitise_pdf_filename("my pattern.pdf")
         assert " " not in result
-        assert "my_pattern.pdf" == result
+        assert result == "my_pattern.pdf"
 
     def test_strips_null_bytes(self):
         result = sanitise_pdf_filename("file\x00name.pdf")
@@ -59,6 +58,7 @@ class TestSanitisePdfFilename:
 # ---------------------------------------------------------------------------
 # TestSaveProjectPdf
 # ---------------------------------------------------------------------------
+
 
 class TestSaveProjectPdf:
     def test_saves_bytes_to_correct_object_key(self, mock_minio_client):
@@ -138,6 +138,7 @@ class TestSaveProjectPdf:
 # TestListProjectPdfs
 # ---------------------------------------------------------------------------
 
+
 class TestListProjectPdfs:
     def test_returns_empty_when_no_objects(self, mock_minio_client):
         mock_minio_client.list_objects.return_value = []
@@ -187,6 +188,7 @@ class TestListProjectPdfs:
 # TestDeleteProjectPdf
 # ---------------------------------------------------------------------------
 
+
 class TestDeleteProjectPdf:
     def test_deletes_object_successfully(self, mock_minio_client):
         result = delete_project_pdf(
@@ -230,6 +232,7 @@ class TestDeleteProjectPdf:
 # TestGetProjectPdfBytes
 # ---------------------------------------------------------------------------
 
+
 class TestGetProjectPdfBytes:
     def test_returns_bytes_when_object_exists(self, mock_minio_client):
         mock_response = MagicMock()
@@ -248,7 +251,11 @@ class TestGetProjectPdfBytes:
             "custom-bucket",
             "alice/projects/pdfs/proj1/pattern.pdf",
         )
-        assert mock_response.close.called or mock_response.release_conn.called or mock_response.__exit__.called
+        assert (
+            mock_response.close.called
+            or mock_response.release_conn.called
+            or mock_response.__exit__.called
+        )
 
     def test_uses_default_bucket(self, mock_minio_client):
         mock_response = MagicMock()
@@ -289,12 +296,17 @@ class TestGetProjectPdfBytes:
             client=mock_minio_client,
         )
         assert result is None
-        assert mock_response.close.called or mock_response.release_conn.called or mock_response.__exit__.called
+        assert (
+            mock_response.close.called
+            or mock_response.release_conn.called
+            or mock_response.__exit__.called
+        )
 
 
 # ---------------------------------------------------------------------------
 # TestPdfServeRoute
 # ---------------------------------------------------------------------------
+
 
 class TestPdfServeRoute:
     """Integration-style tests for the /projects/pdf/ server route with mocked storage backend."""
@@ -330,7 +342,9 @@ class TestPdfServeRoute:
         mock_get_bytes.assert_called_once_with("alice", "proj1", "nonexistent.pdf")
 
     @patch("stashstats.storage.get_project_pdf_bytes")
-    def test_route_returns_400_on_path_traversal_or_invalid_segments(self, mock_get_bytes, tmp_path):
+    def test_route_returns_400_on_path_traversal_or_invalid_segments(
+        self, mock_get_bytes, tmp_path
+    ):
         """The serve route must reject path traversal or invalid path segments with 400."""
         from stashstats.web.app import create_app
 

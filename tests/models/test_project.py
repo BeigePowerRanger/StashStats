@@ -1,16 +1,12 @@
 """Unit tests for Project and Queue data models."""
 
-import pytest
-from pydantic import ValidationError
 from stashstats.models import (
-    Project,
-    ProjectListResult,
-    ProjectListResponse,
     ProjectDetailResponse,
-    QueuedProject,
+    ProjectListResponse,
+    ProjectListResult,
     QueueListResponse,
-    Paginator,
 )
+
 
 def test_project_list_result_validation():
     data = {
@@ -30,6 +26,7 @@ def test_project_list_result_validation():
     assert p.status_name == "In progress"
     assert "gift" in p.tag_names
 
+
 def test_project_list_response():
     data = {
         "projects": [
@@ -42,14 +39,13 @@ def test_project_list_response():
     assert len(resp.projects) == 2
     assert resp.projects[1].progress == 0  # None coerced to 0
 
+
 def test_project_detail_response():
     data = {
         "project": {
             "id": 100,
             "name": "Detailed Sweater",
-            "packs": [
-                {"id": 55, "skeins": 4.0, "colorway": "Ochre", "total_yards": 880.0}
-            ],
+            "packs": [{"id": 55, "skeins": 4.0, "colorway": "Ochre", "total_yards": 880.0}],
             "notes": "Used size US 7 needles.",
         },
         "comments": [{"id": 1, "comment": "Beautiful work!"}],
@@ -59,6 +55,7 @@ def test_project_detail_response():
     assert len(detail.project.packs) == 1
     assert detail.project.packs[0].colorway == "Ochre"
     assert len(detail.comments) == 1
+
 
 def test_queue_list_response():
     data = {

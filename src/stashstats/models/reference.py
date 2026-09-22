@@ -4,7 +4,7 @@ from pydantic import BaseModel
 class ColorFamily(BaseModel):
     """Ravelry color family reference classification."""
 
-    id: int 
+    id: int
     """Unique color family ID."""
 
     name: str
@@ -71,4 +71,3 @@ class FiberCategoriesResponse(BaseModel):
     """Payload structure returned by GET /fiber_categories.json."""
 
     fiber_categories: list[FiberCategory]
-

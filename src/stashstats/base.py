@@ -1,6 +1,6 @@
 import logging
 import time
-from typing import Any, Self
+from typing import Any
 
 import httpx
 from pydantic import BaseModel, ConfigDict
@@ -60,8 +60,7 @@ class BaseAPIClient(BaseModel):
             headers=self.default_headers,
             timeout=self.settings.timeout_seconds,
         )
-# end snippet base-client
-
+        # end snippet base-client
 
         if self._client is not None and not self._client.is_closed:
             self._client.close()

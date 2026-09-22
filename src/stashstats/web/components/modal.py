@@ -99,7 +99,9 @@ def calculate_proportional_deduction(
         "is_valid": is_valid,
         "is_overdrawn": is_overdrawn,
         "status_color": "success" if not is_overdrawn else "danger",
-        "message": "Valid deduction" if not is_overdrawn else "Skeins used exceeds available inventory.",
+        "message": "Valid deduction"
+        if not is_overdrawn
+        else "Skeins used exceeds available inventory.",
     }
 
 
@@ -186,13 +188,17 @@ def apply_usage_to_stash(
         if calc["remaining_grams"] is not None:
             stash["primary_pack"]["total_grams"] = calc["remaining_grams"]
 
-    if "packs" in stash and isinstance(stash["packs"], list) and len(stash["packs"]) > 0:
-        if isinstance(stash["packs"][0], dict):
-            stash["packs"][0]["skeins"] = calc["remaining_skeins"]
-            if calc["remaining_yards"] is not None:
-                stash["packs"][0]["total_yards"] = calc["remaining_yards"]
-            if calc["remaining_grams"] is not None:
-                stash["packs"][0]["total_grams"] = calc["remaining_grams"]
+    if (
+        "packs" in stash
+        and isinstance(stash["packs"], list)
+        and len(stash["packs"]) > 0
+        and isinstance(stash["packs"][0], dict)
+    ):
+        stash["packs"][0]["skeins"] = calc["remaining_skeins"]
+        if calc["remaining_yards"] is not None:
+            stash["packs"][0]["total_yards"] = calc["remaining_yards"]
+        if calc["remaining_grams"] is not None:
+            stash["packs"][0]["total_grams"] = calc["remaining_grams"]
 
     if calc["remaining_skeins"] <= 0:
         stash["stash_status"] = {"id": 2, "name": "Used up"}
@@ -222,9 +228,15 @@ def rollback_usage_from_stash(
         return stash, updated_history
 
     entry = updated_history.pop(usage_index)
-    skeins_to_restore = abs(float(entry.get("skeins", 0.0) or entry.get("delta_skeins", 0.0) or 0.0))
-    yards_to_restore = abs(float(entry.get("yards", 0.0))) if entry.get("yards") is not None else None
-    grams_to_restore = abs(float(entry.get("grams", 0.0))) if entry.get("grams") is not None else None
+    skeins_to_restore = abs(
+        float(entry.get("skeins", 0.0) or entry.get("delta_skeins", 0.0) or 0.0)
+    )
+    yards_to_restore = (
+        abs(float(entry.get("yards", 0.0))) if entry.get("yards") is not None else None
+    )
+    grams_to_restore = (
+        abs(float(entry.get("grams", 0.0))) if entry.get("grams") is not None else None
+    )
 
     cur_skeins = float(stash.get("skeins", 0.0) or 0.0)
     stash["skeins"] = round(cur_skeins + skeins_to_restore, 4)
@@ -242,17 +254,25 @@ def rollback_usage_from_stash(
         if stash.get("total_grams") is not None:
             stash["primary_pack"]["total_grams"] = stash["total_grams"]
 
-    if "packs" in stash and isinstance(stash["packs"], list) and len(stash["packs"]) > 0:
-        if isinstance(stash["packs"][0], dict):
-            stash["packs"][0]["skeins"] = stash["skeins"]
-            if stash.get("total_yards") is not None:
-                stash["packs"][0]["total_yards"] = stash["total_yards"]
-            if stash.get("total_grams") is not None:
-                stash["packs"][0]["total_grams"] = stash["total_grams"]
+    if (
+        "packs" in stash
+        and isinstance(stash["packs"], list)
+        and len(stash["packs"]) > 0
+        and isinstance(stash["packs"][0], dict)
+    ):
+        stash["packs"][0]["skeins"] = stash["skeins"]
+        if stash.get("total_yards") is not None:
+            stash["packs"][0]["total_yards"] = stash["total_yards"]
+        if stash.get("total_grams") is not None:
+            stash["packs"][0]["total_grams"] = stash["total_grams"]
 
     # Restore active status if previously marked Used up
     current_status = stash.get("stash_status")
-    status_name = current_status.get("name") if isinstance(current_status, dict) else str(current_status or "")
+    status_name = (
+        current_status.get("name")
+        if isinstance(current_status, dict)
+        else str(current_status or "")
+    )
     if stash["skeins"] > 0 and status_name == "Used up":
         stash["stash_status"] = {"id": 1, "name": "In stash"}
 
@@ -324,7 +344,10 @@ def create_usage_preview(
             [
                 html.Div(
                     [
-                        html.Span(f"Currently have: {cur_sk_val:.1f} skeins", className="text-light fw-medium"),
+                        html.Span(
+                            f"Currently have: {cur_sk_val:.1f} skeins",
+                            className="text-light fw-medium",
+                        ),
                     ],
                     className="mb-1",
                 ),
@@ -363,7 +386,11 @@ def create_usage_history_table(history: list[dict[str, Any]] | None = None) -> C
 
     rows: list[html.Tr] = []
     for idx, entry in enumerate(history):
-        skeins = entry.get("skeins") if entry.get("skeins") is not None else entry.get("delta_skeins", 0.0)
+        skeins = (
+            entry.get("skeins")
+            if entry.get("skeins") is not None
+            else entry.get("delta_skeins", 0.0)
+        )
         sk_str = f"{skeins:+.2f} sk" if isinstance(skeins, (int, float)) else str(skeins)
         yards = entry.get("yards")
         yd_str = f"{yards:+.0f} yds" if yards is not None else "—"
@@ -455,7 +482,9 @@ def create_linked_projects_table(
         p_name = p.project_name if hasattr(p, "project_name") else p.get("project_name", "Untitled")
         pattern = p.pattern_name if hasattr(p, "pattern_name") else p.get("pattern_name", "")
         status = p.status_name if hasattr(p, "status_name") else p.get("status_name", "In progress")
-        comp_date = p.completed_date if hasattr(p, "completed_date") else p.get("completed_date", "—")
+        comp_date = (
+            p.completed_date if hasattr(p, "completed_date") else p.get("completed_date", "—")
+        )
         if not comp_date:
             comp_date = "—"
 
@@ -476,12 +505,16 @@ def create_linked_projects_table(
                         className="align-middle",
                     ),
                     html.Td(
-                        dbc.Badge(status or "In progress", color=badge_color, className="px-2 py-1"),
+                        dbc.Badge(
+                            status or "In progress", color=badge_color, className="px-2 py-1"
+                        ),
                         className="align-middle",
                     ),
                     html.Td(comp_date, className="align-middle text-muted"),
                     html.Td(
-                        f"{skeins_used:.1f} sk ({yards_used:,.0f} yds)" if yards_used else f"{skeins_used:.1f} sk",
+                        f"{skeins_used:.1f} sk ({yards_used:,.0f} yds)"
+                        if yards_used
+                        else f"{skeins_used:.1f} sk",
                         className="align-middle text-warning text-end fw-semibold",
                     ),
                 ]
@@ -574,7 +607,9 @@ def create_stash_modal(
         status_val = "In stash"
 
     title_parts = [p for p in [brand_name, yarn_name] if p]
-    header_title = f"Edit Stash Entry: {' — '.join(title_parts)}" if title_parts else "Edit Stash Entry"
+    header_title = (
+        f"Edit Stash Entry: {' — '.join(title_parts)}" if title_parts else "Edit Stash Entry"
+    )
     if not title_parts and colorway_name:
         header_title = f"Edit Stash Entry: {colorway_name}"
 
@@ -594,7 +629,11 @@ def create_stash_modal(
         baseline_parts.append(f"{total_yards:,.0f} yds")
     if total_grams is not None:
         baseline_parts.append(f"{total_grams:,.0f} g")
-    baseline_str = f"Originally stashed: {created_at} ({' / '.join(baseline_parts)})" if baseline_parts else f"Originally stashed: {created_at}"
+    baseline_str = (
+        f"Originally stashed: {created_at} ({' / '.join(baseline_parts)})"
+        if baseline_parts
+        else f"Originally stashed: {created_at}"
+    )
 
     # Colorway options
     colorway_options = [{"label": colorway_name, "value": colorway_name}] if colorway_name else []
@@ -660,7 +699,9 @@ def create_stash_modal(
                             dbc.Input(
                                 id="modal-input-date-added",
                                 type="text",
-                                value=str(created_at).split("T")[0].split(" ")[0].replace("/", "-") if created_at else "—",
+                                value=str(created_at).split("T")[0].split(" ")[0].replace("/", "-")
+                                if created_at
+                                else "—",
                                 disabled=True,
                                 className="bg-dark text-muted border-secondary",
                             ),

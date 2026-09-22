@@ -79,6 +79,8 @@ class RavelryAuthVerifier(BaseModel):
                 valid=False,
                 error=f"Network error: {e}",
             )
+
+
 # end snippet auth-verifier
 
 
@@ -98,8 +100,9 @@ class AccountManager:
 
     def _init_client(self) -> Any:
         """Create and initialize a RavelryClient for the active account."""
-        from stashstats.client.ravelry_client import RavelryClient
         from pydantic import SecretStr
+
+        from stashstats.client.ravelry_client import RavelryClient
 
         access_key, personal_key = self.settings.auth_tuple_for(self._active_label)
         account_settings = self.settings.model_copy(
@@ -156,8 +159,9 @@ class AccountManager:
         username = self.get_active_username()
         logger.info(f"Switched account to {self._active_label.upper()} (@{username})")
         return self._active_label, username
+
+
 # end snippet account-manager
 
 
 account_manager = AccountManager()
-

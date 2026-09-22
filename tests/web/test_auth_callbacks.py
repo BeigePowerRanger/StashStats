@@ -1,6 +1,7 @@
 """Tests for account switch callbacks and state management."""
 
 from unittest.mock import MagicMock, patch
+
 import dash
 import pytest
 
@@ -8,12 +9,11 @@ from stashstats.auth import AccountManager
 from stashstats.config import Settings
 from stashstats.models import CurrentUserResponse
 from stashstats.models.project import ProjectListResponse, ProjectListResult
-from stashstats.models.stash import StashItem, StashListResponse
+from stashstats.models.stash import StashItem
 from stashstats.models.user import UserProfile
 from stashstats.web.callbacks.auth import (
     handle_account_modal_toggle_logic,
     handle_account_switch_confirm_logic,
-    register_auth_callbacks,
 )
 
 
@@ -68,14 +68,14 @@ def test_handle_account_modal_toggle_prevent_update(mock_mgr):
 @patch("stashstats.client.ravelry_client.RavelryClient.get_current_user")
 def test_handle_account_switch_confirm_success(mock_get_user, mock_mgr):
     """Test confirming switch re-initializes client, re-fetches stash and projects, and updates UI."""
-    mock_get_user.return_value = CurrentUserResponse(user=UserProfile(id=99, username="ProdKnitPro"))
+    mock_get_user.return_value = CurrentUserResponse(
+        user=UserProfile(id=99, username="ProdKnitPro")
+    )
 
     mock_client = MagicMock()
     mock_client.username = "ProdKnitPro"
     mock_client._cached_username = "ProdKnitPro"
-    mock_client.get_all_my_stash.return_value = [
-        StashItem(id=101, name="Silk Merino", skeins=2.0)
-    ]
+    mock_client.get_all_my_stash.return_value = [StashItem(id=101, name="Silk Merino", skeins=2.0)]
     mock_client.get_my_projects.return_value = ProjectListResponse(
         projects=[ProjectListResult(id=201, name="Winter Scarf", progress=80)],
         paginator={"page_count": 1, "page": 1, "page_size": 50, "results": 1, "last_page": 1},

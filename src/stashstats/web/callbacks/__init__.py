@@ -37,4 +37,3 @@ __all__ = [
     "update_stash_view_logic",
     "update_yarn_search_logic",
 ]
-

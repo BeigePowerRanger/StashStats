@@ -1,6 +1,7 @@
 """Plotly chart generation functions for Stash Analytics dashboard."""
 
 from typing import Any
+
 import plotly.graph_objects as go
 
 from stashstats.analytics.distributions import CategoryDistribution
@@ -187,7 +188,7 @@ def _build_continuous_monthly_timeline(
     Returns:
         (iso_dates, display_labels, cumulative_values)
     """
-    valid_periods = [p for p in period_dict.keys() if p != "Undated" and len(p) >= 7 and "-" in p]
+    valid_periods = [p for p in period_dict if p != "Undated" and len(p) >= 7 and "-" in p]
     if not valid_periods:
         if "Undated" in period_dict:
             return ["Active Stash"], ["Active Stash"], [period_dict["Undated"]]
@@ -197,7 +198,20 @@ def _build_continuous_monthly_timeline(
     start_y, start_m = int(valid_periods[0][:4]), int(valid_periods[0][5:7])
     end_y, end_m = int(valid_periods[-1][:4]), int(valid_periods[-1][5:7])
 
-    month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    month_names = [
+        "Jan",
+        "Feb",
+        "Mar",
+        "Apr",
+        "May",
+        "Jun",
+        "Jul",
+        "Aug",
+        "Sep",
+        "Oct",
+        "Nov",
+        "Dec",
+    ]
     iso_dates: list[str] = []
     display_labels: list[str] = []
     cum_values: list[float] = []
@@ -265,7 +279,11 @@ def create_stash_by_time_chart(
                     mode="lines+markers",
                     fill="tozeroy",
                     line={"color": "#8b5cf6", "width": 3, "shape": "spline"},
-                    marker={"size": 6, "color": "#a855f7", "line": {"color": "#ffffff", "width": 1.5}},
+                    marker={
+                        "size": 6,
+                        "color": "#a855f7",
+                        "line": {"color": "#ffffff", "width": 1.5},
+                    },
                     fillcolor="rgba(139, 92, 246, 0.18)",
                     hovertemplate=f"<b>%{{customdata}}</b><br>Net Stash: %{{y:,.1f}} {symbol}<extra></extra>",
                 )
@@ -280,7 +298,12 @@ def create_stash_by_time_chart(
                 "gridcolor": "#333",
                 "automargin": True,
             },
-            yaxis={"title": f"Total Stash ({symbol})", "gridcolor": "#333", "rangemode": "tozero", "automargin": True},
+            yaxis={
+                "title": f"Total Stash ({symbol})",
+                "gridcolor": "#333",
+                "rangemode": "tozero",
+                "automargin": True,
+            },
         )
         return fig
 
@@ -289,10 +312,25 @@ def create_stash_by_time_chart(
         for item in items:
             date_val = (
                 getattr(item, "purchased", None)
-                or (item.primary_pack.purchased_date if getattr(item, "primary_pack", None) and item.primary_pack and item.primary_pack.purchased_date else None)
-                or (item.packs[0].purchased_date if getattr(item, "packs", None) and item.packs and item.packs[0].purchased_date else None)
+                or (
+                    item.primary_pack.purchased_date
+                    if getattr(item, "primary_pack", None)
+                    and item.primary_pack
+                    and item.primary_pack.purchased_date
+                    else None
+                )
+                or (
+                    item.packs[0].purchased_date
+                    if getattr(item, "packs", None) and item.packs and item.packs[0].purchased_date
+                    else None
+                )
                 or getattr(item, "created_at", None)
-                or (item.first_photo.created_at[:10] if getattr(item, "first_photo", None) and getattr(item.first_photo, "created_at", None) else None)
+                or (
+                    item.first_photo.created_at[:10]
+                    if getattr(item, "first_photo", None)
+                    and getattr(item.first_photo, "created_at", None)
+                    else None
+                )
                 or "Undated"
             )
 
@@ -303,7 +341,11 @@ def create_stash_by_time_chart(
                     else getattr(item, "total_meters", None)
                 )
                 if qty is None:
-                    yd = getattr(item, "yards_remaining", None) if getattr(item, "yards_remaining", None) is not None else getattr(item, "total_yards", 0.0)
+                    yd = (
+                        getattr(item, "yards_remaining", None)
+                        if getattr(item, "yards_remaining", None) is not None
+                        else getattr(item, "total_yards", 0.0)
+                    )
                     qty = (yd or 0.0) * 0.9144
             elif symbol == "g":
                 qty = (
@@ -324,7 +366,11 @@ def create_stash_by_time_chart(
                     else getattr(item, "total_yards", 0.0)
                 )
 
-            period_key = str(date_val)[:7].replace("/", "-") if len(str(date_val)) >= 7 and date_val != "Undated" else "Undated"
+            period_key = (
+                str(date_val)[:7].replace("/", "-")
+                if len(str(date_val)) >= 7 and date_val != "Undated"
+                else "Undated"
+            )
             dated_items.append((period_key, qty or 0.0))
 
         period_totals: dict[str, float] = {}
@@ -346,7 +392,11 @@ def create_stash_by_time_chart(
                     mode="lines+markers",
                     fill="tozeroy",
                     line={"color": "#8b5cf6", "width": 3, "shape": "spline"},
-                    marker={"size": 6, "color": "#a855f7", "line": {"color": "#ffffff", "width": 1.5}},
+                    marker={
+                        "size": 6,
+                        "color": "#a855f7",
+                        "line": {"color": "#ffffff", "width": 1.5},
+                    },
                     fillcolor="rgba(139, 92, 246, 0.18)",
                     hovertemplate=f"<b>%{{customdata}}</b><br>Cumulative Inflow: %{{y:,.1f}} {symbol}<extra></extra>",
                 )
@@ -361,7 +411,12 @@ def create_stash_by_time_chart(
                 "gridcolor": "#333",
                 "automargin": True,
             },
-            yaxis={"title": f"Cumulative Inflow ({symbol})", "gridcolor": "#333", "rangemode": "tozero", "automargin": True},
+            yaxis={
+                "title": f"Cumulative Inflow ({symbol})",
+                "gridcolor": "#333",
+                "rangemode": "tozero",
+                "automargin": True,
+            },
         )
         return fig
 
@@ -404,7 +459,20 @@ def create_monthly_flow_chart(
         try:
             if len(p) == 7 and "-" in p:
                 parts = p.split("-")
-                month_names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                month_names = [
+                    "Jan",
+                    "Feb",
+                    "Mar",
+                    "Apr",
+                    "May",
+                    "Jun",
+                    "Jul",
+                    "Aug",
+                    "Sep",
+                    "Oct",
+                    "Nov",
+                    "Dec",
+                ]
                 m_idx = int(parts[1]) - 1
                 if 0 <= m_idx < 12:
                     return f"{month_names[m_idx]} '{parts[0][2:]}"
@@ -421,7 +489,10 @@ def create_monthly_flow_chart(
                 x=display_labels,
                 y=acquired,
                 customdata=periods,
-                marker={"color": "#3b82f6", "line": {"color": "rgba(255, 255, 255, 0.2)", "width": 1}},
+                marker={
+                    "color": "#3b82f6",
+                    "line": {"color": "rgba(255, 255, 255, 0.2)", "width": 1},
+                },
                 hovertemplate=f"<b>%{{x}} (%{{customdata}})</b><br>Acquired: %{{y:,.1f}} {symbol}<extra></extra>",
             ),
             go.Bar(
@@ -429,7 +500,10 @@ def create_monthly_flow_chart(
                 x=display_labels,
                 y=consumed,
                 customdata=periods,
-                marker={"color": "#ec4899", "line": {"color": "rgba(255, 255, 255, 0.2)", "width": 1}},
+                marker={
+                    "color": "#ec4899",
+                    "line": {"color": "rgba(255, 255, 255, 0.2)", "width": 1},
+                },
                 hovertemplate=f"<b>%{{x}}</b><br>Consumed: %{{y:,.1f}} {symbol}<extra></extra>",
             ),
         ]
@@ -562,7 +636,7 @@ def create_projects_pie_chart(
             project_totals[p_name] = project_totals.get(p_name, 0.0) + val
 
     labels = list(project_totals.keys())
-    values = [project_totals[l] for l in labels]
+    values = [project_totals[lbl] for lbl in labels]
 
     if not values or all(v == 0 for v in values):
         return _create_empty_figure("No project yarn consumption recorded")
@@ -592,4 +666,3 @@ def create_projects_pie_chart(
         legend={"orientation": "v", "yanchor": "middle", "y": 0.5, "xanchor": "left", "x": 0.66},
     )
     return fig
-

@@ -1,6 +1,5 @@
 import dash_bootstrap_components as dbc
 from dash import html
-import pytest
 
 from stashstats.web.components.analytics import (
     create_kpi_summary_cards,
@@ -34,4 +33,3 @@ class TestAnalyticsComponents:
     def test_create_unit_selector_bar(self):
         bar = create_unit_selector_bar(active_unit="yards")
         assert isinstance(bar, (dbc.Card, dbc.Container, html.Div))
-

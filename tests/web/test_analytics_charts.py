@@ -1,5 +1,4 @@
 import plotly.graph_objects as go
-import pytest
 
 from stashstats.analytics.distributions import CategoryDistribution
 from stashstats.models.analytics import PeriodicRollup, ProjectUsageRecord, RollingVelocity
@@ -60,9 +59,15 @@ class TestAnalyticsCharts:
 
     def test_create_monthly_flow_chart(self):
         rollups = [
-            PeriodicRollup(period="2026-06", acquired_yards=500.0, consumed_yards=200.0, net_yards=300.0),
-            PeriodicRollup(period="2026-07", acquired_yards=0.0, consumed_yards=400.0, net_yards=-400.0),
-            PeriodicRollup(period="2026-08", acquired_yards=800.0, consumed_yards=300.0, net_yards=500.0),
+            PeriodicRollup(
+                period="2026-06", acquired_yards=500.0, consumed_yards=200.0, net_yards=300.0
+            ),
+            PeriodicRollup(
+                period="2026-07", acquired_yards=0.0, consumed_yards=400.0, net_yards=-400.0
+            ),
+            PeriodicRollup(
+                period="2026-08", acquired_yards=800.0, consumed_yards=300.0, net_yards=500.0
+            ),
         ]
         fig = create_monthly_flow_chart(rollups)
         assert isinstance(fig, go.Figure)
@@ -76,9 +81,30 @@ class TestAnalyticsCharts:
         assert len(fig.layout.annotations) >= 1
 
     def test_create_velocity_pace_chart(self):
-        v30 = RollingVelocity(window_days=30, yards_consumed=300.0, skeins_consumed=1.5, yards_per_day=10.0, yards_per_month=304.38, skeins_per_month=1.52)
-        v90 = RollingVelocity(window_days=90, yards_consumed=720.0, skeins_consumed=3.6, yards_per_day=8.0, yards_per_month=243.5, skeins_per_month=1.22)
-        v365 = RollingVelocity(window_days=365, yards_consumed=2190.0, skeins_consumed=10.0, yards_per_day=6.0, yards_per_month=182.6, skeins_per_month=0.83)
+        v30 = RollingVelocity(
+            window_days=30,
+            yards_consumed=300.0,
+            skeins_consumed=1.5,
+            yards_per_day=10.0,
+            yards_per_month=304.38,
+            skeins_per_month=1.52,
+        )
+        v90 = RollingVelocity(
+            window_days=90,
+            yards_consumed=720.0,
+            skeins_consumed=3.6,
+            yards_per_day=8.0,
+            yards_per_month=243.5,
+            skeins_per_month=1.22,
+        )
+        v365 = RollingVelocity(
+            window_days=365,
+            yards_consumed=2190.0,
+            skeins_consumed=10.0,
+            yards_per_day=6.0,
+            yards_per_month=182.6,
+            skeins_per_month=0.83,
+        )
 
         fig = create_velocity_pace_chart(v30, v90, v365)
         assert isinstance(fig, go.Figure)

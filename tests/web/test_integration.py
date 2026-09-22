@@ -214,9 +214,7 @@ def make_integration_stash_items() -> list[StashItem]:
 def test_full_application_assembly() -> None:
     """Verify create_app builds complete Darkly-themed shell with all subcomponents."""
     items = make_integration_stash_items()
-    client = RavelryClient(
-        settings=Settings(access_key="dummy_key", personal_key="dummy_secret")
-    )
+    client = RavelryClient(settings=Settings(access_key="dummy_key", personal_key="dummy_secret"))
     client._cached_username = "fiberfanatic"
 
     app = create_app(client=client, items=items)
@@ -290,7 +288,6 @@ def test_application_callbacks_registered() -> None:
     assert any("stash-modal" in o for o in outputs)
     # Verify search callbacks
     assert any("yarn-search-list-container" in o for o in outputs)
-
 
 
 # ===========================================================================
@@ -393,7 +390,9 @@ def test_stash_pagination_pipeline() -> None:
 def test_stash_sync_interaction_pipeline() -> None:
     """Verify triggering sync updates badge and timestamp."""
     items = [item.model_dump() for item in make_integration_stash_items()]
-    badge_text, badge_color, last_synced, fresh_items = handle_stash_sync_logic(n_clicks=1, raw_data=items)
+    badge_text, badge_color, last_synced, fresh_items = handle_stash_sync_logic(
+        n_clicks=1, raw_data=items
+    )
     assert badge_text == "Synced"
     assert badge_color == "success"
     assert "Last synced:" in last_synced

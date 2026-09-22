@@ -4,16 +4,16 @@ import httpx
 import pytest
 
 from stashstats.client import (
-    Client,
-    RavelryClient,
     AppDataClientMixin,
+    Client,
     ProjectClientMixin,
+    RavelryClient,
     ReferenceClientMixin,
     StashClientMixin,
     YarnClientMixin,
 )
 from stashstats.config import Settings
-from stashstats.models.history import StashHistory, StashHistoryEntry
+from stashstats.models.history import StashHistoryEntry
 from stashstats.models.stash import Pack, StashItem
 from stashstats.models.yarn import YarnDetailResponse, YarnSearchResponse
 
@@ -162,7 +162,13 @@ class TestStashHistoryAndDeduplication:
         calls: list[dict[str, Any]] = []
 
         def handler(request: httpx.Request) -> httpx.Response:
-            calls.append({"method": request.method, "path": request.url.path, "params": dict(request.url.params)})
+            calls.append(
+                {
+                    "method": request.method,
+                    "path": request.url.path,
+                    "params": dict(request.url.params),
+                }
+            )
             if request.url.path == "/app/data/get.json":
                 return httpx.Response(200, json={"data": {}})
             if request.url.path == "/app/data/set.json":
@@ -285,7 +291,13 @@ class TestStashHistoryAndDeduplication:
                     200,
                     json={
                         "stash": [{"id": 1, "name": "Yarn 1"}, {"id": 2, "name": "Yarn 2"}],
-                        "paginator": {"page": 1, "page_size": 2, "page_count": 2, "last_page": 2, "results": 3},
+                        "paginator": {
+                            "page": 1,
+                            "page_size": 2,
+                            "page_count": 2,
+                            "last_page": 2,
+                            "results": 3,
+                        },
                     },
                 )
             else:
@@ -293,7 +305,13 @@ class TestStashHistoryAndDeduplication:
                     200,
                     json={
                         "stash": [{"id": 3, "name": "Yarn 3"}],
-                        "paginator": {"page": 2, "page_size": 2, "page_count": 2, "last_page": 2, "results": 3},
+                        "paginator": {
+                            "page": 2,
+                            "page_size": 2,
+                            "page_count": 2,
+                            "last_page": 2,
+                            "results": 3,
+                        },
                     },
                 )
 
@@ -677,5 +695,3 @@ class TestModularMixins:
         assert hist.stash_id == 888
         assert len(hist.entries) == 1
         assert hist.entries[0].skeins == 1.0
-
-

@@ -60,10 +60,7 @@ def create_yarn_search_layout(
     )
 
     # 4. Data Stores
-    serialized_yarns = [
-        y.model_dump() if hasattr(y, "model_dump") else y
-        for y in raw_yarns
-    ]
+    serialized_yarns = [y.model_dump() if hasattr(y, "model_dump") else y for y in raw_yarns]
 
     stores = [
         dcc.Store(id="yarn-search-results-store", data=serialized_yarns),

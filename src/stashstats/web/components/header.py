@@ -47,7 +47,7 @@ def create_header(
         className="ms-2 px-2 py-1 align-self-center d-flex align-items-center rounded-pill",
         title="Click to switch Ravelry account",
     )
-# end snippet header-component
+    # end snippet header-component
 
     if pending_count > 0:
         sync_badge_text = f"{pending_count} pending"
@@ -98,7 +98,13 @@ def create_header(
         src="/assets/Images/logo_color.png",
         alt="StashStats",
         id="header-logo",
-        style={"width": "100%", "maxWidth": "500px", "maxHeight": "165px", "objectFit": "contain", "borderRadius": "16px"},
+        style={
+            "width": "100%",
+            "maxWidth": "500px",
+            "maxHeight": "165px",
+            "objectFit": "contain",
+            "borderRadius": "16px",
+        },
     )
 
     logo_row = dbc.Row(

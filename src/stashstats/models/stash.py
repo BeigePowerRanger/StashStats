@@ -1,5 +1,6 @@
 from typing import Any
-from pydantic import BaseModel, Field, model_validator, field_validator
+
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from stashstats.models.common import Paginator, Photo, YarnCompany
 from stashstats.models.user import UserProfile
@@ -76,6 +77,8 @@ class Pack(BaseModel):
 
     purchased_date: str | None = None
     """Date purchased (YYYY-MM-DD) if entered by user."""
+
+
 # end snippet pack-model
 
 
@@ -237,7 +240,8 @@ class StashItem(BaseModel):
             if not self.dye_lot and self.primary_pack.dye_lot:
                 self.dye_lot = self.primary_pack.dye_lot
         return self
-# end snippet stash-item-model
+
+    # end snippet stash-item-model
 
     @field_validator("has_photo", mode="before")
     @classmethod
@@ -270,5 +274,3 @@ class StashSearchResponse(BaseModel):
 
     stashes: list[StashItem] = Field(default_factory=list)
     """list of matching stash items."""
-
-

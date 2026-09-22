@@ -87,6 +87,3 @@ __all__ = [
     "YarnWeightReference",
     "YarnWeightsResponse",
 ]
-
-
-

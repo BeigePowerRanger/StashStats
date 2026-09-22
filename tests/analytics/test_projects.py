@@ -1,10 +1,8 @@
 """Unit tests for ProjectUsageRecord data model and StashProjectUsageCalculator."""
 
-import pytest
-
 from stashstats.analytics.projects import StashProjectUsageCalculator
-from stashstats.models.analytics import ProjectConsumptionSummary, ProjectUsageRecord
-from stashstats.models.common import Photo, YarnCompany
+from stashstats.models.analytics import ProjectConsumptionSummary
+from stashstats.models.common import YarnCompany
 from stashstats.models.project import Project
 from stashstats.models.stash import Pack, StashItem, StashYarn
 from stashstats.models.yarn import YarnWeight
@@ -387,9 +385,3 @@ class TestStashProjectUsageCalculator:
         assert records[0].yarn_name == "Malabrigo Rios - Blue"
         assert records[0].skeins_used == 1.5
         assert records[0].yards_used == 315.0
-
-
-
-
-
-

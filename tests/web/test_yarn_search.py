@@ -123,7 +123,9 @@ def make_sample_yarn_search_results() -> list[YarnSearchResult]:
 
 def test_create_yarn_search_form_structure() -> None:
     """Verify search form renders category, query, sort, and submit button."""
-    form = create_yarn_search_form(query="merino", brand="Malabrigo", category="yarns", sort="best_match")
+    form = create_yarn_search_form(
+        query="merino", brand="Malabrigo", category="yarns", sort="best_match"
+    )
     assert isinstance(form, (dbc.Row, dbc.Form, html.Div))
 
     # Category selector

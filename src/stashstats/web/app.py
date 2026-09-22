@@ -49,7 +49,9 @@ def create_app(
         ]
 
     suppress_callback_exceptions = dash_kwargs.pop("suppress_callback_exceptions", True)
-    resolved_assets_folder = assets_folder or dash_kwargs.pop("assets_folder", DEFAULT_ASSETS_FOLDER)
+    resolved_assets_folder = assets_folder or dash_kwargs.pop(
+        "assets_folder", DEFAULT_ASSETS_FOLDER
+    )
 
     app = dash.Dash(
         __name__,
@@ -59,7 +61,7 @@ def create_app(
         suppress_callback_exceptions=suppress_callback_exceptions,
         **dash_kwargs,
     )
-# end snippet app-factory
+    # end snippet app-factory
 
     from stashstats.auth import account_manager  # noqa: PLC0415
 
@@ -69,7 +71,9 @@ def create_app(
 
     # Resolve username and initial items/projects if client is available
     active_label = account_manager.get_active_label()
-    username = getattr(active_client, "_cached_username", None) if active_client is not None else None
+    username = (
+        getattr(active_client, "_cached_username", None) if active_client is not None else None
+    )
     resolved_items = items
     resolved_projects = None
     if active_client is not None:
@@ -111,10 +115,12 @@ def create_app(
 
     # Register Projects tab callbacks
     from stashstats.web.callbacks.projects import register_projects_callbacks  # noqa: PLC0415
+
     register_projects_callbacks(app)
 
     # Register Auth callbacks
     from stashstats.web.callbacks.auth import register_auth_callbacks  # noqa: PLC0415
+
     register_auth_callbacks(app)
 
     # ---------------------------------------------------------------------------

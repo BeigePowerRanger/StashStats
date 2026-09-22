@@ -103,6 +103,7 @@ def run_server(
     print(f"Starting StashStats web dashboard at {url}")
 
     if open_browser:
+
         def _launch_browser() -> None:
             time.sleep(1.0)
             webbrowser.open_new_tab(url)

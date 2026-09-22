@@ -47,6 +47,8 @@ def update_stash_view_logic(
     info_text = f"Showing page {clamped_page} of {total_pages} ({len(filtered)} parent yarns)"
 
     return accordion, total_pages, clamped_page, info_text
+
+
 # end snippet stash-callback-logic
 
 
@@ -69,10 +71,7 @@ def handle_stash_sync_logic(
                 stash_resp = client.get_my_stash()
                 raw_items = stash_resp.stash
 
-            fresh_items = [
-                it.model_dump() if hasattr(it, "model_dump") else it
-                for it in raw_items
-            ]
+            fresh_items = [it.model_dump() if hasattr(it, "model_dump") else it for it in raw_items]
             logger.info(f"Manual sync complete: {len(fresh_items)} items retrieved")
             now_str = datetime.now(UTC).strftime("Today %H:%M")
             return "Synced", "success", f"Last synced: {now_str}", fresh_items

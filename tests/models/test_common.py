@@ -1,7 +1,7 @@
 import pytest
 from pydantic import ValidationError
 
-from stashstats.models.common import Paginator, Photo
+from stashstats.models.common import Photo
 
 
 class TestPhoto:

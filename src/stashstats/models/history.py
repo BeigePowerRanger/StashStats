@@ -64,7 +64,7 @@ class StashHistoryEntry(BaseModel):
             datetime.fromisoformat(normalized)
             return v
         except (ValueError, TypeError):
-            raise ValueError(f"Invalid timestamp format: {v}")
+            raise ValueError(f"Invalid timestamp format: {v}") from None
 
     @computed_field
     @property
@@ -91,4 +91,3 @@ class StashHistory(BaseModel):
 
     entries: list[StashHistoryEntry] = Field(default_factory=list)
     """Chronological list of history snapshots."""
-

@@ -1,6 +1,7 @@
 """Unit tests for AccountManager authentication and account switching."""
 
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
+
 import pytest
 
 from stashstats.auth import AccountManager
@@ -36,13 +37,17 @@ def test_account_manager_get_client(mock_settings):
 @patch("stashstats.client.ravelry_client.RavelryClient.get_current_user")
 def test_account_manager_switch(mock_get_user, mock_settings):
     """Test switch toggles between dev and prod and re-initializes client."""
-    mock_get_user.return_value = CurrentUserResponse(user=UserProfile(id=1, username="DevYarnLover"))
+    mock_get_user.return_value = CurrentUserResponse(
+        user=UserProfile(id=1, username="DevYarnLover")
+    )
 
     mgr = AccountManager(settings=mock_settings, auto_init=False)
     assert mgr.get_active_label() == "dev"
 
     # Switch to prod
-    mock_get_user.return_value = CurrentUserResponse(user=UserProfile(id=2, username="ProdKnitMaster"))
+    mock_get_user.return_value = CurrentUserResponse(
+        user=UserProfile(id=2, username="ProdKnitMaster")
+    )
     new_label, username = mgr.switch()
 
     assert new_label == "prod"
@@ -53,7 +58,9 @@ def test_account_manager_switch(mock_get_user, mock_settings):
     assert username == "ProdKnitMaster"
 
     # Switch back to dev
-    mock_get_user.return_value = CurrentUserResponse(user=UserProfile(id=1, username="DevYarnLover"))
+    mock_get_user.return_value = CurrentUserResponse(
+        user=UserProfile(id=1, username="DevYarnLover")
+    )
     new_label, username = mgr.switch()
     assert new_label == "dev"
     assert mgr.get_active_label() == "dev"

@@ -211,8 +211,7 @@ def create_stash_layout(
     stores = []
     if include_stores:
         serialized_items = [
-            item.model_dump() if hasattr(item, "model_dump") else item
-            for item in raw_items
+            item.model_dump() if hasattr(item, "model_dump") else item for item in raw_items
         ]
         stores = [
             dcc.Store(id="stash-raw-store", data=serialized_items),

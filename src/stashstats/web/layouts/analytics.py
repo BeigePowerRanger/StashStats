@@ -47,12 +47,8 @@ def create_analytics_layout(
     )
     total_skeins = report.total_active_skeins if report else 0.0
     total_items = report.total_active_items if report else 0
-    monthly_burn_rate = (
-        report.horizon.monthly_burn_rate_yards if report and report.horizon else 0.0
-    )
-    months_remaining = (
-        report.horizon.months_remaining if report and report.horizon else None
-    )
+    monthly_burn_rate = report.horizon.monthly_burn_rate_yards if report and report.horizon else 0.0
+    months_remaining = report.horizon.months_remaining if report and report.horizon else None
 
     kpi_cards = create_kpi_summary_cards(
         total_yards=total_yards,
@@ -263,7 +259,10 @@ def create_analytics_layout(
             html.Div(
                 [
                     html.H4("Stash Analytics", className="text-light fw-bold mb-1"),
-                    html.P("Real-time inventory breakdowns, timeline trends, project utilization, and net flow history.", className="text-muted small mb-3"),
+                    html.P(
+                        "Real-time inventory breakdowns, timeline trends, project utilization, and net flow history.",
+                        className="text-muted small mb-3",
+                    ),
                 ],
                 className="mb-3",
             ),

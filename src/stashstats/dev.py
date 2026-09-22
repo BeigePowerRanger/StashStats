@@ -9,14 +9,18 @@ def test_mvp_models_and_endpoints():
         yarn_detail = client.get_yarn_details(62569)
         yarn = yarn_detail.yarn
         print(f"Yarn Name        : {yarn.yarn_company_name or 'Independent'} - {yarn.name}")
-        print(f"Weight / Length  : {yarn.yarn_weight.name if yarn.yarn_weight else 'N/A'} | {yarn.yardage}y / {yarn.grams}g")
+        print(
+            f"Weight / Length  : {yarn.yarn_weight.name if yarn.yarn_weight else 'N/A'} | {yarn.yardage}y / {yarn.grams}g"
+        )
         print(f"Rating           : {yarn.rating_average} ({yarn.rating_count} reviews)")
         print(f"Discontinued     : {yarn.discontinued}")
         print(f"Machine Washable : {yarn.machine_washable}")
         print(f"Texture          : {yarn.texture}")
         print("Fiber Breakdown  :")
         for fiber in yarn.yarn_fibers:
-            print(f"  - {fiber.percentage}% {fiber.fiber_type.name} (Animal: {fiber.fiber_type.animal_fiber})")
+            print(
+                f"  - {fiber.percentage}% {fiber.fiber_type.name} (Animal: {fiber.fiber_type.animal_fiber})"
+            )
 
         print("\n==================================================")
         print("2. TEST REFERENCE DATA: COLOR FAMILIES")
@@ -32,7 +36,9 @@ def test_mvp_models_and_endpoints():
         yarn_weights = client.get_yarn_weights()
         print(f"Total Yarn Weights: {len(yarn_weights)}")
         for yw in yarn_weights[:5]:
-            print(f"  - [{yw.id}] {yw.name} (Ply: {yw.ply}, WPI: {yw.wpi}, Gauge: {yw.min_gauge}-{yw.max_gauge})")
+            print(
+                f"  - [{yw.id}] {yw.name} (Ply: {yw.ply}, WPI: {yw.wpi}, Gauge: {yw.min_gauge}-{yw.max_gauge})"
+            )
 
         print("\n==================================================")
         print("4. TEST REFERENCE DATA: FIBER CATEGORIES")

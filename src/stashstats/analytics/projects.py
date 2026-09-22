@@ -1,5 +1,6 @@
 """Stash and project yarn consumption analytics and correlation calculator."""
 
+import contextlib
 from typing import Any
 
 from stashstats.models.analytics import ProjectConsumptionSummary, ProjectUsageRecord
@@ -61,30 +62,23 @@ class StashProjectUsageCalculator:
         normalized_stash: list[StashItem] = [
             _normalize_stash_item(item) for item in (stash_items or [])
         ]
-        normalized_projects: list[Project] = [
-            _normalize_project(proj) for proj in (projects or [])
-        ]
+        normalized_projects: list[Project] = [_normalize_project(proj) for proj in (projects or [])]
 
         stash_by_id: dict[Any, StashItem] = {}
         stash_by_yarn: dict[Any, list[StashItem]] = {}
         for item in normalized_stash:
-            s_id = item.id
-            if s_id is not None:
-                stash_by_id[s_id] = item
-                stash_by_id[str(s_id)] = item
-                try:
-                    stash_by_id[int(s_id)] = item
-                except (ValueError, TypeError):
-                    pass
+            if item.id is not None:
+                stash_by_id[item.id] = item
+                stash_by_id[str(item.id)] = item
+                with contextlib.suppress(ValueError, TypeError):
+                    stash_by_id[int(item.id)] = item
             yarn_info = item.yarn
             yarn_id = yarn_info.id if yarn_info else None
             if yarn_id is not None:
                 stash_by_yarn.setdefault(yarn_id, []).append(item)
                 stash_by_yarn.setdefault(str(yarn_id), []).append(item)
-                try:
+                with contextlib.suppress(ValueError, TypeError):
                     stash_by_yarn.setdefault(int(yarn_id), []).append(item)
-                except (ValueError, TypeError):
-                    pass
 
         results: list[ProjectUsageRecord] = []
         seen_keys: set[tuple[Any, Any, Any]] = set()
@@ -132,7 +126,9 @@ class StashProjectUsageCalculator:
                     yarn_name = (
                         matched_stash.name
                         if matched_stash and matched_stash.name
-                        else (matched_yarn.name if matched_yarn else pack_colorway or "Project Yarn")
+                        else (
+                            matched_yarn.name if matched_yarn else pack_colorway or "Project Yarn"
+                        )
                     )
 
                     rec_key = (proj_id, stash_id, pack_colorway)
@@ -194,7 +190,11 @@ class StashProjectUsageCalculator:
                     meters = pack.total_meters or (yards * 0.9144 if yards else 0.0)
 
                     # Only if yarn was actually used
-                    if float(skeins or 0.0) <= 0 and float(yards or 0.0) <= 0 and float(grams or 0.0) <= 0:
+                    if (
+                        float(skeins or 0.0) <= 0
+                        and float(yards or 0.0) <= 0
+                        and float(grams or 0.0) <= 0
+                    ):
                         continue
 
                     rec_key = (proj_id or proj_name, item_id, pack_colorway)
@@ -260,10 +260,13 @@ class StashProjectUsageCalculator:
 
                     raw_skeins = float(_safe_get(entry, "skeins") or 0.0)
                     raw_delta_skeins = float(_safe_get(entry, "delta_skeins") or 0.0)
-                    raw_yds = float(_safe_get(entry, "yards") or _safe_get(entry, "delta_yards") or 0.0)
-                    raw_g = float(_safe_get(entry, "grams") or _safe_get(entry, "delta_grams") or 0.0)
+                    raw_yds = float(
+                        _safe_get(entry, "yards") or _safe_get(entry, "delta_yards") or 0.0
+                    )
+                    raw_g = float(
+                        _safe_get(entry, "grams") or _safe_get(entry, "delta_grams") or 0.0
+                    )
                     pat_name = (_safe_get(entry, "pattern_name") or "").strip() or None
-                    notes = (_safe_get(entry, "notes") or "").strip() or None
 
                     # Only consumption events count as used yarn
                     is_consumption = (
@@ -281,10 +284,18 @@ class StashProjectUsageCalculator:
                     effective_skeins = (
                         abs(raw_delta_skeins)
                         if raw_delta_skeins < 0
-                        else (abs(raw_skeins) if raw_skeins < 0 else (abs(raw_skeins) if (p_name or p_id) else 0.0))
+                        else (
+                            abs(raw_skeins)
+                            if raw_skeins < 0
+                            else (abs(raw_skeins) if (p_name or p_id) else 0.0)
+                        )
                     )
-                    used_yards = abs(raw_yds) if raw_yds < 0 else (abs(raw_yds) if (p_name or p_id) else 0.0)
-                    used_grams = abs(raw_g) if raw_g < 0 else (abs(raw_g) if (p_name or p_id) else 0.0)
+                    used_yards = (
+                        abs(raw_yds) if raw_yds < 0 else (abs(raw_yds) if (p_name or p_id) else 0.0)
+                    )
+                    used_grams = (
+                        abs(raw_g) if raw_g < 0 else (abs(raw_g) if (p_name or p_id) else 0.0)
+                    )
 
                     if effective_skeins <= 0 and used_yards <= 0 and used_grams <= 0:
                         continue

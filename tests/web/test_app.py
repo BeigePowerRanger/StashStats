@@ -43,7 +43,6 @@ def test_create_app_custom_title() -> None:
 
 def test_create_app_with_client() -> None:
     """Verify optional RavelryClient instance can be attached."""
-    from stashstats.config import Settings
     from unittest.mock import Mock
 
     client = Mock(spec=RavelryClient)

@@ -1,6 +1,7 @@
 """Stash inventory categorical distributions and aggregations."""
 
 from collections import defaultdict
+
 from pydantic import BaseModel, Field
 
 from stashstats.models.stash import StashItem
@@ -33,6 +34,8 @@ class CategoryDistribution(BaseModel):
 
     percentage_count: float = 0.0
     """Share of overall stash item count (0.0 - 100.0)."""
+
+
 # end snippet category-distribution
 
 
@@ -76,21 +79,25 @@ class StashDistributionCalculator:
         for item in stash_items:
             key = key_extractor(item) or "Uncategorized"
             yards = (
-                (getattr(item, "yards_remaining", None) if getattr(item, "yards_remaining", None) is not None else item.total_yards)
-                or 0.0
-            )
+                getattr(item, "yards_remaining", None)
+                if getattr(item, "yards_remaining", None) is not None
+                else item.total_yards
+            ) or 0.0
             meters = (
-                (getattr(item, "meters_remaining", None) if getattr(item, "meters_remaining", None) is not None else item.total_meters)
-                or (yards * 0.9144 if yards else 0.0)
-            )
+                getattr(item, "meters_remaining", None)
+                if getattr(item, "meters_remaining", None) is not None
+                else item.total_meters
+            ) or (yards * 0.9144 if yards else 0.0)
             grams = (
-                (getattr(item, "grams_remaining", None) if getattr(item, "grams_remaining", None) is not None else item.total_grams)
-                or 0.0
-            )
+                getattr(item, "grams_remaining", None)
+                if getattr(item, "grams_remaining", None) is not None
+                else item.total_grams
+            ) or 0.0
             skeins = (
-                (getattr(item, "skeins_remaining", None) if getattr(item, "skeins_remaining", None) is not None else item.skeins)
-                or 0.0
-            )
+                getattr(item, "skeins_remaining", None)
+                if getattr(item, "skeins_remaining", None) is not None
+                else item.skeins
+            ) or 0.0
 
             grouped_count[key] += 1
             grouped_yards[key] += yards
@@ -124,6 +131,7 @@ class StashDistributionCalculator:
     @classmethod
     def aggregate_yarn_weights(cls, stash_items: list[StashItem]) -> list[CategoryDistribution]:
         """Aggregate stash by yarn weight classification."""
+
         def extract_weight(item: StashItem) -> str:
             if item.yarn_weight_name:
                 return item.yarn_weight_name
@@ -146,6 +154,7 @@ class StashDistributionCalculator:
     @classmethod
     def aggregate_brands(cls, stash_items: list[StashItem]) -> list[CategoryDistribution]:
         """Aggregate stash by yarn company/brand."""
+
         def extract_brand(item: StashItem) -> str:
             if item.yarn and item.yarn.yarn_company_name:
                 return item.yarn.yarn_company_name
@@ -158,6 +167,7 @@ class StashDistributionCalculator:
     @classmethod
     def aggregate_fiber_categories(cls, stash_items: list[StashItem]) -> list[CategoryDistribution]:
         """Aggregate stash by fiber category or material."""
+
         def extract_fiber(item: StashItem) -> str:
             # 1. Check yarn fibers list if available on item or yarn model
             if item.yarn and getattr(item.yarn, "yarn_fibers", None):
@@ -178,7 +188,20 @@ class StashDistributionCalculator:
                     " ".join(item.tag_names or []),
                 ]
             ).lower()
-            for fiber_kw in ["merino", "alpaca", "silk", "cotton", "cashmere", "mohair", "wool", "acrylic", "linen", "nylon", "bamboo", "viscose"]:
+            for fiber_kw in [
+                "merino",
+                "alpaca",
+                "silk",
+                "cotton",
+                "cashmere",
+                "mohair",
+                "wool",
+                "acrylic",
+                "linen",
+                "nylon",
+                "bamboo",
+                "viscose",
+            ]:
                 if fiber_kw in tokens:
                     return fiber_kw.capitalize()
 

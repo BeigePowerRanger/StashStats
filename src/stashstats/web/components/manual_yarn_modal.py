@@ -1,7 +1,6 @@
 """Interactive Modal component for manually adding custom/unlisted yarn directly to stash."""
 
 from datetime import UTC, datetime
-from typing import Any
 
 import dash_bootstrap_components as dbc
 from dash import html
@@ -72,7 +71,10 @@ def create_manual_yarn_modal(is_open: bool = False) -> dbc.Modal:
                             dbc.Col(
                                 [
                                     dbc.Label(
-                                        ["Yarn Name / Line ", html.Span("*", className="text-danger")],
+                                        [
+                                            "Yarn Name / Line ",
+                                            html.Span("*", className="text-danger"),
+                                        ],
                                         className="fw-bold small",
                                     ),
                                     dbc.Input(

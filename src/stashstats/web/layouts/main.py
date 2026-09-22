@@ -60,7 +60,9 @@ def create_navigation_tabs(
         include_stores=False,
     )
     search_layout = create_yarn_search_layout()
-    projects_layout = create_projects_layout(projects=projects, user_id=user_id, include_stores=False)
+    projects_layout = create_projects_layout(
+        projects=projects, user_id=user_id, include_stores=False
+    )
 
     report = None
     distribution = None
@@ -68,8 +70,7 @@ def create_navigation_tabs(
     if items:
         try:
             stash_items = [
-                it if isinstance(it, StashItem) else StashItem.model_validate(it)
-                for it in items
+                it if isinstance(it, StashItem) else StashItem.model_validate(it) for it in items
             ]
             distribution = StashDistributionCalculator.aggregate_all(stash_items)
             report = StashVelocityCalculator.generate_report(stash_items)
@@ -187,15 +188,11 @@ def create_main_layout(
     """
     raw_items = items or []
     serialized_items = [
-        item.model_dump() if hasattr(item, "model_dump") else item
-        for item in raw_items
+        item.model_dump() if hasattr(item, "model_dump") else item for item in raw_items
     ]
 
     raw_projects = projects or []
-    serialized_projects = [
-        p.model_dump() if hasattr(p, "model_dump") else p
-        for p in raw_projects
-    ]
+    serialized_projects = [p.model_dump() if hasattr(p, "model_dump") else p for p in raw_projects]
     user_id = username or "default"
 
     global_stores = [

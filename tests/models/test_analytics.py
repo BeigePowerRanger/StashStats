@@ -153,7 +153,9 @@ class TestStashVelocityReport:
             total_active_yards=1000.0,
             total_active_skeins=5.0,
             total_active_items=2,
-            periodic_monthly=[PeriodicRollup(period="2026-08", consumed_yards=200.0, net_yards=-200.0)],
+            periodic_monthly=[
+                PeriodicRollup(period="2026-08", consumed_yards=200.0, net_yards=-200.0)
+            ],
             periodic_yearly=[PeriodicRollup(period="2026", consumed_yards=200.0, net_yards=-200.0)],
             velocity_30d=RollingVelocity(
                 window_days=30,

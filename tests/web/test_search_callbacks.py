@@ -403,7 +403,13 @@ def test_handle_yarn_search_callback_pagination_trigger() -> None:
         active_page=3,
         query_val="typing new query",  # User typed something else but clicked page 3 of current results
         brand_val="",
-        paginator_store={"page": 2, "total_pages": 4, "query": "merino", "brand": "Malabrigo", "sort": "most_projects"},
+        paginator_store={
+            "page": 2,
+            "total_pages": 4,
+            "query": "merino",
+            "brand": "Malabrigo",
+            "sort": "most_projects",
+        },
     )
 
     accordion, _total_pages, page, _info, _results_store, _paginator_store = res
@@ -487,7 +493,13 @@ def test_handle_add_to_stash_logic_with_client() -> None:
     mock_client.create_stash_item.return_value = mock_item
 
     sample_search_results = [
-        {"id": 2420, "name": "Rios", "yarn_company_name": "Malabrigo", "grams": 100.0, "yardage": 210.0}
+        {
+            "id": 2420,
+            "name": "Rios",
+            "yarn_company_name": "Malabrigo",
+            "grams": 100.0,
+            "yardage": 210.0,
+        }
     ]
     raw_stash_items = [{"id": 1, "name": "Cascade 220", "skeins": 3.0}]
 
@@ -519,7 +531,14 @@ def test_handle_add_to_stash_logic_with_client() -> None:
 def test_handle_add_to_stash_logic_offline_fallback() -> None:
     """Verify handle_add_to_stash_logic creates a synthesized stash item when client is None."""
     sample_search_results = [
-        {"id": 2420, "name": "Rios", "yarn_company_name": "Malabrigo", "grams": 100.0, "yardage": 210.0, "permalink": "rios"}
+        {
+            "id": 2420,
+            "name": "Rios",
+            "yarn_company_name": "Malabrigo",
+            "grams": 100.0,
+            "yardage": 210.0,
+            "permalink": "rios",
+        }
     ]
     raw_stash_items = []
 
@@ -591,7 +610,13 @@ def test_handle_add_to_stash_logic_with_manual_colorway_override() -> None:
         "skeins": 2.0,
     }
     sample_search_results = [
-        {"id": 2420, "name": "Rios", "yarn_company_name": "Malabrigo", "grams": 100.0, "yardage": 210.0}
+        {
+            "id": 2420,
+            "name": "Rios",
+            "yarn_company_name": "Malabrigo",
+            "grams": 100.0,
+            "yardage": 210.0,
+        }
     ]
 
     status_msg, updated_stash = handle_add_to_stash_logic(
@@ -633,5 +658,3 @@ def test_handle_add_to_stash_with_custom_weights() -> None:
         total_yards=1000.0,
         dye_lot=None,
     )
-
-

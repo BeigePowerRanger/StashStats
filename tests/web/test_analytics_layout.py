@@ -1,6 +1,5 @@
 import dash_bootstrap_components as dbc
-from dash import dcc, html
-import pytest
+from dash import dcc
 
 from stashstats.analytics.distributions import StashDistributionCalculator
 from stashstats.models.analytics import StashHorizon, StashVelocityReport

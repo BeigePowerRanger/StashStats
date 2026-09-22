@@ -1,16 +1,15 @@
 """Reactive Dash callbacks for Stash Analytics chart rendering, metric updates, and unit switching."""
 
+import contextlib
 import logging
 from typing import Any
 
 import dash
-import plotly.graph_objects as go
-from dash import Input, Output, State, callback_context
+from dash import Input, Output
 
 from stashstats.analytics.distributions import StashDistributionCalculator
 from stashstats.analytics.projects import StashProjectUsageCalculator
 from stashstats.analytics.velocity import StashVelocityCalculator
-from stashstats.models.analytics import StashHorizon, StashVelocityReport
 from stashstats.models.project import Project
 from stashstats.models.stash import StashItem
 from stashstats.web.components.analytics import create_kpi_summary_cards
@@ -45,7 +44,7 @@ def update_analytics_dashboard_logic(
             try:
                 stash_items.append(StashItem.model_validate(d))
             except Exception:
-                try:
+                with contextlib.suppress(Exception):
                     stash_items.append(
                         StashItem(
                             id=d.get("id") or 0,
@@ -60,8 +59,6 @@ def update_analytics_dashboard_logic(
                             yarn_weight_name=d.get("yarn_weight_name"),
                         )
                     )
-                except Exception:
-                    pass
 
     raw_projs = raw_projects_data or []
     project_items: list[Project] = []
@@ -69,10 +66,8 @@ def update_analytics_dashboard_logic(
         if isinstance(p, Project):
             project_items.append(p)
         elif isinstance(p, dict):
-            try:
+            with contextlib.suppress(Exception):
                 project_items.append(Project.model_validate(p))
-            except Exception:
-                pass
 
     # Extract histories embedded on stash items or raw_items if histories_data is None
     histories: dict[int, Any] = {}
@@ -103,22 +98,38 @@ def update_analytics_dashboard_logic(
 
     # Compute baseline metrics
     total_yards = sum(
-        (getattr(item, "yards_remaining", None) if getattr(item, "yards_remaining", None) is not None else item.total_yards)
+        (
+            getattr(item, "yards_remaining", None)
+            if getattr(item, "yards_remaining", None) is not None
+            else item.total_yards
+        )
         or 0.0
         for item in stash_items
     )
     total_meters = sum(
-        (getattr(item, "meters_remaining", None) if getattr(item, "meters_remaining", None) is not None else item.total_meters)
+        (
+            getattr(item, "meters_remaining", None)
+            if getattr(item, "meters_remaining", None) is not None
+            else item.total_meters
+        )
         or ((getattr(item, "total_yards", 0.0) or 0.0) * 0.9144)
         for item in stash_items
     )
     total_grams = sum(
-        (getattr(item, "grams_remaining", None) if getattr(item, "grams_remaining", None) is not None else item.total_grams)
+        (
+            getattr(item, "grams_remaining", None)
+            if getattr(item, "grams_remaining", None) is not None
+            else item.total_grams
+        )
         or 0.0
         for item in stash_items
     )
     total_skeins = sum(
-        (getattr(item, "skeins_remaining", None) if getattr(item, "skeins_remaining", None) is not None else item.skeins)
+        (
+            getattr(item, "skeins_remaining", None)
+            if getattr(item, "skeins_remaining", None) is not None
+            else item.skeins
+        )
         or 0.0
         for item in stash_items
     )
@@ -127,12 +138,8 @@ def update_analytics_dashboard_logic(
     # Velocity Report calculation
     report = StashVelocityCalculator.generate_report(stash_items, histories)
 
-    monthly_burn_rate = (
-        report.horizon.monthly_burn_rate_yards if report.horizon else 0.0
-    )
-    months_remaining = (
-        report.horizon.months_remaining if report.horizon else None
-    )
+    monthly_burn_rate = report.horizon.monthly_burn_rate_yards if report.horizon else 0.0
+    months_remaining = report.horizon.months_remaining if report.horizon else None
 
     kpi_cards = create_kpi_summary_cards(
         total_yards=total_yards,
@@ -206,7 +213,7 @@ def register_analytics_callbacks(app: dash.Dash) -> None:
                 pass
 
         # Collect local histories from raw_stash_data
-        for it in (raw_stash_data or []):
+        for it in raw_stash_data or []:
             if isinstance(it, dict):
                 sid = it.get("id")
                 if sid and it.get("history"):

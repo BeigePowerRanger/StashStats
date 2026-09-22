@@ -6,8 +6,6 @@ from typing import Literal
 from pydantic import BaseModel, Field, computed_field
 
 
-
-
 class StashDeltaEvent(BaseModel):
     """An atomic change event in stash quantity between two snapshots."""
 
@@ -215,4 +213,3 @@ class ProjectConsumptionSummary(BaseModel):
 
     project_count: int = 0
     """Unique count of projects made from stash."""
-

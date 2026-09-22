@@ -1,6 +1,7 @@
-import logging
 from pathlib import Path
+
 from stashstats.logging import setup_logging
+
 
 def test_setup_logging_creates_file(tmp_path: Path) -> None:
     log_file = tmp_path / "test.log"

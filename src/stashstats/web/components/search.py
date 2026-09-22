@@ -4,7 +4,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import dash_bootstrap_components as dbc
-from dash import dcc, html
+from dash import html
 
 from stashstats.models.yarn import YarnSearchResult
 
@@ -162,7 +162,9 @@ def create_yarn_search_details(
         specs.append(html.P(f"Weight: {yarn.yarn_weight.name}"))
     elif grams is not None:
         specs.append(
-            html.P(f"Weight: {grams:g}g" if isinstance(grams, (int, float)) else f"Weight: {grams}g")
+            html.P(
+                f"Weight: {grams:g}g" if isinstance(grams, (int, float)) else f"Weight: {grams}g"
+            )
         )
 
     if yardage is not None:
@@ -184,7 +186,9 @@ def create_yarn_search_details(
         specs.append(html.P(f"Texture: {yarn.texture}"))
 
     if yarn.rating_average is not None and yarn.rating_average > 0:
-        specs.append(html.P(f"Rating: {yarn.rating_average:.2f} ★ ({yarn.rating_count or 0} ratings)"))
+        specs.append(
+            html.P(f"Rating: {yarn.rating_average:.2f} ★ ({yarn.rating_count or 0} ratings)")
+        )
 
     if yarn.permalink:
         link_btn = dbc.Button(
@@ -204,10 +208,7 @@ def create_yarn_search_details(
         colorway_components.append(html.Strong("Colorways:"))
         colorway_components.append(
             html.Div(
-                [
-                    dbc.Badge(c, color="secondary", className="me-1 mb-1")
-                    for c in colorways
-                ],
+                [dbc.Badge(c, color="secondary", className="me-1 mb-1") for c in colorways],
                 style={"flexWrap": "wrap", "display": "flex", "marginTop": "5px"},
             )
         )
@@ -241,7 +242,8 @@ def create_yarn_search_details(
                             dbc.Label("Colorway (API)"),
                             dbc.Select(
                                 id={"type": "stash-colorway", "index": yarn_id},
-                                options=[{"label": "-- Select API Colorway --", "value": ""}] + colorway_options
+                                options=[{"label": "-- Select API Colorway --", "value": ""}]
+                                + colorway_options
                                 if colorways
                                 else [{"label": "No API colorways", "value": ""}],
                                 value=colorways[0] if colorways else "",
@@ -507,10 +509,7 @@ def create_yarn_search_accordion(
             id="yarn-search-empty-state",
         )
 
-    items = [
-        create_yarn_search_accordion_item(y, index=i)
-        for i, y in enumerate(yarns)
-    ]
+    items = [create_yarn_search_accordion_item(y, index=i) for i, y in enumerate(yarns)]
 
     return dbc.Accordion(
         items,

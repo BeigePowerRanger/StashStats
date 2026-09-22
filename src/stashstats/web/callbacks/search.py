@@ -1,23 +1,20 @@
 """Reactive callbacks for Yarn Search form inputs, API search execution, and pagination."""
 
 import logging
+from datetime import UTC, datetime
 from typing import Any
 
 import dash
 import dash_bootstrap_components as dbc
-from dash import ALL, MATCH, Input, Output, State, ctx, html
-
-from datetime import UTC, datetime
+from dash import ALL, Input, Output, State, ctx, html
 
 from stashstats.client import RavelryClient
 from stashstats.web.components.search import create_yarn_search_accordion
-
 
 logger = logging.getLogger(__name__)
 
 
 def build_search_query(query: str | None, brand: str | None) -> str:
-
     """Build unified search query string combining brand and keyword filters.
 
     Args:
@@ -221,11 +218,14 @@ def handle_yarn_search_callback(
     page_size: int = 25,
 ) -> tuple[Any, int, int, str, list[dict[str, Any]], dict[str, Any]]:
     """Parse trigger sources, determine target query/page, and run search."""
-    if not triggered_id and not any([n_clicks, query_submit, brand_submit, sort_val, active_page, query_val, brand_val]):
+    if not triggered_id and not any(
+        [n_clicks, query_submit, brand_submit, sort_val, active_page, query_val, brand_val]
+    ):
         raise dash.exceptions.PreventUpdate
 
     is_user_trigger = bool(
-        triggered_id in (
+        triggered_id
+        in (
             "yarn-search-btn",
             "yarn-search-query-input",
             "yarn-search-brand-input",
@@ -311,24 +311,16 @@ def handle_add_to_stash_logic(
             matching_yarn = y if isinstance(y, dict) else y.model_dump()
             break
 
-    yarn_name = (
-        matching_yarn.get("name")
-        if matching_yarn
-        else f"Yarn #{yarn_id}"
-    )
-    brand_name = (
-        matching_yarn.get("yarn_company_name")
-        if matching_yarn
-        else ""
-    )
-    display_title = (
-        f"{brand_name} {yarn_name}".strip()
-        if brand_name
-        else yarn_name
-    )
+    yarn_name = matching_yarn.get("name") if matching_yarn else f"Yarn #{yarn_id}"
+    brand_name = matching_yarn.get("yarn_company_name") if matching_yarn else ""
+    display_title = f"{brand_name} {yarn_name}".strip() if brand_name else yarn_name
 
-    total_grams = (skeins * grams_per_skein) if skeins is not None and grams_per_skein is not None else None
-    total_yards = (skeins * yards_per_skein) if skeins is not None and yards_per_skein is not None else None
+    total_grams = (
+        (skeins * grams_per_skein) if skeins is not None and grams_per_skein is not None else None
+    )
+    total_yards = (
+        (skeins * yards_per_skein) if skeins is not None and yards_per_skein is not None else None
+    )
 
     # 1. Online API call if client is available
     if client is not None:
@@ -374,15 +366,14 @@ def handle_add_to_stash_logic(
     final_total_grams = total_grams if total_grams is not None else fallback_total_grams
 
     # Generate synthetic ID
-    synthetic_id = (
-        max([it.get("id", 0) for it in raw_stash if isinstance(it, dict)] or [0])
-        + 1001
-    )
+    synthetic_id = max([it.get("id", 0) for it in raw_stash if isinstance(it, dict)] or [0]) + 1001
 
     new_stash_item: dict[str, Any] = {
         "id": synthetic_id,
         "name": display_title,
-        "permalink": matching_yarn.get("permalink", f"stash-{synthetic_id}") if matching_yarn else f"stash-{synthetic_id}",
+        "permalink": matching_yarn.get("permalink", f"stash-{synthetic_id}")
+        if matching_yarn
+        else f"stash-{synthetic_id}",
         "colorway_name": effective_colorway,
         "dye_lot": dyelot,
         "location": location,
@@ -529,13 +520,19 @@ def register_search_callbacks(app: dash.Dash) -> None:
             yarn_id=int(clicked_yarn_id),
             skeins=skeins_list[target_idx],
             colorway=colorway_list[target_idx],
-            manual_colorway=manual_colorway_list[target_idx] if manual_colorway_list and target_idx < len(manual_colorway_list) else None,
+            manual_colorway=manual_colorway_list[target_idx]
+            if manual_colorway_list and target_idx < len(manual_colorway_list)
+            else None,
             dyelot=dyelot_list[target_idx],
             location=location_list[target_idx],
             notes=notes_list[target_idx],
             date_added=date_added_list[target_idx],
-            grams_per_skein=grams_list[target_idx] if grams_list and target_idx < len(grams_list) else None,
-            yards_per_skein=yards_list[target_idx] if yards_list and target_idx < len(yards_list) else None,
+            grams_per_skein=grams_list[target_idx]
+            if grams_list and target_idx < len(grams_list)
+            else None,
+            yards_per_skein=yards_list[target_idx]
+            if yards_list and target_idx < len(yards_list)
+            else None,
             search_results=search_results,
             raw_stash_items=raw_stash_items,
         )

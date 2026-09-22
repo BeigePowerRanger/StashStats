@@ -51,7 +51,9 @@ def handle_account_modal_toggle_logic(
 def handle_account_switch_confirm_logic(
     n_clicks: int | None,
     account_mgr: Any = None,
-) -> tuple[bool, list[Any], str, dict[str, Any], list[dict[str, Any]], list[dict[str, Any]], dict[str, str]]:
+) -> tuple[
+    bool, list[Any], str, dict[str, Any], list[dict[str, Any]], list[dict[str, Any]], dict[str, str]
+]:
     """Execute account switch: toggle active credentials, reload stash + projects, update header badge."""
     if not n_clicks:
         raise dash.exceptions.PreventUpdate
@@ -66,10 +68,7 @@ def handle_account_switch_confirm_logic(
             raw_stash = client.get_all_my_stash()
         else:
             raw_stash = client.get_my_stash().stash
-        fresh_stash = [
-            it.model_dump() if hasattr(it, "model_dump") else it
-            for it in raw_stash
-        ]
+        fresh_stash = [it.model_dump() if hasattr(it, "model_dump") else it for it in raw_stash]
     except Exception as e:
         logger.warning(f"Failed to fetch stash on account switch: {e}")
 
@@ -77,8 +76,7 @@ def handle_account_switch_confirm_logic(
     try:
         raw_projects = client.get_my_projects().projects
         fresh_projects = [
-            it.model_dump() if hasattr(it, "model_dump") else it
-            for it in raw_projects
+            it.model_dump() if hasattr(it, "model_dump") else it for it in raw_projects
         ]
     except Exception as e:
         logger.warning(f"Failed to fetch projects on account switch: {e}")
@@ -155,7 +153,15 @@ def register_auth_callbacks(app: dash.Dash) -> None:
     )
     def confirm_account_switch(
         n_clicks: int | None,
-    ) -> tuple[bool, list[Any], str, dict[str, Any], list[dict[str, Any]], list[dict[str, Any]], dict[str, str]]:
+    ) -> tuple[
+        bool,
+        list[Any],
+        str,
+        dict[str, Any],
+        list[dict[str, Any]],
+        list[dict[str, Any]],
+        dict[str, str],
+    ]:
         res = handle_account_switch_confirm_logic(n_clicks=n_clicks)
         # Update client reference on app
         app.client = account_manager.get_client()

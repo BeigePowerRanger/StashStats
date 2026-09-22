@@ -57,6 +57,7 @@ class YarnClientMixin:
         }
         data = self.get("/yarns/search.json", params=params)
         return YarnSearchResponse.model_validate(data)
+
     # end snippet yarn-search
 
     search_yarn = search_yarns

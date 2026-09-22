@@ -1,8 +1,6 @@
-import json
 from datetime import UTC, datetime
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 
-import httpx
 import pytest
 
 from stashstats.client import RavelryClient
@@ -75,18 +73,21 @@ class TestClientAnalytics:
             ],
         )
 
-        with patch.object(
-            RavelryClient,
-            "get_my_stash",
-            return_value=StashListResponse(
-                stash=sample_items,
-                paginator=Paginator(page=1, page_size=50, page_count=1, total=2),
-            ),
-        ) as mock_get_stash, patch.object(
-            RavelryClient,
-            "get_batch_stash_history",
-            return_value={10: history_10, 20: history_20},
-        ) as mock_get_histories:
+        with (
+            patch.object(
+                RavelryClient,
+                "get_my_stash",
+                return_value=StashListResponse(
+                    stash=sample_items,
+                    paginator=Paginator(page=1, page_size=50, page_count=1, total=2),
+                ),
+            ) as mock_get_stash,
+            patch.object(
+                RavelryClient,
+                "get_batch_stash_history",
+                return_value={10: history_10, 20: history_20},
+            ) as mock_get_histories,
+        ):
             report = client.get_stash_velocity_report(as_of=datetime(2026, 8, 15, tzinfo=UTC))
 
             mock_get_stash.assert_called_once_with(

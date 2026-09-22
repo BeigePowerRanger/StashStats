@@ -1,11 +1,10 @@
 from stashstats.analytics.distributions import (
-    CategoryDistribution,
     StashDistributionCalculator,
     StashDistributionSummary,
 )
 from stashstats.models.common import YarnCompany
 from stashstats.models.stash import StashItem, StashYarn
-from stashstats.models.yarn import FiberType, YarnFiber, YarnWeight
+from stashstats.models.yarn import YarnWeight
 
 
 def sample_stash_items() -> list[StashItem]:

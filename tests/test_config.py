@@ -1,7 +1,6 @@
 """Unit tests for Settings configuration and credential management."""
 
 import pytest
-from pydantic import SecretStr
 
 from stashstats.config import Settings
 

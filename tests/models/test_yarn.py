@@ -1,4 +1,3 @@
-
 import pytest
 from pydantic import ValidationError
 
@@ -25,7 +24,13 @@ class TestFiberType:
 
     def test_fiber_type_flags(self):
         ft = FiberType.model_validate(
-            {"id": 2, "name": "Alpaca", "animal_fiber": True, "synthetic": False, "vegetable": False}
+            {
+                "id": 2,
+                "name": "Alpaca",
+                "animal_fiber": True,
+                "synthetic": False,
+                "vegetable": False,
+            }
         )
         assert ft.animal_fiber is True
 
@@ -433,4 +438,3 @@ class TestYarnDetailResponse:
         resp = YarnDetailResponse.model_validate(data)
         assert resp.yarn.id == 2420
         assert resp.yarn.name == "Rios"
-

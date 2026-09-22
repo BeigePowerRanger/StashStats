@@ -32,7 +32,7 @@ class YarnWeight(BaseModel):
 
     max_gauge: float | None = None
     """Maximum gauge value."""
-# end snippet yarn-weight-model
+    # end snippet yarn-weight-model
 
     @field_validator("name")
     @classmethod
@@ -59,7 +59,11 @@ class YarnWeight(BaseModel):
 
     @model_validator(mode="after")
     def validate_gauge_range(self) -> "YarnWeight":
-        if self.min_gauge is not None and self.max_gauge is not None and self.min_gauge > self.max_gauge:
+        if (
+            self.min_gauge is not None
+            and self.max_gauge is not None
+            and self.min_gauge > self.max_gauge
+        ):
             raise ValueError(
                 f"min_gauge ({self.min_gauge}) cannot be greater than max_gauge ({self.max_gauge})"
             )
@@ -120,7 +124,7 @@ class YarnFiber(BaseModel):
         try:
             val = round(float(v))
         except (ValueError, TypeError):
-            raise ValueError(f"Invalid fiber percentage: {v}")
+            raise ValueError(f"Invalid fiber percentage: {v}") from None
         if not (0 <= val <= 100):
             raise ValueError(f"Fiber percentage must be between 0 and 100, got {val}")
         return val
@@ -225,7 +229,7 @@ class Yarn(BaseModel):
 
     colorways: list[Colorway] = Field(default_factory=list)
     """Colorway options and catalog colorways for the commercial yarn."""
-# end snippet yarn-model
+    # end snippet yarn-model
 
     @field_validator("name", "permalink")
     @classmethod
@@ -387,7 +391,11 @@ class YarnSearchResult(BaseModel):
 
     @model_validator(mode="after")
     def validate_gauge_range(self) -> "YarnSearchResult":
-        if self.min_gauge is not None and self.max_gauge is not None and self.min_gauge > self.max_gauge:
+        if (
+            self.min_gauge is not None
+            and self.max_gauge is not None
+            and self.min_gauge > self.max_gauge
+        ):
             raise ValueError(
                 f"min_gauge ({self.min_gauge}) cannot be greater than max_gauge ({self.max_gauge})"
             )
@@ -429,4 +437,3 @@ class YarnDetailResponse(BaseModel):
             if cws and isinstance(yarn_obj, dict) and not yarn_obj.get("colorways"):
                 yarn_obj["colorways"] = cws
         return data
-

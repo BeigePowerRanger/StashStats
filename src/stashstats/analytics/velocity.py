@@ -4,7 +4,6 @@ from collections import defaultdict
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-
 from stashstats.models.analytics import (
     PeriodicRollup,
     RollingVelocity,
@@ -35,7 +34,7 @@ class StashVelocityCalculator:
         Returns:
             Sorted list of StashDeltaEvent instances.
         """
-# end snippet velocity-calculator
+        # end snippet velocity-calculator
         all_events: list[StashDeltaEvent] = []
         covered_stash_ids: set[int] = set()
 
@@ -123,7 +122,9 @@ class StashVelocityCalculator:
                         acq_ts = (
                             getattr(matched_item, "created_at", None)
                             or getattr(matched_item, "purchased", None)
-                            or (datetime.now(tz=UTC) - timedelta(days=60)).strftime("%Y/%m/%d %H:%M:%S +0000")
+                            or (datetime.now(tz=UTC) - timedelta(days=60)).strftime(
+                                "%Y/%m/%d %H:%M:%S +0000"
+                            )
                         )
                         orig_yds = (matched_item.total_yards or 0.0) + total_consumed_yds
                         orig_sk = (matched_item.skeins or 0.0) + total_consumed_sk
@@ -144,13 +145,23 @@ class StashVelocityCalculator:
                     covered_stash_ids.add(stash_id)
                     sorted_entries = sorted(
                         entries,
-                        key=lambda e: (e.datetime if hasattr(e, "datetime") else None)
-                        or (datetime.fromisoformat(e["date"]).replace(tzinfo=UTC) if isinstance(e, dict) and e.get("date") else None)
-                        or datetime.min.replace(tzinfo=UTC),
+                        key=lambda e: (
+                            (e.datetime if hasattr(e, "datetime") else None)
+                            or (
+                                datetime.fromisoformat(e["date"]).replace(tzinfo=UTC)
+                                if isinstance(e, dict) and e.get("date")
+                                else None
+                            )
+                            or datetime.min.replace(tzinfo=UTC)
+                        ),
                     )
 
                     initial_entry = sorted_entries[0]
-                    initial_skeins = initial_entry.skeins if hasattr(initial_entry, "skeins") else initial_entry.get("skeins", 0.0)
+                    initial_skeins = (
+                        initial_entry.skeins
+                        if hasattr(initial_entry, "skeins")
+                        else initial_entry.get("skeins", 0.0)
+                    )
                     initial_grams = (
                         (initial_entry.total_grams or initial_entry.grams or 0.0)
                         if hasattr(initial_entry, "total_grams")
@@ -182,13 +193,37 @@ class StashVelocityCalculator:
                         prev = sorted_entries[i - 1]
                         curr = sorted_entries[i]
 
-                        prev_grams = (prev.total_grams or prev.grams or 0.0) if hasattr(prev, "total_grams") else (prev.get("total_grams") or prev.get("grams") or 0.0)
-                        curr_grams = (curr.total_grams or curr.grams or 0.0) if hasattr(curr, "total_grams") else (curr.get("total_grams") or curr.get("grams") or 0.0)
-                        prev_yards = (prev.total_yards or prev.yards or 0.0) if hasattr(prev, "total_yards") else (prev.get("total_yards") or prev.get("yards") or 0.0)
-                        curr_yards = (curr.total_yards or curr.yards or 0.0) if hasattr(curr, "total_yards") else (curr.get("total_yards") or curr.get("yards") or 0.0)
-                        prev_skeins = prev.skeins if hasattr(prev, "skeins") else prev.get("skeins", 0.0)
-                        curr_skeins = curr.skeins if hasattr(curr, "skeins") else curr.get("skeins", 0.0)
-                        curr_ts = curr.timestamp if hasattr(curr, "timestamp") else (curr.get("timestamp") or curr.get("date"))
+                        prev_grams = (
+                            (prev.total_grams or prev.grams or 0.0)
+                            if hasattr(prev, "total_grams")
+                            else (prev.get("total_grams") or prev.get("grams") or 0.0)
+                        )
+                        curr_grams = (
+                            (curr.total_grams or curr.grams or 0.0)
+                            if hasattr(curr, "total_grams")
+                            else (curr.get("total_grams") or curr.get("grams") or 0.0)
+                        )
+                        prev_yards = (
+                            (prev.total_yards or prev.yards or 0.0)
+                            if hasattr(prev, "total_yards")
+                            else (prev.get("total_yards") or prev.get("yards") or 0.0)
+                        )
+                        curr_yards = (
+                            (curr.total_yards or curr.yards or 0.0)
+                            if hasattr(curr, "total_yards")
+                            else (curr.get("total_yards") or curr.get("yards") or 0.0)
+                        )
+                        prev_skeins = (
+                            prev.skeins if hasattr(prev, "skeins") else prev.get("skeins", 0.0)
+                        )
+                        curr_skeins = (
+                            curr.skeins if hasattr(curr, "skeins") else curr.get("skeins", 0.0)
+                        )
+                        curr_ts = (
+                            curr.timestamp
+                            if hasattr(curr, "timestamp")
+                            else (curr.get("timestamp") or curr.get("date"))
+                        )
 
                         delta_skeins = curr_skeins - prev_skeins
                         delta_grams = curr_grams - prev_grams
@@ -222,10 +257,22 @@ class StashVelocityCalculator:
                 first_photo = getattr(item, "first_photo", None)
                 ts = (
                     getattr(item, "purchased", None)
-                    or (primary_pack.purchased_date if primary_pack and getattr(primary_pack, "purchased_date", None) else None)
-                    or (packs[0].purchased_date if packs and getattr(packs[0], "purchased_date", None) else None)
+                    or (
+                        primary_pack.purchased_date
+                        if primary_pack and getattr(primary_pack, "purchased_date", None)
+                        else None
+                    )
+                    or (
+                        packs[0].purchased_date
+                        if packs and getattr(packs[0], "purchased_date", None)
+                        else None
+                    )
                     or getattr(item, "created_at", None)
-                    or (first_photo.created_at if first_photo and getattr(first_photo, "created_at", None) else None)
+                    or (
+                        first_photo.created_at
+                        if first_photo and getattr(first_photo, "created_at", None)
+                        else None
+                    )
                     or datetime.now(tz=UTC).strftime("%Y/%m/%d %H:%M:%S +0000")
                 )
                 initial_skeins = getattr(item, "skeins", None) or 0.0
@@ -410,11 +457,21 @@ class StashVelocityCalculator:
             StashVelocityReport composite report.
         """
         total_active_yards = sum(
-            (getattr(item, "yards_remaining", None) if getattr(item, "yards_remaining", None) is not None else item.total_yards) or 0.0
+            (
+                getattr(item, "yards_remaining", None)
+                if getattr(item, "yards_remaining", None) is not None
+                else item.total_yards
+            )
+            or 0.0
             for item in stash_items
         )
         total_active_skeins = sum(
-            (getattr(item, "skeins_remaining", None) if getattr(item, "skeins_remaining", None) is not None else item.skeins) or 0.0
+            (
+                getattr(item, "skeins_remaining", None)
+                if getattr(item, "skeins_remaining", None) is not None
+                else item.skeins
+            )
+            or 0.0
             for item in stash_items
         )
         total_active_items = len(stash_items)
@@ -431,7 +488,11 @@ class StashVelocityCalculator:
         monthly_burn_rate = (
             velocity_90d.yards_per_month
             if velocity_90d.yards_per_month > 0
-            else (velocity_30d.yards_per_month if velocity_30d.yards_per_month > 0 else velocity_365d.yards_per_month)
+            else (
+                velocity_30d.yards_per_month
+                if velocity_30d.yards_per_month > 0
+                else velocity_365d.yards_per_month
+            )
         )
 
         horizon = cls.calculate_horizon(

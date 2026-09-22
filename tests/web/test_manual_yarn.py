@@ -3,20 +3,15 @@
 from unittest.mock import MagicMock
 
 import dash
-from dash import html
 import dash_bootstrap_components as dbc
 
-from stashstats.web.components.manual_yarn_modal import (
-    create_manual_yarn_modal,
-    DARK_INPUT_STYLE,
-    STATUS_OPTIONS,
-    YARN_WEIGHT_OPTIONS,
-)
 from stashstats.web.callbacks.manual_yarn import (
     handle_manual_add_to_stash_logic,
     register_manual_yarn_callbacks,
 )
-from stashstats.web.app import create_app
+from stashstats.web.components.manual_yarn_modal import (
+    create_manual_yarn_modal,
+)
 
 
 def test_create_manual_yarn_modal_structure() -> None:

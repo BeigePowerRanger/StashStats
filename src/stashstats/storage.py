@@ -1,5 +1,6 @@
 """Multi-user data storage and isolated filesystem management."""
 
+import contextlib
 import io
 import json
 import logging
@@ -32,6 +33,7 @@ def get_minio_client() -> Minio:
         secure=secure,
     )
 
+
 def get_user_data_dir(user_id: str | int, base_dir: Path | str = DEFAULT_DATA_DIR) -> Path:
     """Retrieve and ensure existence of user-isolated data directory.
 
@@ -47,7 +49,9 @@ def get_user_data_dir(user_id: str | int, base_dir: Path | str = DEFAULT_DATA_DI
     return user_dir
 
 
-def get_user_storage_path(user_id: str | int, filename: str, base_dir: Path | str = DEFAULT_DATA_DIR) -> Path:
+def get_user_storage_path(
+    user_id: str | int, filename: str, base_dir: Path | str = DEFAULT_DATA_DIR
+) -> Path:
     """Retrieve full path for a file stored under a specific user directory.
 
     Args:
@@ -111,7 +115,7 @@ def load_user_json(
         return default
 
     try:
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
         logger.debug(f"[STORAGE READ] user_id={user_id} file={filepath}")
         return data
@@ -182,6 +186,7 @@ def get_user_db_path(
 # Project PDF storage utilities
 # ---------------------------------------------------------------------------
 
+
 def sanitise_pdf_filename(filename: str) -> str:
     """Sanitise an uploaded PDF filename for safe filesystem storage.
 
@@ -245,7 +250,9 @@ def save_project_pdf(
         logger.debug(f"[PDF WRITE] user_id={user_id} project_id={project_id} object={object_name}")
         return object_name
     except Exception as e:
-        logger.error(f"[PDF WRITE ERROR] user_id={user_id} project_id={project_id} object={object_name}: {e}")
+        logger.error(
+            f"[PDF WRITE ERROR] user_id={user_id} project_id={project_id} object={object_name}: {e}"
+        )
         raise
 
 
@@ -317,7 +324,9 @@ def delete_project_pdf(
         logger.debug(f"[PDF DELETE] user_id={user_id} project_id={project_id} object={object_name}")
         return True
     except Exception as e:
-        logger.warning(f"[PDF DELETE ERROR] user_id={user_id} project_id={project_id} object={object_name}: {e}")
+        logger.warning(
+            f"[PDF DELETE ERROR] user_id={user_id} project_id={project_id} object={object_name}: {e}"
+        )
         return False
 
 
@@ -351,15 +360,13 @@ def get_project_pdf_bytes(
         response = client.get_object(bucket, object_name)
         return response.read()
     except Exception as e:
-        logger.warning(f"[PDF GET ERROR] user_id={user_id} project_id={project_id} object={object_name}: {e}")
+        logger.warning(
+            f"[PDF GET ERROR] user_id={user_id} project_id={project_id} object={object_name}: {e}"
+        )
         return None
     finally:
         if response is not None:
-            try:
+            with contextlib.suppress(Exception):
                 response.close()
-            except Exception:
-                pass
-            try:
+            with contextlib.suppress(Exception):
                 response.release_conn()
-            except Exception:
-                pass

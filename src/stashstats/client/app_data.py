@@ -237,12 +237,8 @@ class AppDataClientMixin:
         pack = stash_item.primary_pack or (stash_item.packs[0] if stash_item.packs else None)
         resolved_pack_id = pack_id or (pack.id if pack else None)
         skeins = float(pack.skeins) if pack and pack.skeins is not None else 0.0
-        total_grams = (
-            float(pack.total_grams) if pack and pack.total_grams is not None else 0.0
-        )
-        total_yards = (
-            float(pack.total_yards) if pack and pack.total_yards is not None else 0.0
-        )
+        total_grams = float(pack.total_grams) if pack and pack.total_grams is not None else 0.0
+        total_yards = float(pack.total_yards) if pack and pack.total_yards is not None else 0.0
 
         ts = (
             timestamp

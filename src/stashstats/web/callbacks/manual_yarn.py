@@ -6,7 +6,7 @@ from typing import Any
 
 import dash
 import dash_bootstrap_components as dbc
-from dash import Input, Output, State, ctx, html
+from dash import Input, Output, State, html
 
 from stashstats.client import RavelryClient
 from stashstats.models.stash import StashItem
@@ -58,7 +58,10 @@ def handle_manual_add_to_stash_logic(
         return (
             False,
             dbc.Alert(
-                [html.I(className="bi bi-exclamation-triangle-fill me-2"), "Yarn Name is required."],
+                [
+                    html.I(className="bi bi-exclamation-triangle-fill me-2"),
+                    "Yarn Name is required.",
+                ],
                 color="danger",
                 className="py-2 mb-0",
             ),
@@ -73,7 +76,10 @@ def handle_manual_add_to_stash_logic(
         return (
             False,
             dbc.Alert(
-                [html.I(className="bi bi-exclamation-triangle-fill me-2"), "Skeins must be a positive number."],
+                [
+                    html.I(className="bi bi-exclamation-triangle-fill me-2"),
+                    "Skeins must be a positive number.",
+                ],
                 color="danger",
                 className="py-2 mb-0",
             ),
@@ -114,9 +120,7 @@ def handle_manual_add_to_stash_logic(
                 stash_status_id=status_id,
             )
             serialized = (
-                created_item.model_dump()
-                if hasattr(created_item, "model_dump")
-                else created_item
+                created_item.model_dump() if hasattr(created_item, "model_dump") else created_item
             )
             # Ensure name and brand are retained
             if serialized.get("name") in ("untitled", "", None):
@@ -141,10 +145,7 @@ def handle_manual_add_to_stash_logic(
             logger.warning("Failed to create manual stash item via API, using local store: %s", exc)
 
     # 2. Local synthetic fallback
-    synthetic_id = (
-        max([it.get("id", 0) for it in raw_stash if isinstance(it, dict)] or [0])
-        + 1001
-    )
+    synthetic_id = max([it.get("id", 0) for it in raw_stash if isinstance(it, dict)] or [0]) + 1001
 
     new_stash_item: dict[str, Any] = {
         "id": synthetic_id,

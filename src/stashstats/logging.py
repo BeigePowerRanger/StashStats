@@ -1,8 +1,8 @@
 """Centralized logging configuration for StashStats."""
 
 import logging
-from logging.handlers import RotatingFileHandler
 import os
+from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 
@@ -22,7 +22,11 @@ def setup_logging(
     resolved_level_name = (
         log_level
         or os.getenv("LOG_LEVEL")
-        or ("DEBUG" if os.getenv("APP_DEBUG", "true").lower() in ("true", "1", "t", "yes") else "INFO")
+        or (
+            "DEBUG"
+            if os.getenv("APP_DEBUG", "true").lower() in ("true", "1", "t", "yes")
+            else "INFO"
+        )
     )
     level = getattr(logging, resolved_level_name.upper(), logging.INFO)
 

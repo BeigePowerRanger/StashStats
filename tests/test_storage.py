@@ -1,15 +1,11 @@
-import json
-from pathlib import Path
-import pytest
-
 from stashstats.storage import (
-    get_user_data_dir,
-    get_user_storage_path,
-    save_user_json,
-    load_user_json,
     delete_user_file,
-    list_user_files,
+    get_user_data_dir,
     get_user_db_path,
+    get_user_storage_path,
+    list_user_files,
+    load_user_json,
+    save_user_json,
 )
 
 
@@ -35,7 +31,9 @@ class TestMultiUserStorage:
         assert loaded_data == data
 
     def test_load_user_json_missing_default(self, tmp_path):
-        loaded_data = load_user_json("nonexistent", "missing.json", default={"empty": True}, base_dir=tmp_path)
+        loaded_data = load_user_json(
+            "nonexistent", "missing.json", default={"empty": True}, base_dir=tmp_path
+        )
         assert loaded_data == {"empty": True}
 
     def test_user_data_isolation(self, tmp_path):
